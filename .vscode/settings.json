@@ -9,4 +9,7 @@
         "**/node_modules/**": true
     },
     "tslint.autoFixOnSave": true,
+    "cSpell.words": [
+        "epub"
+    ],
 }
