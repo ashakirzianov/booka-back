@@ -4,7 +4,10 @@
   "description": "Booka app backend",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "build-ts": "tsc",
+    "build": "npm run build-ts & npm run lint",
+    "start": "node dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,5 +22,9 @@
   "bugs": {
     "url": "https://github.com/ashakirzianov/booka-back/issues"
   },
-  "homepage": "https://github.com/ashakirzianov/booka-back#readme"
+  "homepage": "https://github.com/ashakirzianov/booka-back#readme",
+  "devDependencies": {
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.6"
+  }
 }
