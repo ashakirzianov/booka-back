@@ -9,7 +9,8 @@
     "build": "npm run build-ts & npm run lint & npm run copy-public",
     "debug": "tsc -w & nodemon dist/index.js",
     "copy-public": "ts-node copyPublic.ts",
-    "start": "node dist/index.js"
+    "serve": "node dist/index.js",
+    "start": "npm run build & npm run serve"
   },
   "repository": {
     "type": "git",
