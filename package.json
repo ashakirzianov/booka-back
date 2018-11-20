@@ -10,7 +10,8 @@
     "debug": "tsc -w & nodemon dist/index.js",
     "copy-public": "ts-node copyPublic.ts",
     "serve": "node dist/index.js",
-    "start": "npm run build & npm run serve"
+    "postinstall": "npm run build",
+    "start": "npm run serve"
   },
   "repository": {
     "type": "git",
