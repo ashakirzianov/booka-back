@@ -6,8 +6,9 @@
   "scripts": {
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "build-ts": "tsc",
-    "build": "npm run build-ts & npm run lint",
+    "build": "npm run build-ts & npm run lint & npm run copy-public",
     "debug": "tsc -w & nodemon dist/index.js",
+    "copy-public": "ts-node copyPublic.ts",
     "start": "node dist/index.js"
   },
   "repository": {
@@ -28,12 +29,15 @@
     "@types/koa": "^2.0.46",
     "@types/koa-route": "^3.2.4",
     "@types/node": "^10.12.9",
+    "@types/shelljs": "^0.8.0",
     "nodemon": "^1.18.6",
     "tslint": "^5.11.0",
     "typescript": "^3.1.6"
   },
   "dependencies": {
     "koa": "^2.6.2",
-    "koa-route": "^3.2.0"
+    "koa-route": "^3.2.0",
+    "shelljs": "^0.8.3",
+    "ts-node": "^7.0.1"
   }
 }
