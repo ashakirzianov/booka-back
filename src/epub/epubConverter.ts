@@ -13,8 +13,7 @@ const convertersRegistry = [
     defaultConverter,
 ];
 
-export function arrayBuffer2book(arrayBuffer: ArrayBuffer): Promise<Book> {
-    const buffer = new Buffer(arrayBuffer);
+export function buffer2book(buffer: Buffer): Promise<Book> {
     const book = epubParser(buffer)
         .then(epub2book);
 

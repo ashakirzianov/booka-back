@@ -1,1 +1,1 @@
-export { arrayBuffer2book } from './epubConverter';
+export { buffer2book } from './epubConverter';
