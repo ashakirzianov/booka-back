@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import { buffer2book } from './epub';
 import { Book } from './model';
 
-const staticLocation = 'public/';
+const staticLocation = 'dist/public/';
 const cacheLocation = '';
 export async function openBook(bookName: string): Promise<Book | undefined> {
     // Try to read from cache
@@ -15,7 +15,7 @@ export async function openBook(bookName: string): Promise<Book | undefined> {
 
     if (await fileExists(epubPath(bookName))) { // Check if epub file exist
         const epubFile = await fileOpen(epubPath(bookName));
-        const book = buffer2book(epubFile);
+        const book = await buffer2book(epubFile);
         const bookString = JSON.stringify(book);
         fileWrite(jsonPath(bookName), bookString);
 
