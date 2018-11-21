@@ -12,7 +12,7 @@ app.use(cors());
 app.use(route.get('/epub/:name', async (ctx, name) => {
     const fileName = name + '.epub';
     if (fileExist(fileName)) {
-        await serveStaticFile(ctx, fileName + '.epub');
+        await serveStaticFile(ctx, fileName);
     }
 }));
 
