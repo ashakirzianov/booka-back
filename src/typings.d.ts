@@ -7,3 +7,11 @@ declare module 'koa-cors' {
     const cors: Cors;
     export = cors;
 }
+
+declare module '@rgrove/parse-xml' {
+    type ParsingOptions = {
+        preserveComments?: boolean,
+    };
+    const parseXml: (xml: string, options?: ParsingOptions) => any;
+    export = parseXml;
+}
