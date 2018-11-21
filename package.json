@@ -6,9 +6,8 @@
   "scripts": {
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "build-ts": "tsc",
-    "build": "npm run build-ts & npm run lint & npm run copy-public",
+    "build": "npm run build-ts & npm run lint",
     "debug": "tsc -w & nodemon dist/index.js",
-    "copy-public": "ts-node copyPublic.ts",
     "serve": "node dist/index.js",
     "postinstall": "npm run build",
     "start": "npm run serve"
@@ -44,7 +43,6 @@
     "koa-cors": "0.0.16",
     "koa-route": "^3.2.0",
     "koa-send": "^5.0.0",
-    "shelljs": "^0.8.3",
     "ts-node": "^7.0.1"
   }
 }

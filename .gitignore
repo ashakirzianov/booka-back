@@ -62,3 +62,6 @@ typings/
 
 # ignore build output
 dist/**/*
+
+# ignore public cache
+public/cache_*

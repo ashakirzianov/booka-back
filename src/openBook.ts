@@ -3,8 +3,8 @@ import { promisify } from 'util';
 import { buffer2book } from './epub';
 import { Book } from './model';
 
-const staticLocation = 'dist/public/';
-const cacheLocation = '';
+const staticLocation = 'public/';
+const cacheLocation = 'cache_';
 export async function openBook(bookName: string): Promise<Book | undefined> {
     // Try to read from cache
     if (await fileExists(jsonPath(bookName))) {
