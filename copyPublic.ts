@@ -1,3 +1,4 @@
 import * as shell from "shelljs";
 
-shell.cp("-R", "public", "dist/public");
+shell.mkdir('dist/public');
+shell.cp('-R', 'public', 'dist/public');
