@@ -15,3 +15,6 @@ declare module '@rgrove/parse-xml' {
     const parseXml: (xml: string, options?: ParsingOptions) => any;
     export = parseXml;
 }
+
+declare type GeneralObject = any;
+declare type HtmlNodeObject = any;

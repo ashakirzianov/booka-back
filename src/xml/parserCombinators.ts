@@ -62,7 +62,7 @@ export function and<TI, T1, T2, T3>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: 
 export function and<TI, T1, T2, T3, T4>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>, p4: Parser<TI, T4>): Parser<TI, [T1, T2, T3, T4]>;
 export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
     return input => {
-        const results = [];
+        const results: any[] = [];
         let lastInput = input;
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](input);
@@ -83,7 +83,7 @@ export function seq<TI, T1, T2, T3, T4>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, 
 export function seq<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
         let currentInput = input;
-        const results = [];
+        const results: any[] = [];
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](currentInput);
             if (!result.success) {
@@ -104,7 +104,7 @@ export function choice<TI, T1, T2, T3, T4>(
 ): Parser<TI, T1 | T2 | T3 | T4>;
 export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
-        const failReasons = [];
+        const failReasons: FailReason[] = [];
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](input);
             if (result.success) {
