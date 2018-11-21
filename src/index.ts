@@ -33,5 +33,5 @@ function fileExist(fileName: string): boolean {
 
 async function serveStaticFile(ctx: Koa.Context, fileName: string) {
     ctx.set('Content-Disposition', `attachment; filename="${fileName}"`);
-    await send(ctx, `dist/public/${fileName}`);
+    await send(ctx, `public/${fileName}`);
 }
