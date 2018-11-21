@@ -39,6 +39,7 @@
   "dependencies": {
     "@types/koa-send": "^4.1.1",
     "koa": "^2.6.2",
+    "koa-cors": "0.0.16",
     "koa-route": "^3.2.0",
     "koa-send": "^5.0.0",
     "shelljs": "^0.8.3",
