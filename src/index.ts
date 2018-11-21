@@ -8,10 +8,22 @@ const app = new Koa();
 
 app.use(cors());
 
-app.use(route.get('/epub/:fileName', async (ctx, fileName) => {
-    const fullName = fileName + '.epub';
-    ctx.set('Content-Disposition', `attachment; filename="${fullName}"`);
-    await send(ctx, `public/${fullName}`);
+app.use(route.get('/epub/:name', async (ctx, name) => {
+    const fileName = name + '.epub';
+    if (fileExist(fileName)) {
+        await serveStaticFile(ctx, fileName + '.epub');
+    }
 }));
 
 app.listen(port);
+
+// --- Utils
+
+function fileExist(fileName: string): boolean {
+    return true; // TODO: implement
+}
+
+async function serveStaticFile(ctx: Koa.Context, fileName: string) {
+    ctx.set('Content-Disposition', `attachment; filename="${fileName}"`);
+    await send(ctx, `public/${fileName}`);
+}
