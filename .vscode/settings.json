@@ -10,6 +10,10 @@
     },
     "tslint.autoFixOnSave": true,
     "cSpell.words": [
-        "epub"
+        "Combinators",
+        "Whitespaces",
+        "epub",
+        "promisify",
+        "rgrove"
     ],
 }

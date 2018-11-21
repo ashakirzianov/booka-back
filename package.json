@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/ashakirzianov/booka-back#readme",
   "devDependencies": {
-    "@types/koa": "^2.0.46",
+    "@types/koa": "^2.0.47",
     "@types/koa-route": "^3.2.4",
     "@types/node": "^10.12.9",
     "@types/shelljs": "^0.8.0",
@@ -37,6 +37,8 @@
     "typescript": "^3.1.6"
   },
   "dependencies": {
+    "@gxl/epub-parser": "^1.0.6",
+    "@rgrove/parse-xml": "^1.1.1",
     "@types/koa-send": "^4.1.1",
     "koa": "^2.6.2",
     "koa-cors": "0.0.16",
