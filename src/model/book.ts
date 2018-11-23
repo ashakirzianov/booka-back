@@ -8,10 +8,14 @@ export type Chapter = {
 
 export type BookNode = Chapter | Paragraph | LoadingStub;
 
-export type ActualBook = {
-    book: "book",
+export type BookMeta = {
     title: string,
     author?: string,
+};
+
+export type ActualBook = {
+    book: "book",
+    meta: BookMeta,
     content: BookNode[],
 };
 

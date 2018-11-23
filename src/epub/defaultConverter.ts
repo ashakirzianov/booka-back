@@ -16,8 +16,10 @@ export const converter: EpubConverter = {
 function defaultEpubConverter(epub: Epub): Promise<Book> {
     return Promise.resolve({
         book: 'book' as 'book',
-        title: epub.info.title,
-        author: epub.info.author,
+        meta: {
+            title: epub.info.title,
+            author: epub.info.author,
+        },
         content: convertSections(epub.sections),
     });
 }
