@@ -64,4 +64,4 @@ typings/
 dist/**/*
 
 # ignore public cache
-public/cache_*
+public/cache/**/*

@@ -11,6 +11,7 @@
     "tslint.autoFixOnSave": true,
     "cSpell.words": [
         "Combinators",
+        "Metas",
         "Whitespaces",
         "epub",
         "promisify",
