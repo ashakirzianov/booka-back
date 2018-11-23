@@ -28,6 +28,7 @@ export async function library(): Promise<Library> {
         }
     }
 
+    // TODO: think of better solution than (async () => await ...)()
     const books = await Promise.all(names.map(n => (async () => ({
         book: await openBook(n),
         id: n,
