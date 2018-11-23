@@ -85,8 +85,11 @@ function buildBook(epub: Epub): Book {
     // TODO: report when no title page
     return {
         book: 'book' as 'book',
-        title: titlePage && titlePage.title || epub.info.title,
-        author: titlePage && titlePage.author || epub.info.author,
+        meta: {
+
+            title: titlePage && titlePage.title || epub.info.title,
+            author: titlePage && titlePage.author || epub.info.author,
+        },
         content: content,
     };
 }
