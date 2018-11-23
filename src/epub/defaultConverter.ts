@@ -1,4 +1,4 @@
-import { Book, BookNode } from "../model";
+import { BookNode, ActualBook } from "../model";
 import { Epub, Section } from "./epubParser";
 import {
     string2tree, XmlNodeDocument, XmlNode,
@@ -13,7 +13,7 @@ export const converter: EpubConverter = {
     convertEpub: defaultEpubConverter,
 };
 
-function defaultEpubConverter(epub: Epub): Promise<Book> {
+function defaultEpubConverter(epub: Epub): Promise<ActualBook> {
     return Promise.resolve({
         book: 'book' as 'book',
         meta: {

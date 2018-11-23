@@ -3,7 +3,7 @@ import {
     string2tree, XmlNodeDocument,
     head, Parser, choice, translate, seq, and, oneOrMore, some,
 } from "../xml";
-import { Book, BookNode } from "../model";
+import { ActualBook, BookNode } from "../model";
 import { filterUndefined } from "../utils";
 import { Epub, Section } from "./epubParser";
 import { EpubConverter } from "./epubConverter";
@@ -55,7 +55,7 @@ type Element = Header | Paragraph | TitlePage;
 
 // ---- Converter
 
-function convertEpub(epub: Epub): Promise<Book> {
+function convertEpub(epub: Epub): Promise<ActualBook> {
     return Promise.resolve(buildBook(epub));
 }
 
@@ -73,7 +73,7 @@ function tree2elements(tree: XmlNodeDocument): Element[] {
     return result.success ? result.value : [];
 }
 
-function buildBook(epub: Epub): Book {
+function buildBook(epub: Epub): ActualBook {
     const structures = epub.sections
         .map(section2elements)
         .reduce((acc, arr) => acc.concat(arr), [])

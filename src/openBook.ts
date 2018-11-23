@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { buffer2book } from './epub';
-import { Book, BookMeta } from './model';
+import { BookMeta, ActualBook } from './model';
 import { Library } from './model/library';
 
 const staticLocation = 'public/';
@@ -13,7 +13,7 @@ async function bookNames(): Promise<string[]> {
     const files = await readdir(staticLocation + epubLocation);
     return files
         .filter(fn => fn.endsWith('.epub'))
-        .map(fn => fn.substr(fn.length - '.epub'.length))
+        .map(fn => fn.substr(0, fn.length - '.epub'.length))
         ;
 }
 
@@ -28,18 +28,24 @@ export async function library(): Promise<Library> {
         }
     }
 
-    const books = await Promise.all(names.map(n => openBook(n)));
-    const newLibrary = books.reduce((lib, book) => lib, {} as Library);
+    const books = await Promise.all(names.map(n => (async () => ({
+        book: await openBook(n),
+        id: n,
+    }))()));
+    const newLibrary = books.reduce((lib, pair) => ({
+        ...lib,
+        [pair.id]: pair.book && pair.book.meta,
+    }), {} as Library);
     writeJson(libraryCachePath, newLibrary);
 
     return newLibrary;
 }
 
-export async function openBook(bookName: string): Promise<Book | undefined> {
+export async function openBook(bookName: string): Promise<ActualBook | undefined> {
     // Try to read from cache
     if (await exists(bookCachePath(bookName))) {
         const json = await openJson(bookCachePath(bookName));
-        return json as Book;
+        return json as ActualBook;
     }
 
     if (await exists(epubPath(bookName))) { // Check if epub file exist
@@ -54,10 +60,14 @@ export async function openBook(bookName: string): Promise<Book | undefined> {
 }
 
 async function openJson(path: string): Promise<object | undefined> {
-    const content = await readFile(path, 'utf8');
-    const json = JSON.parse(content);
+    try {
+        const content = await readFile(path, 'utf8');
+        const json = content && JSON.parse(content);
 
-    return json;
+        return json;
+    } catch {
+        return undefined;
+    }
 }
 
 async function writeJson(path: string, obj: object): Promise<void> {
