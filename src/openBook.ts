@@ -4,7 +4,8 @@ import { buffer2book } from './epub';
 import { Book } from './model';
 
 const staticLocation = 'public/';
-const cacheLocation = 'cache_';
+const epubLocation = 'epub/';
+const cacheLocation = 'cache/';
 export async function openBook(bookName: string): Promise<Book | undefined> {
     // Try to read from cache
     if (await fileExists(jsonPath(bookName))) {
@@ -26,7 +27,7 @@ export async function openBook(bookName: string): Promise<Book | undefined> {
 }
 
 function epubPath(bookName: string) {
-    return staticLocation + bookName + '.epub';
+    return staticLocation + epubLocation + bookName + '.epub';
 }
 
 function jsonPath(bookName: string) {
