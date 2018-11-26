@@ -14,23 +14,18 @@ app.use(route.get('/epub/:name', async (ctx, name) => {
     await serveStaticFile(ctx, fileName);
 }));
 
-app.use(route.get('/json/:name', async (ctx, name) => {
-    const book = await openBook(name);
-    if (book) {
-        ctx.body = book;
-    }
-}));
-
-app.use(route.get('/library', async ctx => {
-    const lib = await library();
-    if (lib) {
-        ctx.body = lib;
-    }
-}));
+app.use(route.get('/json/:name', serveJson(name => openBook(name))));
+app.use(route.get('/library', serveJson(() => library())));
 
 app.listen(port);
 
 // --- Utils
+
+function serveJson<T>(f: (x: string) => T) {
+    return async (ctx, param) => {
+        ctx.body = await f(param);
+    };
+}
 
 async function serveStaticFile(ctx: Koa.Context, fileName: string) {
     ctx.set('Content-Disposition', `attachment; filename="${fileName}"`);
