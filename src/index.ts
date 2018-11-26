@@ -9,10 +9,7 @@ const app = new Koa();
 
 app.use(cors());
 
-app.use(route.get('/epub/:name', async (ctx, name) => {
-    const fileName = name + '.epub';
-    await serveStaticFile(ctx, fileName);
-}));
+app.use(route.get('/epub/:name', serveFile(n => `public/epub/${n}.epub`)));
 
 app.use(route.get('/json/:name', serveJson(name => openBook(name))));
 app.use(route.get('/library', serveJson(() => library())));
@@ -27,7 +24,11 @@ function serveJson<T>(f: (x: string) => T) {
     };
 }
 
-async function serveStaticFile(ctx: Koa.Context, fileName: string) {
-    ctx.set('Content-Disposition', `attachment; filename="${fileName}"`);
-    await send(ctx, `public/${fileName}`);
+function serveFile(f: (name: string) => string) {
+    return async (ctx, name: string) => {
+        const fileName = f(name);
+        const ext = fileName.split('.').pop();
+        ctx.set('Content-Disposition', `attachment; filename="${name}.${ext}"`);
+        await send(ctx, fileName);
+    };
 }
