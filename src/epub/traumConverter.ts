@@ -200,14 +200,15 @@ export const separatorP = element('div', afterWhitespaces(separatorHeaderP));
 
 const textP = textNode();
 const spanP = element('span', textNode());
+const italicsP = element('em', textNode());
 const linkP = translate(element('a'), _ => ''); // TODO: implement links
 
 const paragraphContentP = translate(
-    some(choice(textP, spanP, linkP)),
+    some(choice(textP, spanP, italicsP, linkP)),
     texts => texts.reduce((acc, t) => acc + t, ''),
 );
 
-const paragraphP = translate(
+export const paragraphP = translate(
     element('p', paragraphContentP),
     text => ({
         element: 'paragraph' as 'paragraph',

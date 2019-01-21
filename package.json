@@ -10,7 +10,8 @@
     "debug": "tsc -w & nodemon dist/index.js",
     "serve": "node dist/index.js",
     "postinstall": "npm run build",
-    "start": "npm run serve"
+    "start": "npm run serve",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -26,13 +27,19 @@
     "url": "https://github.com/ashakirzianov/booka-back/issues"
   },
   "homepage": "https://github.com/ashakirzianov/booka-back#readme",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "devDependencies": {
+    "@types/jest": "^23.3.10",
     "@types/koa": "^2.0.47",
     "@types/koa-route": "^3.2.4",
     "@types/koa__cors": "^2.2.2",
     "@types/node": "^10.12.10",
     "@types/shelljs": "^0.8.0",
+    "jest": "^23.6.0",
     "nodemon": "^1.18.7",
+    "ts-jest": "^23.10.5",
     "tslint": "^5.11.0",
     "typescript": "^3.1.6"
   },
