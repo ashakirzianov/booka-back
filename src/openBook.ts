@@ -52,7 +52,7 @@ export async function openBook(bookName: string): Promise<ActualBook | undefined
     if (await exists(epubPath(bookName))) { // Check if epub file exist
         const epubFile = await readFile(epubPath(bookName));
         const book = await buffer2book(epubFile);
-        writeJson(bookCachePath(bookName), book);
+        await writeJson(bookCachePath(bookName), book);
 
         return book;
     }
@@ -81,7 +81,7 @@ function epubPath(bookName: string) {
 }
 
 function bookCachePath(bookName: string) {
-    return staticLocation + cacheLocation + epubLocation + bookName + '.json';
+    return staticLocation + cacheLocation + bookName + '.json';
 }
 
 const exists = promisify(fs.exists);

@@ -1,7 +1,7 @@
 import * as Koa from 'koa';
 import * as route from 'koa-route';
 import * as send from 'koa-send';
-import * as cors from 'koa-cors';
+import * as cors from '@koa/cors';
 import { openBook, library } from './openBook';
 
 const port = process.env.PORT || 3042;
@@ -28,7 +28,7 @@ function serveFile(f: (name: string) => string) {
     return async (ctx, name: string) => {
         const fileName = f(name);
         const ext = fileName.split('.').pop();
-        ctx.set('Content-Disposition', `attachment; filename="${name}.${ext}"`);
+        ctx.attachment(`${name}.${ext}`);
         await send(ctx, fileName);
     };
 }
