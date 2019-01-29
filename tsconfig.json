@@ -11,7 +11,9 @@
         "noImplicitThis": true,
         "noImplicitAny": false,
         "strict": true,
-        "suppressImplicitAnyIndexErrors": false
+        "suppressImplicitAnyIndexErrors": false,
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true
     },
     "exclude": [
         "node_modules"
