@@ -1,8 +1,6 @@
-import * as Router from 'koa-router'
-import ApiRouter from './api';
+import * as KoaRouter from 'koa-router';
+import { ApiRouter } from './api';
 
-const router = new Router();
+export const Router = new KoaRouter();
 
-router.use('', ApiRouter.routes());
-
-export default router;
+Router.use('', ApiRouter.routes());

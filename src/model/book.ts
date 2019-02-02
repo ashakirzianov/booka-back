@@ -1,6 +1,6 @@
 export type Paragraph = string;
 export type Chapter = {
-    book: "chapter",
+    book: 'chapter',
     level: number,
     title?: string,
     content: BookNode[],
@@ -14,7 +14,7 @@ export type BookMeta = {
 };
 
 export type ActualBook = {
-    book: "book",
+    book: 'book',
     meta: BookMeta,
     content: BookNode[],
 };

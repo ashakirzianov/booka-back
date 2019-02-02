@@ -1,12 +1,12 @@
 import { SwaggerRouter } from 'koa-swagger-decorator';
-import EpubRouter from './routes/epub';
-import JsonRouter from './routes/json';
-import LibraryRouter from './routes/library';
+import { EpubRouter } from './epub';
+import { JsonRouter } from './json';
+import { LibraryRouter } from './library';
 
-const router = new SwaggerRouter();
+export const ApiRouter = new SwaggerRouter();
 
-// swagger docs avaliable at http://localhost:3000/swagger-html
-router.swagger({
+// swagger docs available at http://localhost:3042/swagger-html
+ApiRouter.swagger({
   title: 'Booka Back',
   description: 'Booka API',
   version: '1.0.0',
@@ -19,13 +19,11 @@ router.swagger({
       defaultModelsExpandDepth: 4,
       defaultModelExpandDepth: 3,
       docExpansion: 'list',
-      defaultModelRendering: 'model'
-    }
-  }
+      defaultModelRendering: 'model',
+    },
+  },
 });
 
-router.map(EpubRouter, { });
-router.map(JsonRouter, { });
-router.map(LibraryRouter, { });
-
-export default router;
+ApiRouter.map(EpubRouter, {});
+ApiRouter.map(JsonRouter, {});
+ApiRouter.map(LibraryRouter, {});

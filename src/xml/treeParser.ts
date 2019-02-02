@@ -1,14 +1,14 @@
 import {
     XmlNode, hasChildren, isElement,
     XmlAttributes, XmlNodeElement,
-} from "./xmlNode";
-import { caseInsensitiveEq, isWhitespaces } from "../utils";
+} from './xmlNode';
+import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
     Parser, Result, success, fail,
     head,
     split, seq, some, not, report,
     translate,
-} from "./parserCombinators";
+} from './parserCombinators';
 
 export type XmlParser<TOut = XmlNode> = Parser<XmlNode, TOut>;
 
@@ -154,7 +154,7 @@ export function between<T>(left: XmlParser<any>, right: XmlParser<any>, inside: 
 
 function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input: XmlNode[]): Result<XmlNode, T> {
     if (pathComponents.length === 0) {
-        return fail("parse path: can't parse to empty path");
+        return fail('parse path: can\'t parse to empty path');
     }
     const pc = pathComponents[0];
 
