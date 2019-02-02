@@ -1,12 +1,12 @@
-import { BookNode, ActualBook } from "../model";
-import { Epub, Section } from "./epubParser";
+import { BookNode, ActualBook } from '../model';
+import { Epub, Section } from './epubParser';
 import {
     string2tree, XmlNodeDocument, XmlNode,
     textNode, children,
     translate, choice, some, Result,
-} from "../xml";
-import { EpubConverter } from "./epubConverter";
-import { filterUndefined } from "../utils";
+} from '../xml';
+import { EpubConverter } from './epubConverter';
+import { filterUndefined } from '../utils';
 
 export const converter: EpubConverter = {
     canHandleEpub: _ => true,
@@ -47,7 +47,7 @@ function tree2node(tree: XmlNodeDocument): BookNode[] {
     const result = extractText(tree.children);
     return result.success ?
         result.value
-        : ["CAN NOT PARSE"] // TODO: better reporting
+        : ['CAN NOT PARSE'] // TODO: better reporting
         ;
 }
 

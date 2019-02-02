@@ -9,12 +9,18 @@
         "**/node_modules/**": true
     },
     "tslint.autoFixOnSave": true,
+    "editor.formatOnSave": true,
     "cSpell.words": [
+        "Booka",
         "Combinators",
         "Metas",
+        "Shakirzianov",
+        "Truthy",
         "Whitespaces",
+        "backend",
         "epub",
         "promisify",
-        "rgrove"
+        "rgrove",
+        "traum"
     ],
 }

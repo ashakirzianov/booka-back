@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { buffer2book } from './epub';
-import { BookMeta, ActualBook } from './model';
+import { ActualBook } from './model';
 import { Library } from './model/library';
 
 const staticLocation = 'public/';

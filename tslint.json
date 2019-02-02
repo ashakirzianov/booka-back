@@ -3,7 +3,10 @@
     "rules": {
         "no-object-literal-type-assertion": false,
         "no-unnecessary-initializer": false,
-        "quotemark": false,
+        "quotemark": [
+            true,
+            "single"
+        ],
         "trailing-comma": [
             true,
             {
@@ -19,7 +22,10 @@
         "interface-over-type-literal": false,
         "object-literal-shorthand": false,
         "object-literal-sort-keys": false,
-        "object-literal-key-quotes": [true, "as-needed"],
+        "object-literal-key-quotes": [
+            true,
+            "as-needed"
+        ],
         "no-duplicate-imports": false,
         "no-implicit-dependencies": [
             true,

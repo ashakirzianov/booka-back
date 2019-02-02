@@ -1,7 +1,7 @@
-import { path, element } from "./treeParser";
-import { xmlElement, XmlNode } from "./xmlNode";
-import { expectSuccess } from "../testUtils";
-import { success } from "./parserCombinators";
+import { path, element } from './treeParser';
+import { xmlElement, XmlNode } from './xmlNode';
+import { expectSuccess } from '../testUtils';
+import { success } from './parserCombinators';
 
 export const trueParser = <T>(result: T) => (input: XmlNode[]) => success(result, input);
 export const falseParser = (input: XmlNode[]) => fail();
