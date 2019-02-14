@@ -1,23 +1,40 @@
-import * as mongoose from 'mongoose';
-import { Model } from 'mongoose';
-import { Document, Schema } from 'mongoose';
+import { Model, Document, Schema, model } from 'mongoose';
+import { TypeFromSchema } from './mongooseMapper';
 
-const BookSchema = new Schema(
-    {
-        author: { type: String, index: true },
-        title: { type: String, index: true, required: true },
-        raw: { type: String },
+const schema = {
+    author: {
+        type: String,
+        index: true,
     },
-    { timestamps: true }
-);
-
-export type Book = {
-    _id?: string;
-    author?: string;
-    title: string;
-    raw: string;
+    title: {
+        type: String,
+        index: true,
+        required: true,
+    },
+    raw: {
+        type: String,
+    },
 };
 
-export type BookDocument = Book & Document;
+export type Book = TypeFromSchema<typeof schema>;
+type BookDocument = Book & Document;
 
-export const BookCollection: Model<BookDocument> = mongoose.model<BookDocument>('Book', BookSchema);
+const BookSchema = new Schema(schema, { timestamps: true });
+const BookCollection: Model<BookDocument> = model<BookDocument>('Book', BookSchema);
+
+export async function findBookByTitle(title: string): Promise<Book | null> {
+    return BookCollection.findOne({ title: title }).exec();
+}
+
+export async function insertBook(book: Book) {
+    await BookCollection.insertMany(book);
+}
+
+export async function countBooks(): Promise<number> {
+    return BookCollection.countDocuments().exec();
+}
+
+export async function getBookTitles(): Promise<string[]> {
+    const books = await BookCollection.find({}, ['title']).exec();
+    return books.map(x => x.title);
+}

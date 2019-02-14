@@ -1,3 +1,2 @@
-export { Book } from './book';
-export * from './bookRepository';
+export * from './book';
 export * from './connect';
