@@ -4,7 +4,7 @@ import * as path from 'path';
 
 import { promisify } from 'util';
 import { buffer2book } from '../epub';
-import { insertBook, countBooks } from './bookRepository';
+import { insertBook, countBooks } from './book';
 
 const epubLocation = 'public/epub/';
 
