@@ -29,6 +29,6 @@ export class BookRouter {
             [book.title]: book,
         }), {} as Library);
 
-        return library;
+        ctx.body = library;
     }
 }
