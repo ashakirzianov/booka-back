@@ -1,21 +1,21 @@
 import { request, summary, description, path } from 'koa-swagger-decorator';
 import { Context } from 'koa';
-import { findBookByTitle, getBooksMeta } from '../db';
+import { findBookById, getBooksMeta } from '../db';
 import { Library } from '../model/library';
 
 export class BookRouter {
-    @request('GET', '/json/{title}')
-    @summary('Get full book by title')
+    @request('GET', '/json/{id}')
+    @summary('Get full book by ID')
     @description('Returns JSON representation of requested book')
-    @path({ title: { type: 'string', required: true } })
+    @path({ id: { type: 'string', required: true } })
     static async getBook(ctx: Context) {
-        const title: string = ctx.validatedParams.title;
-        const book = await findBookByTitle(title);
+        const id: string = ctx.validatedParams.id;
+        const book = await findBookById(id);
 
         if (book) {
             ctx.body = book.raw;
         } else {
-            ctx.throw(404, `'${title}' not found`);
+            ctx.throw(404, `'${id}' not found`);
         }
     }
 
@@ -26,7 +26,10 @@ export class BookRouter {
         const books = await getBooksMeta();
         const library: Library = books.reduce((lib, book) => ({
             ...lib,
-            [book.title]: book,
+            [book._id as string]: {
+                author: book.author,
+                title: book.title,
+            },
         }), {} as Library);
 
         ctx.body = library;
