@@ -1,6 +1,7 @@
 import { request, summary, description, path } from 'koa-swagger-decorator';
 import { Context } from 'koa';
-import { findBookByTitle, getBookTitles } from '../db';
+import { findBookByTitle, getBooksMeta } from '../db';
+import { Library } from '../model/library';
 
 export class BookRouter {
     @request('GET', '/json/{title}')
@@ -22,6 +23,12 @@ export class BookRouter {
     @summary('Get list of books')
     @description('Returns list of titles available in the library')
     static async getLibrary(ctx: Context) {
-        ctx.body = await getBookTitles();
+        const books = await getBooksMeta();
+        const library: Library = books.reduce((lib, book) => ({
+            ...lib,
+            [book.title]: book,
+        }), {} as Library);
+
+        return library;
     }
 }

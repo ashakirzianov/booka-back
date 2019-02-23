@@ -34,7 +34,7 @@ export async function countBooks(): Promise<number> {
     return BookCollection.countDocuments().exec();
 }
 
-export async function getBookTitles(): Promise<string[]> {
-    const books = await BookCollection.find({}, ['title']).exec();
-    return books.map(x => x.title);
+export async function getBooksMeta(): Promise<Book[]> {
+    const books = await BookCollection.find({}, ['title', 'author']).exec();
+    return books;
 }
