@@ -1,6 +1,5 @@
 import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
-import * as path from 'path';
 
 import { promisify } from 'util';
 import { buffer2book } from '../epub';
@@ -29,11 +28,11 @@ async function seed() {
         const epubFile = await readFile(epubLocation + file);
         const book = await buffer2book(epubFile);
         const json = JSON.stringify(book);
-        const filename = path.basename(file, '.epub');
 
         insertBook({
             raw: json,
-            title: filename,
+            title: book.meta.title,
+            author: book.meta.author,
         });
     });
 
