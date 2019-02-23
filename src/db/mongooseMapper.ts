@@ -17,6 +17,8 @@ type SchemaDefinition = {
 
 type SchemaField = {
     type: any,
+    index?: boolean,
+    required?: boolean,
 };
 
 type ActualType<T extends SchemaField> =
