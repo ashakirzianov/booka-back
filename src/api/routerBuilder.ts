@@ -14,8 +14,8 @@ type TypeForDescription<P extends ParamDescription> = TypeForName<P[keyof P]>;
 type OptParamDescription = ParamDescription | undefined;
 type GetFuncType<P extends OptParamDescription, TOut> =
     P extends undefined
-    ? () => TOut
-    : (x: TypeForDescription<Exclude<P, undefined>>) => TOut;
+    ? () => Promise<TOut>
+    : (x: TypeForDescription<Exclude<P, undefined>>) => Promise<TOut>;
 export type ApiDescription<Desc extends OptParamDescription> = {
     path: string,
     summary: string,
