@@ -1,6 +1,5 @@
 import { Contracts } from '../model';
 import { bookDocumentById, insertBookDocument, Book, countBookDocs, getBookMetas } from './book';
-import { errorBook } from '../model';
 
 export async function countBooks(): Promise<number> {
     return countBookDocs();
@@ -9,7 +8,7 @@ export async function countBooks(): Promise<number> {
 export async function bookById(id: string): Promise<Contracts.Book> {
     const book = await bookDocumentById(id);
     if (!book || !book.raw) {
-        return errorBook(`Can't find book with id: '${id}'`);
+        return Contracts.errorBook(`Can't find book with id: '${id}'`);
     }
     const parsed = JSON.parse(book.raw);
     const contract = parsed as Contracts.Book;
