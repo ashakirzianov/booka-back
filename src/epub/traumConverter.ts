@@ -3,7 +3,7 @@ import {
     string2tree, XmlNodeDocument,
     head, Parser, choice, translate, seq, and, oneOrMore, some,
 } from '../xml';
-import { Book, BookNode } from './model';
+import { Book, BookNode, span, Span } from './model';
 import { filterUndefined } from '../utils';
 import { Epub, Section } from './epubParser';
 import { EpubConverter } from './epubConverter';
@@ -42,7 +42,7 @@ type Header = {
 
 type Paragraph = {
     element: 'paragraph',
-    text: string,
+    spans: Span[],
 };
 
 type TitlePage = {
@@ -119,7 +119,9 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
 }
 
 const paragraphE = headElement(
-    se => se.element === 'paragraph' ? se.text : null,
+    se => se.element === 'paragraph'
+        ? { book: 'spans' as 'spans', content: se.spans }
+        : null,
 );
 
 const h6E = chapterParser(-2, paragraphE);
@@ -198,21 +200,24 @@ export const separatorP = element('div', afterWhitespaces(separatorHeaderP));
 
 // ---- Paragraph
 
-const textP = textNode();
-const spanP = element('span', textNode());
-const italicsP = element('em', textNode());
-const linkP = translate(element('a'), _ => ''); // TODO: implement links
+const textP = translate(textNode(), t => span('normal', t));
+const spanP = translate(element('span', textNode()), t => span('normal', t));
+const italicsP = translate(
+    element('em', textNode()),
+    t => span('italic', t),
+);
+const linkP = translate(element('a'), _ => span('normal', '')); // TODO: implement links
 
 const paragraphContentP = translate(
     some(choice(textP, spanP, italicsP, linkP)),
-    texts => texts.reduce((acc, t) => acc + t, ''),
+    texts => texts.reduce((acc, t) => acc.concat(t), [] as Span[]),
 );
 
 export const paragraphP = translate(
     element('p', paragraphContentP),
-    text => ({
+    spans => ({
         element: 'paragraph' as 'paragraph',
-        text: text,
+        spans: spans,
     }),
 );
 

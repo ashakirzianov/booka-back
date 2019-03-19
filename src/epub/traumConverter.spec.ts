@@ -92,6 +92,19 @@ describe('Example parsing', () => {
 
     const success = expectSuccess(result);
 
-    expect(success.value.text).toBe('Italics Normal Italics again');
+    expect(success.value.spans.toString()).toBe([
+      {
+        span: 'italic',
+        text: 'Italics',
+      },
+      {
+        span: 'normal',
+        text: ' Normal ',
+      },
+      {
+        span: 'italic',
+        text: 'Italics again',
+      },
+    ].toString());
   });
 });
