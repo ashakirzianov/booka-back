@@ -1,5 +1,5 @@
 import { SwaggerRouter } from 'koa-swagger-decorator';
-import { BookRouter } from './book';
+import { JsonRouter, LibraryRouter } from './book';
 
 export const apiRouter = new SwaggerRouter();
 
@@ -22,4 +22,5 @@ apiRouter.swagger({
   },
 });
 
-apiRouter.map(BookRouter, {});
+apiRouter.map(JsonRouter, {});
+apiRouter.map(LibraryRouter, {});
