@@ -39,5 +39,5 @@ export async function metas(): Promise<Book[]> {
 }
 
 export async function removeAll() {
-    await BookCollection.remove({});
+    await BookCollection.deleteMany({});
 }
