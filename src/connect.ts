@@ -2,8 +2,8 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import { buffer2book } from '../epub';
-import { insertBook, countBooks } from './book';
+import { buffer2book } from './epub';
+import { countBooks, insertBook, removeAllBooks } from './db';
 
 const epubLocation = 'public/epub/';
 
@@ -14,6 +14,7 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
+    // await removeAllBooks();
     const bookCount = await countBooks();
 
     if (bookCount === 0) {
@@ -29,11 +30,7 @@ async function seed() {
         const book = await buffer2book(epubFile);
         const json = JSON.stringify(book);
 
-        insertBook({
-            raw: json,
-            title: book.meta.title,
-            author: book.meta.author,
-        });
+        insertBook(book);
     });
 
     await Promise.all(promises);

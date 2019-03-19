@@ -1,7 +1,7 @@
 import * as Koa from 'koa';
 import * as cors from '@koa/cors';
 import { router } from './api';
-import { connectDb } from './db';
+import { connectDb } from './connect';
 
 const port = process.env.PORT || 3042;
 const app = new Koa();
