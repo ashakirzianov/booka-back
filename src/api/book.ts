@@ -1,7 +1,6 @@
 import { bookById, library } from '../db';
-import { Library } from '../model/library';
 import { getRouter } from './routerBuilder';
-import * as Contracts from '../model';
+import { Contracts } from '../model';
 
 export const JsonRouter = getRouter({
     path: 'json',

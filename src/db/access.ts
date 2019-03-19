@@ -1,4 +1,4 @@
-import * as Contracts from '../model';
+import { Contracts } from '../model';
 import { bookDocumentById, insertBookDocument, Book, countBookDocs, getBookMetas } from './book';
 import { errorBook } from '../model';
 
