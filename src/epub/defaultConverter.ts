@@ -20,7 +20,7 @@ function defaultEpubConverter(epub: Epub): Promise<Book> {
             title: epub.info.title,
             author: epub.info.author,
         },
-        content: convertSections(epub.sections),
+        nodes: convertSections(epub.sections),
     });
 }
 
@@ -36,10 +36,10 @@ function convertSingleSection(section: Section): BookNode | undefined {
 
     const node = tree2node(tree);
     return {
-        book: 'chapter' as 'chapter',
+        node: 'chapter' as 'chapter',
         level: 0,
         title: '',
-        content: node,
+        nodes: node,
     };
 }
 
@@ -47,11 +47,14 @@ function tree2node(tree: XmlNodeDocument): BookNode[] {
     const result = extractText(tree.children);
     return result.success ?
         result.value
-        : ['CAN NOT PARSE'] // TODO: better reporting
+        : [] as BookNode[] // TODO: better reporting
         ;
 }
 
-const anyText = textNode(t => [t]);
+const anyText = textNode(t => [{
+    node: 'paragraph',
+    spans: [{ span: 'normal', text: t }],
+} as BookNode]);
 const childrenText = children(extractText);
 
 const extractTextParser = translate(
@@ -59,9 +62,9 @@ const extractTextParser = translate(
         anyText,
         childrenText,
     )),
-    arrays => arrays.reduce((result, arr) => result.concat(arr), []),
+    arrays => arrays.reduce((result, arr) => result.concat(arr), [] as BookNode[]),
 );
 
-function extractText(tree: XmlNode[]): Result<XmlNode, string[]> {
+function extractText(tree: XmlNode[]): Result<XmlNode, BookNode[]> {
     return extractTextParser(tree);
 }

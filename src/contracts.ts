@@ -1,21 +1,20 @@
-export type Paragraph = string;
 export type SpanType<Key extends string> = {
     span: Key,
     text: string,
 };
 export type Span = SpanType<'italic'> | SpanType<'bold'> | SpanType<'normal'>;
-export type ReachParagraph = {
-    book: 'spans',
-    content: Span[],
+export type Paragraph = {
+    node: 'paragraph',
+    spans: Span[],
 };
 export type Chapter = {
-    book: 'chapter',
+    node: 'chapter',
     level: number,
     title?: string,
-    content: BookNode[],
+    nodes: BookNode[],
 };
 
-export type BookNode = Chapter | Paragraph | ReachParagraph;
+export type BookNode = Chapter | Paragraph;
 
 export type BookMeta = {
     title: string,
@@ -25,7 +24,7 @@ export type BookMeta = {
 export type ActualBook = {
     book: 'book',
     meta: BookMeta,
-    content: BookNode[],
+    nodes: BookNode[],
 };
 
 export type ErrorBook = {

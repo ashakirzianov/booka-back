@@ -3,7 +3,7 @@ import {
     string2tree, XmlNodeDocument,
     head, Parser, choice, translate, seq, and, oneOrMore, some,
 } from '../xml';
-import { Book, BookNode, span, Span } from './model';
+import { Book, BookNode, span, Span, Pph, Ch } from './model';
 import { filterUndefined } from '../utils';
 import { Epub, Section } from './epubParser';
 import { EpubConverter } from './epubConverter';
@@ -90,7 +90,7 @@ function buildBook(epub: Epub): Book {
             title: titlePage && titlePage.title || epub.info.title,
             author: titlePage && titlePage.author || epub.info.author,
         },
-        content: content,
+        nodes: content,
     };
 }
 
@@ -108,11 +108,11 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
                 some(contentE),
             ),
             ([h, c]) => ({
-                book: 'chapter' as 'chapter',
+                node: 'chapter' as 'chapter',
                 level: level,
                 title: h.title,
-                content: c,
-            }),
+                nodes: c,
+            } as Ch),
         ),
         contentE,
     );
@@ -120,8 +120,8 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
 
 const paragraphE = headElement(
     se => se.element === 'paragraph'
-        ? { book: 'spans' as 'spans', content: se.spans }
-        : null,
+        ? { node: 'paragraph', spans: se.spans } as Pph
+        : null
 );
 
 const h6E = chapterParser(-2, paragraphE);
