@@ -29,11 +29,7 @@ async function seed() {
         const book = await buffer2book(epubFile);
         const json = JSON.stringify(book);
 
-        insertBook({
-            raw: json,
-            title: book.meta.title,
-            author: book.meta.author,
-        });
+        insertBook(book);
     });
 
     await Promise.all(promises);
