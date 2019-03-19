@@ -1,2 +1,2 @@
 export * from './access';
-export { connectDb } from './connect';
+export { connectDb } from '../xml/connect';
