@@ -2,8 +2,8 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import { buffer2book } from '../epub';
-import { countBooks, insertBook } from '../db';
+import { buffer2book } from './epub';
+import { countBooks, insertBook } from './db';
 
 const epubLocation = 'public/epub/';
 

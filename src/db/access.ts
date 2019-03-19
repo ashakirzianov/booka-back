@@ -1,4 +1,4 @@
-import { Contracts } from '../model';
+import * as Contracts from '../contracts';
 import { bookDocumentById, insertBookDocument, Book, countBookDocs, getBookMetas } from './book';
 
 export async function countBooks(): Promise<number> {
