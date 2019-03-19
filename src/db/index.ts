@@ -1,2 +1,2 @@
-export * from './book';
-export * from './connect';
+export * from './access';
+export { connectDb } from './connect';

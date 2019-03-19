@@ -3,7 +3,8 @@ import * as fs from 'fs';
 
 import { promisify } from 'util';
 import { buffer2book } from '../epub';
-import { insertBook, countBooks } from './book';
+import { countBookDocs } from './book';
+import { insertBook } from './access';
 
 const epubLocation = 'public/epub/';
 
@@ -14,7 +15,7 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
-    const bookCount = await countBooks();
+    const bookCount = await countBookDocs();
 
     if (bookCount === 0) {
         await seed();

@@ -1,4 +1,4 @@
-import { findBookById, library } from '../db';
+import { bookById, library } from '../db';
 import { Library } from '../model/library';
 import { getRouter } from './routerBuilder';
 import * as Contracts from '../model';
@@ -8,7 +8,7 @@ export const JsonRouter = getRouter({
     summary: 'Get full book by ID',
     description: 'Returns JSON representation of requested book',
     param: { id: 'string' },
-})<Promise<Contracts.Book>>(findBookById);
+})<Promise<Contracts.Book>>(bookById);
 
 export const LibraryRouter = getRouter({
     path: 'library',
