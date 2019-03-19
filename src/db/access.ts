@@ -1,12 +1,11 @@
 import * as Contracts from '../contracts';
-import { bookDocumentById, insertBookDocument, Book, countBookDocs, getBookMetas } from './book';
+import * as bookDb from './book';
 
-export async function countBooks(): Promise<number> {
-    return countBookDocs();
-}
+export const countBooks = bookDb.count;
+export const removeAllBooks = bookDb.removeAll;
 
 export async function bookById(id: string): Promise<Contracts.Book> {
-    const book = await bookDocumentById(id);
+    const book = await bookDb.byId(id);
     if (!book || !book.raw) {
         return Contracts.errorBook(`Can't find book with id: '${id}'`);
     }
@@ -16,16 +15,16 @@ export async function bookById(id: string): Promise<Contracts.Book> {
 }
 
 export async function insertBook(book: Contracts.ActualBook) {
-    const bookDocument: Book = {
+    const bookDocument: bookDb.Book = {
         title: book.meta.title,
         author: book.meta.author,
         raw: JSON.stringify(book),
     };
-    insertBookDocument(bookDocument);
+    bookDb.insert(bookDocument);
 }
 
 export async function library(): Promise<Contracts.Library> {
-    const books = await getBookMetas();
+    const books = await bookDb.metas();
     const result: Contracts.Library = books.reduce((lib, book) => ({
         ...lib,
         [book._id as string]: {

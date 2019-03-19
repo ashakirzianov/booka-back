@@ -22,18 +22,22 @@ type BookDocument = Book & Document;
 const BookSchema = new Schema(schema, { timestamps: true });
 const BookCollection: Model<BookDocument> = model<BookDocument>('Book', BookSchema);
 
-export async function bookDocumentById(id: string): Promise<Book | null> {
+export async function byId(id: string): Promise<Book | null> {
     return BookCollection.findOne({ _id: id }).exec();
 }
 
-export async function insertBookDocument(book: Book) {
+export async function insert(book: Book) {
     await BookCollection.insertMany(book);
 }
 
-export async function countBookDocs(): Promise<number> {
+export async function count(): Promise<number> {
     return BookCollection.countDocuments().exec();
 }
 
-export async function getBookMetas(): Promise<Book[]> {
+export async function metas(): Promise<Book[]> {
     return BookCollection.find({}, ['title', 'author']).exec();
+}
+
+export async function removeAll() {
+    await BookCollection.remove({});
 }
