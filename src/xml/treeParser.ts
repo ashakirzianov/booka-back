@@ -6,7 +6,7 @@ import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
     Parser, Result, success, fail,
     head,
-    split, seq, some, not, report,
+    split, seq, some, not,
     translate,
 } from './parserCombinators';
 
@@ -164,7 +164,7 @@ function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input:
     }
 
     if (pathComponents.length < 2) {
-        return report('parse path: then', then)(input.slice(childIndex));
+        return then(input.slice(childIndex));
     }
 
     const nextInput = hasChildren(child) ? child.children : [];

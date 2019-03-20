@@ -180,14 +180,25 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
     };
 }
 
-// TODO: implement also for success ?
-export function report<TIn, TOut>(tag: string, parser: Parser<TIn, TOut>): Parser<TIn, TOut> {
+export function report<TIn, TOut>(
+    messageOrFn: Message | ((x: TOut) => Message), parser: Parser<TIn, TOut>
+): Parser<TIn, TOut> {
     return (input: TIn[]) => {
         const result = parser(input);
-        return result.success ? result : fail({
-            tag: tag,
-            message: result.message,
-        });
+        const msg = typeof messageOrFn === 'function'
+            ? (result.success ? messageOrFn(result.value) : undefined)
+            : messageOrFn;
+        if (msg) {
+            return result.message ? {
+                ...result,
+                message: compoundMessage([result.message, msg]),
+            } : {
+                    ...result,
+                    message: msg,
+                };
+        } else {
+            return result;
+        }
     };
 }
 
