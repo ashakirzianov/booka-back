@@ -6,6 +6,18 @@ export type Span = {
     text: string,
     attrs: SpanAttrs,
 };
+
+export function span(text: string, ...attributes: SpanAttributeName[]): Span {
+    const attrs = attributes
+        .reduce((as, a) =>
+            ({ ...as, [a]: true }), {} as SpanAttrs);
+    return {
+        text: text,
+        attrs: attrs,
+        foo: '42',
+    } as any;
+}
+
 export type Paragraph = {
     node: 'paragraph',
     spans: Span[],
@@ -46,11 +58,4 @@ export function errorBook(error: string): ErrorBook {
         book: 'error',
         error: error,
     };
-}
-
-export function span(text: string, ...attributes: SpanAttributeName[]): Span {
-    const attrs = attributes
-        .reduce((as, a) =>
-            ({ ...as, [a]: true }), {} as SpanAttrs);
-    return { text, attrs };
 }

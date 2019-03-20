@@ -94,15 +94,15 @@ describe('Example parsing', () => {
 
     expect(success.value.spans.toString()).toBe([
       {
-        span: 'italic',
+        attrs: { italic: true },
         text: 'Italics',
       },
       {
-        span: 'normal',
+        attrs: {},
         text: ' Normal ',
       },
       {
-        span: 'italic',
+        attrs: { italic: true },
         text: 'Italics again',
       },
     ].toString());

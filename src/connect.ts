@@ -28,7 +28,6 @@ async function seed() {
     const promises = files.map(async (file) => {
         const epubFile = await readFile(epubLocation + file);
         const book = await buffer2book(epubFile);
-        const json = JSON.stringify(book);
 
         insertBook(book);
     });
