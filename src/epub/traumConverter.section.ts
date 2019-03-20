@@ -44,7 +44,7 @@ function headerToLevel(tag: string): number | null {
     return null;
 }
 
-const separatorHeader = translate(
+const headerContent = translate(
     and(
         projectElement(el => headerToLevel(el.name)),
         children(textNode()),
@@ -56,7 +56,7 @@ const separatorHeader = translate(
     }),
 );
 
-const separator = element('div', afterWhitespaces(separatorHeader));
+const header = element('div', afterWhitespaces(headerContent));
 
 // ---- Paragraph
 
@@ -91,9 +91,18 @@ const skipOneNode = translate(
     () => undefined,
 );
 
+const noteAnchor = translate(
+    element(e => e.name === 'a' && e.attributes.class === 'note_anchor'),
+    () => undefined
+); // TODO: expect it when implement footnote parsing
+
+const br = translate(element('br'), () => undefined);
+
+const ignore = choice(noteAnchor, br, skipOneNode);
+
 const normalContent = some(
     afterWhitespaces(
-        choice(paragraph, separator, skipOneNode)
+        choice(paragraph, header, ignore)
     )
 );
 
@@ -116,5 +125,5 @@ export const section = choice(
 
 export const toTest = {
     normalPage, titlePage, section,
-    paragraph, separator, separatorHeader,
+    paragraph, separator: header, separatorHeader: headerContent,
 };
