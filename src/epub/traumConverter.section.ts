@@ -1,4 +1,8 @@
-import { headNode, some, afterWhitespaces, translate, element, oneOrMore, textNode, path, and, projectElement, children, choice } from '../xml';
+import {
+    headNode, some, afterWhitespaces, translate, element,
+    oneOrMore, textNode, path, and, projectElement, children,
+    choice, report, nodeToString,
+} from '../xml';
 import { filterUndefined } from '../utils';
 import { span, Span } from '../contracts';
 
@@ -79,7 +83,10 @@ const paragraph = translate(
 
 // ---- Normal page
 
-const skipOneNode = headNode(n => undefined); // TODO: handle unexpected nodes properly
+const skipOneNode = report(
+    n => `Unexpected node: ${nodeToString(n)}`,
+    headNode(n => n)
+);
 
 const normalContent = some(
     afterWhitespaces(
