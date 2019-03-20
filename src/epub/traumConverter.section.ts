@@ -33,6 +33,17 @@ const titlePage = translate(path(['html', 'body', 'div'],
     tp => [tp],
 );
 
+// ---- Ignored pages
+
+const ignoredPage = translate(path(['html', 'body', 'div'],
+    element(el =>
+        el.attributes.class === 'fb2_info'
+        || el.attributes.class === 'about')),
+    () => [{
+        element: 'ignore' as 'ignore',
+    }]
+);
+
 // ---- Separator parser
 
 function headerToLevel(tag: string): number | null {
@@ -117,6 +128,7 @@ const normalPage = translate(path(['html', 'body'],
 // ---- Section parser
 
 export const section = choice(
+    ignoredPage,
     normalPage,
     titlePage,
 );

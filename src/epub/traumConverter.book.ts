@@ -22,7 +22,11 @@ type TitlePage = {
     title?: string,
 };
 
-type Element = Header | ParagraphElement | TitlePage;
+type Ignore = {
+    element: 'ignore',
+};
+
+type Element = Header | ParagraphElement | TitlePage | Ignore;
 
 export function buildBook(epub: Epub): ActualBook {
     const structures = epub.sections
@@ -103,9 +107,10 @@ const h2 = chapterParser(2, h3);
 const h1 = chapterParser(3, h2);
 
 const bookContent = h1;
-const skipOne = headElement(n => undefined);
+const skipOne = headElement(n => undefined); // TODO: report warnings
+const ignore = headElement(n => n.element === 'ignore' ? undefined : null);
 const book = translate(
-    some(choice(bookContent, skipOne)),
+    some(choice(bookContent, ignore, skipOne)),
     nodes => filterUndefined(nodes),
 );
 
