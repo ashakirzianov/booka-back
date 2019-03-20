@@ -200,13 +200,13 @@ export const separatorP = element('div', afterWhitespaces(separatorHeaderP));
 
 // ---- Paragraph
 
-const textP = translate(textNode(), t => C.span('normal', t));
-const spanP = translate(element('span', textNode()), t => C.span('normal', t));
+const textP = translate(textNode(), C.span);
+const spanP = translate(element('span', textNode()), C.span);
 const italicsP = translate(
     element('em', textNode()),
-    t => C.span('italic', t),
+    t => C.span(t, 'italic'),
 );
-const linkP = translate(element('a'), _ => C.span('normal', '')); // TODO: implement links
+const linkP = translate(element('a'), _ => C.span('')); // TODO: implement links
 
 const paragraphContentP = translate(
     some(choice(textP, spanP, italicsP, linkP)),
