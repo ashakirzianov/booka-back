@@ -51,10 +51,8 @@ export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<
             if (!nameEq(arg, list.head.name)) {
                 return fail(`element: name ${list.head.name} does not match ${arg}`);
             }
-        } else {
-            if (!arg(list.head)) {
-                return fail('element: predicate failed');
-            }
+        } else if (!arg(list.head)) {
+            return fail('element: predicate failed');
         }
 
         if (ch) {
@@ -62,7 +60,7 @@ export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<
             if (!result.success) {
                 return result;
             } else {
-                return success(result.value, list.tail);
+                return success(result.value, list.tail, result.warning);
             }
         }
 
@@ -110,7 +108,7 @@ export function children<T>(parser: XmlParser<T>): XmlParser<T> {
 
         const result = parser(list.head.children);
         if (result.success) {
-            return success(result.value, list.tail);
+            return success(result.value, list.tail, result.warning);
         } else {
             return result;
         }
@@ -129,7 +127,7 @@ export function parent<T>(parser: XmlParser<T>): XmlParser<T> {
 
         const result = parser([list.head.parent]);
         if (result.success) {
-            return success(result.value, list.tail);
+            return success(result.value, list.tail, result.warning);
         } else {
             return result;
         }

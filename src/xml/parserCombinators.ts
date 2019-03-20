@@ -3,23 +3,35 @@ export type Success<In, Out> = {
     value: Out,
     next: In[],
     success: true,
+    warning: Reason,
 };
-export type FailReasonSingle = string;
-export type FailReasonCompound = { reasons: FailReason[] };
-export type FailReasonTagged = { tag: string, reason: FailReason };
-export type FailReason = FailReasonSingle | FailReasonCompound | FailReasonTagged;
+export type ReasonEmpty = undefined;
+export type ReasonSingle = string;
+export type ReasonCompound = { reasons: Reason[] };
+export type ReasonTagged = { tag: string, reason: Reason };
+export type Reason = ReasonSingle | ReasonCompound | ReasonTagged | ReasonEmpty;
 export type Fail = {
     success: false,
-    reason: FailReason,
+    reason: Reason,
 };
+
+export function compoundReason(reasons: Reason[]): Reason {
+    const nonEmpty = reasons.filter(r => r !== undefined);
+    return nonEmpty.length > 0 ? { reasons } : undefined;
+}
+
+export function taggedReason(reason: Reason, tag: string): Reason {
+    return reason && { tag, reason };
+}
+
 export type Result<In, Out> = Success<In, Out> | Fail;
 
-export function fail(reason: FailReason): Fail {
+export function fail(reason: Reason): Fail {
     return { success: false, reason: reason };
 }
 
-export function success<TIn, TOut>(value: TOut, next: TIn[]): Success<TIn, TOut> {
-    return { value, next, success: true };
+export function success<TIn, TOut>(value: TOut, next: TIn[], warning?: Reason): Success<TIn, TOut> {
+    return { value, next, success: true, warning };
 }
 
 export function split<T>(arr: T[]) {
@@ -63,6 +75,7 @@ export function and<TI, T1, T2, T3, T4>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, 
 export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
     return input => {
         const results: any[] = [];
+        const warnings: Reason[] = [];
         let lastInput = input;
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](input);
@@ -70,10 +83,12 @@ export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
                 return result;
             }
             results.push(result.value);
+            warnings.push(result.warning);
             lastInput = result.next;
         }
 
-        return success(results, lastInput);
+        const warning = compoundReason(warnings);
+        return success(results, lastInput, warning);
     };
 }
 
@@ -84,16 +99,19 @@ export function seq<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
         let currentInput = input;
         const results: any[] = [];
+        const warnings: Reason[] = [];
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](currentInput);
             if (!result.success) {
                 return result;
             }
             results.push(result.value);
+            warnings.push(result.warning);
             currentInput = result.next;
         }
 
-        return success(results, currentInput);
+        const warning = compoundReason(warnings);
+        return success(results, currentInput, warning);
     };
 }
 
@@ -104,7 +122,7 @@ export function choice<TI, T1, T2, T3, T4>(
 ): Parser<TI, T1 | T2 | T3 | T4>;
 export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
-        const failReasons: FailReason[] = [];
+        const failReasons: Reason[] = [];
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](input);
             if (result.success) {
@@ -126,17 +144,20 @@ export function projectLast<TI>(parser: Parser<TI, any>): Parser<TI, any> {
 export function some<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
     return input => {
         const results: T[] = [];
+        const warnings: Reason[] = [];
         let currentInput = input;
         let currentResult: Result<TI, T>;
         do {
             currentResult = parser(currentInput);
             if (currentResult.success) {
                 results.push(currentResult.value);
+                warnings.push(currentResult.warning);
                 currentInput = currentResult.next;
             }
         } while (currentResult.success);
 
-        return success(results, currentInput);
+        const warning = compoundReason(warnings);
+        return success(results, currentInput, warning);
     };
 }
 
@@ -152,13 +173,14 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
             const translated = f(from.value);
             return translated === null
                 ? fail('translate: result rejected by transform function')
-                : success(translated, from.next);
+                : success(translated, from.next, from.warning);
         } else {
             return from;
         }
     };
 }
 
+// TODO: implement also for success ?
 export function report<TIn, TOut>(tag: string, parser: Parser<TIn, TOut>): Parser<TIn, TOut> {
     return (input: TIn[]) => {
         const result = parser(input);

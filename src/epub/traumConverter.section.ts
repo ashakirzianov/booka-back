@@ -4,12 +4,12 @@ import { span, Span } from '../contracts';
 
 // ---- Title page
 
-const titleDiv = translate(
+const titleContent = translate(
     afterWhitespaces(element(
         el => el.name === 'div' && el.attributes.class === 'title2',
         oneOrMore(afterWhitespaces(element('h2', textNode()))),
     )),
-    lines => lines.length > 1 ?
+    lines => lines.length > 1 ? // TODO: report extra lines
         {
             element: 'title' as 'title',
             author: lines[0],
@@ -24,7 +24,7 @@ const titleDiv = translate(
 const titlePage = translate(path(['html', 'body', 'div'],
     element(
         el => el.attributes.class === undefined,
-        titleDiv,
+        titleContent,
     )),
     tp => [tp],
 );
@@ -65,7 +65,7 @@ const emphasis = translate(
 const footnote = translate(element('a'), _ => span('')); // TODO: implement links
 
 const paragraphSpans = translate(
-    some(choice(plainText, spanText, emphasis, footnote)),
+    some(choice(plainText, spanText, emphasis, footnote)), // TODO: report unexpected spans
     texts => texts.reduce((acc, t) => acc.concat(t), [] as Span[]),
 );
 
@@ -81,12 +81,16 @@ const paragraph = translate(
 
 const skipOneNode = headNode(n => undefined); // TODO: handle unexpected nodes properly
 
-const pageContent = some(afterWhitespaces(choice(paragraph, separator, skipOneNode)));
+const normalContent = some(
+    afterWhitespaces(
+        choice(paragraph, separator, skipOneNode)
+    )
+);
 
 const normalPage = translate(path(['html', 'body'],
     children(afterWhitespaces(element(
         el => el.attributes.class !== undefined,
-        pageContent,
+        normalContent,
     )))),
     content => filterUndefined(content),
 );
