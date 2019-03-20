@@ -38,7 +38,9 @@ const titlePage = translate(path(['html', 'body', 'div'],
 const ignoredPage = translate(path(['html', 'body', 'div'],
     element(el =>
         el.attributes.class === 'fb2_info'
-        || el.attributes.class === 'about')),
+        || el.attributes.class === 'about'
+        || el.attributes.class === 'titlepage' // TODO: handle this title page properly ?
+    )),
     () => [{
         element: 'ignore' as 'ignore',
     }]
