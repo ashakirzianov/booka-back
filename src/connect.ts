@@ -14,7 +14,7 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
-    // await removeAllBooks();
+    await removeAllBooks();
     const bookCount = await countBooks();
 
     if (bookCount === 0) {
@@ -28,7 +28,6 @@ async function seed() {
     const promises = files.map(async (file) => {
         const epubFile = await readFile(epubLocation + file);
         const book = await buffer2book(epubFile);
-        const json = JSON.stringify(book);
 
         insertBook(book);
     });

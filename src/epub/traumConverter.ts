@@ -3,7 +3,7 @@ import {
     string2tree, XmlNodeDocument,
     head, Parser, choice, translate, seq, and, oneOrMore, some,
 } from '../xml';
-import { Book, BookNode } from './model';
+import * as C from '../contracts';
 import { filterUndefined } from '../utils';
 import { Epub, Section } from './epubParser';
 import { EpubConverter } from './epubConverter';
@@ -42,7 +42,7 @@ type Header = {
 
 type Paragraph = {
     element: 'paragraph',
-    text: string,
+    spans: C.Span[],
 };
 
 type TitlePage = {
@@ -55,7 +55,7 @@ type Element = Header | Paragraph | TitlePage;
 
 // ---- Converter
 
-function convertEpub(epub: Epub): Promise<Book> {
+function convertEpub(epub: Epub): Promise<C.ActualBook> {
     return Promise.resolve(buildBook(epub));
 }
 
@@ -73,7 +73,7 @@ function tree2elements(tree: XmlNodeDocument): Element[] {
     return result.success ? result.value : [];
 }
 
-function buildBook(epub: Epub): Book {
+function buildBook(epub: Epub): C.ActualBook {
     const structures = epub.sections
         .map(section2elements)
         .reduce((acc, arr) => acc.concat(arr), [])
@@ -90,7 +90,7 @@ function buildBook(epub: Epub): Book {
             title: titlePage && titlePage.title || epub.info.title,
             author: titlePage && titlePage.author || epub.info.author,
         },
-        content: content,
+        nodes: content,
     };
 }
 
@@ -100,7 +100,7 @@ function findTitlePage(structures: Element[]): TitlePage | undefined {
 
 const headElement = head<Element>();
 
-function chapterParser<T extends BookNode>(level: number, contentE: Parser<Element, T>): Parser<Element, BookNode> {
+function chapterParser<T extends C.BookNode>(level: number, contentE: Parser<Element, T>): Parser<Element, C.BookNode> {
     return choice(
         translate(
             seq(
@@ -108,18 +108,20 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
                 some(contentE),
             ),
             ([h, c]) => ({
-                book: 'chapter' as 'chapter',
+                node: 'chapter' as 'chapter',
                 level: level,
                 title: h.title,
-                content: c,
-            }),
+                nodes: c,
+            } as C.Chapter),
         ),
         contentE,
     );
 }
 
 const paragraphE = headElement(
-    se => se.element === 'paragraph' ? se.text : null,
+    se => se.element === 'paragraph'
+        ? { node: 'paragraph', spans: se.spans } as C.Paragraph
+        : null
 );
 
 const h6E = chapterParser(-2, paragraphE);
@@ -136,7 +138,7 @@ const bookE = translate(
     nodes => filterUndefined(nodes),
 );
 
-function buildContent(structures: Element[]): BookNode[] {
+function buildContent(structures: Element[]): C.BookNode[] {
     const result = bookE(structures);
     return result.success ?
         result.value
@@ -198,21 +200,24 @@ export const separatorP = element('div', afterWhitespaces(separatorHeaderP));
 
 // ---- Paragraph
 
-const textP = textNode();
-const spanP = element('span', textNode());
-const italicsP = element('em', textNode());
-const linkP = translate(element('a'), _ => ''); // TODO: implement links
+const textP = translate(textNode(), C.span);
+const spanP = translate(element('span', textNode()), C.span);
+const italicsP = translate(
+    element('em', textNode()),
+    t => C.span(t, 'italic'),
+);
+const linkP = translate(element('a'), _ => C.span('')); // TODO: implement links
 
 const paragraphContentP = translate(
     some(choice(textP, spanP, italicsP, linkP)),
-    texts => texts.reduce((acc, t) => acc + t, ''),
+    texts => texts.reduce((acc, t) => acc.concat(t), [] as C.Span[]),
 );
 
 export const paragraphP = translate(
     element('p', paragraphContentP),
-    text => ({
+    spans => ({
         element: 'paragraph' as 'paragraph',
-        text: text,
+        spans: spans,
     }),
 );
 
