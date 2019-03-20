@@ -14,8 +14,7 @@ export function span(text: string, ...attributes: SpanAttributeName[]): Span {
     return {
         text: text,
         attrs: attrs,
-        foo: '42',
-    } as any;
+    };
 }
 
 export type Paragraph = {

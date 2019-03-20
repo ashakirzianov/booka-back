@@ -1,6 +1,11 @@
 import { string2tree, XmlParser } from '../xml';
-import { sectionP, titlePageP, normalPageP, separatorP, separatorHeaderP, paragraphP } from './traumConverter.section';
+import { toTest } from './traumConverter.section';
 import { expectSuccess } from '../testUtils';
+
+const {
+  normalPage, titlePage, section,
+  paragraph, separator, separatorHeader,
+} = toTest;
 
 /* spellchecker:disable */
 export const titlePageHtml =
@@ -51,22 +56,22 @@ function stringParser<T>(xmlNodeParser: XmlParser<T>) {
 
 describe('Example parsing', () => {
   it('Section parse title', () => {
-    const result = stringParser(sectionP)(titlePageHtml);
+    const result = stringParser(section)(titlePageHtml);
     expectSuccess(result);
   });
 
   it('Title parse title', () => {
-    const result = stringParser(titlePageP)(titlePageHtml);
+    const result = stringParser(titlePage)(titlePageHtml);
     expectSuccess(result);
   });
 
   it('Section parse separator', () => {
-    const result = stringParser(sectionP)(separatorPageHtml);
+    const result = stringParser(section)(separatorPageHtml);
     expectSuccess(result);
   });
 
   it('Normal parse separator', () => {
-    const result = stringParser(normalPageP)(separatorPageHtml);
+    const result = stringParser(normalPage)(separatorPageHtml);
     expectSuccess(result);
   });
 
@@ -76,19 +81,19 @@ describe('Example parsing', () => {
         <h2>Война и мир. Том 1</h2>
         </div>`
       ;
-    const result = stringParser(separatorP)(separatorDivHtml);
+    const result = stringParser(separator)(separatorDivHtml);
     expectSuccess(result);
   });
 
   it('Separator header', () => {
-    const result = stringParser(separatorHeaderP)('<h2>Война и мир. Том 1</h2>');
+    const result = stringParser(separatorHeader)('<h2>Война и мир. Том 1</h2>');
 
     const success = expectSuccess(result);
     expect(success.value.level).toEqual(2);
   });
 
   it('Paragraph italics', () => {
-    const result = stringParser(paragraphP)(`<p><em>Italics</em> Normal <em>Italics again</em></p>`);
+    const result = stringParser(paragraph)(`<p><em>Italics</em> Normal <em>Italics again</em></p>`);
 
     const success = expectSuccess(result);
 

@@ -1,10 +1,10 @@
-import * as C from '../contracts';
 import { headNode, some, afterWhitespaces, translate, element, oneOrMore, textNode, path, and, projectElement, children, choice } from '../xml';
 import { filterUndefined } from '../utils';
+import { span, Span } from '../contracts';
 
 // ---- Title page
 
-export const titleDivP = translate(
+const titleDiv = translate(
     afterWhitespaces(element(
         el => el.name === 'div' && el.attributes.class === 'title2',
         oneOrMore(afterWhitespaces(element('h2', textNode()))),
@@ -21,10 +21,10 @@ export const titleDivP = translate(
         },
 );
 
-export const titlePageP = translate(path(['html', 'body', 'div'],
+const titlePage = translate(path(['html', 'body', 'div'],
     element(
         el => el.attributes.class === undefined,
-        titleDivP,
+        titleDiv,
     )),
     tp => [tp],
 );
@@ -40,37 +40,37 @@ function headerToLevel(tag: string): number | null {
     return null;
 }
 
-export const separatorHeaderP = translate(
+const separatorHeader = translate(
     and(
         projectElement(el => headerToLevel(el.name)),
         children(textNode()),
     ),
     ([level, title]) => ({
-        element: 'separator' as 'separator',
+        element: 'header' as 'header',
         title: title,
         level: 4 - level,
     }),
 );
 
-export const separatorP = element('div', afterWhitespaces(separatorHeaderP));
+const separator = element('div', afterWhitespaces(separatorHeader));
 
 // ---- Paragraph
 
-const textP = translate(textNode(), C.span);
-const spanP = translate(element('span', textNode()), C.span);
-const italicsP = translate(
+const plainText = translate(textNode(), span);
+const spanText = translate(element('span', textNode()), span);
+const emphasis = translate(
     element('em', textNode()),
-    t => C.span(t, 'italic'),
+    t => span(t, 'italic'),
 );
-const linkP = translate(element('a'), _ => C.span('')); // TODO: implement links
+const footnote = translate(element('a'), _ => span('')); // TODO: implement links
 
-const paragraphContentP = translate(
-    some(choice(textP, spanP, italicsP, linkP)),
-    texts => texts.reduce((acc, t) => acc.concat(t), [] as C.Span[]),
+const paragraphSpans = translate(
+    some(choice(plainText, spanText, emphasis, footnote)),
+    texts => texts.reduce((acc, t) => acc.concat(t), [] as Span[]),
 );
 
-export const paragraphP = translate(
-    element('p', paragraphContentP),
+const paragraph = translate(
+    element('p', paragraphSpans),
     spans => ({
         element: 'paragraph' as 'paragraph',
         spans: spans,
@@ -79,21 +79,28 @@ export const paragraphP = translate(
 
 // ---- Normal page
 
-const skipOneP = headNode(n => undefined);
+const skipOneNode = headNode(n => undefined); // TODO: handle unexpected nodes properly
 
-const pageContentP = some(afterWhitespaces(choice(paragraphP, separatorP, skipOneP)));
+const pageContent = some(afterWhitespaces(choice(paragraph, separator, skipOneNode)));
 
-export const normalPageP = translate(path(['html', 'body'],
+const normalPage = translate(path(['html', 'body'],
     children(afterWhitespaces(element(
         el => el.attributes.class !== undefined,
-        pageContentP,
+        pageContent,
     )))),
     content => filterUndefined(content),
 );
 
 // ---- Section parser
 
-export const sectionP = choice(
-    normalPageP,
-    titlePageP,
+export const section = choice(
+    normalPage,
+    titlePage,
 );
+
+// Test exports
+
+export const toTest = {
+    normalPage, titlePage, section,
+    paragraph, separator, separatorHeader,
+};
