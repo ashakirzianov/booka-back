@@ -1,8 +1,9 @@
-import { translate, string2tree, XmlNodeDocument, head, Parser, choice, seq, some } from '../xml';
+import { translate, string2tree, XmlNodeDocument, head, Parser, choice, seq, some, messageToString } from '../xml';
 import { section } from './traumConverter.section';
 import { filterUndefined } from '../utils';
 import { Section, Epub } from './epubParser';
 import { Span, ActualBook, BookNode, Chapter, Paragraph } from '../contracts';
+import { logString } from '../logger';
 
 type Header = {
     element: 'header',
@@ -55,6 +56,12 @@ function section2elements(sec: Section): Element[] {
 
 function tree2elements(tree: XmlNodeDocument): Element[] {
     const result = section(tree.children);
+
+    // TODO: implement better logging strategy
+    const message = messageToString(result.message);
+    if (message) {
+        logString(message);
+    }
     return result.success ? result.value : [];
 }
 

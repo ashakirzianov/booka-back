@@ -24,6 +24,28 @@ export function taggedMessage(message: Message, tag: string): Message {
     return message && { tag, message };
 }
 
+export function messageToString(message: Message): string | undefined {
+    if (message === undefined) {
+        return undefined;
+    } else if (typeof message === 'string') {
+        return message;
+    } else if (isCompound(message)) {
+        const result = message.messages
+            .map(messageToString)
+            .filter(m => m && m.length > 0)
+            .join(', \n');
+        return result.length > 0
+            ? `{ ${result} }`
+            : undefined;
+    } else {
+        return `{ tag: ${message.tag}, message: ${message.message} }`;
+    }
+}
+
+export function isCompound(message: Message): message is MessageCompound {
+    return message !== undefined && message['messages'] !== undefined;
+}
+
 export type Result<In, Out> = Success<In, Out> | Fail;
 
 export function fail(reason: Message): Fail {
