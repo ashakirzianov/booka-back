@@ -1,4 +1,5 @@
 import * as parseXmlLib from '@rgrove/parse-xml';
+import { assertNever } from '../utils';
 
 export type XmlAttributes = { [key: string]: string | undefined };
 export type XmlNodeBase<T extends string> = { type: T, parent: XmlNodeWithChildren };
@@ -27,6 +28,10 @@ export function isElement(node: XmlNode): node is XmlNodeElement {
 
 export function isComment(node: XmlNode): node is XmlNodeComment {
     return node.type === 'comment';
+}
+
+export function isDocument(node: XmlNode): node is XmlNodeDocument {
+    return node.type === 'document';
 }
 
 export function string2tree(xml: string): XmlNodeDocument | undefined {
@@ -58,4 +63,40 @@ export function xmlElement(
         attributes: attrs || {},
         parent: parent!,
     };
+}
+
+export function attributesToString(attr: XmlAttributes): string {
+    const result = Object.keys(attr)
+        .map(k => attr[k] ? `${k}=${attr[k]}` : k)
+        .join(' ');
+
+    return result;
+}
+
+export function nodeToString(n: XmlNode): string {
+    switch (n.type) {
+        case 'element':
+        case 'document':
+            const name = n.type === 'element'
+                ? n.name
+                : 'document';
+            const attrs = n.type === 'element'
+                ? attributesToString(n.attributes)
+                : '';
+            const attrsStr = attrs.length > 0 ? ' ' + attrs : '';
+            const chs = n.children
+                .map(nodeToString)
+                .reduce((all, cur) => all + cur, '');
+            return chs.length > 0
+                ? `<${name}${attrsStr}>${chs}</${name}>`
+                : `<${name}${attrsStr}/>`;
+        case 'text':
+            return n.text;
+        case 'comment':
+            return `<!--${n.content}-->`;
+        case 'cdata':
+            return '<![CDATA[ ... ]]>';
+        default:
+            return assertNever(n);
+    }
 }

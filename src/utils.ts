@@ -9,3 +9,7 @@ export function caseInsensitiveEq(left: string, right: string) {
 export function filterUndefined<T>(arr: Array<T | undefined>): T[] {
     return arr.filter(e => e !== undefined) as T[];
 }
+
+export function assertNever(x: never): never {
+    throw new Error(`Should be never: ${x}`);
+}
