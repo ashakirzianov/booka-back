@@ -55,6 +55,15 @@ export function head<TIn>() {
     };
 }
 
+export function maybe<TIn, TOut>(parser: Parser<TIn, TOut>): Parser<TIn, TOut | undefined> {
+    return input => {
+        const result = parser(input);
+        return result.success
+            ? result
+            : success(undefined, input);
+    };
+}
+
 export function not<T>(parser: Parser<T, any>): Parser<T, T> {
     return input => {
         const list = split(input);
@@ -180,14 +189,17 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
     };
 }
 
-export function report<TIn, TOut>(
-    messageOrFn: Message | ((x: TOut) => Message), parser: Parser<TIn, TOut>
-): Parser<TIn, TOut> {
+type MessageOrFn<TOut> = Message | ((x: TOut) => Message);
+function getMessage<TOut>(result: Result<any, TOut>, mOrF: MessageOrFn<TOut>) {
+    return typeof mOrF === 'function'
+        ? (result.success ? mOrF(result.value) : undefined)
+        : mOrF;
+}
+
+export function report<TIn, TOut>(mOrF: MessageOrFn<TOut>, parser: Parser<TIn, TOut>): Parser<TIn, TOut> {
     return (input: TIn[]) => {
         const result = parser(input);
-        const msg = typeof messageOrFn === 'function'
-            ? (result.success ? messageOrFn(result.value) : undefined)
-            : messageOrFn;
+        const msg = getMessage(result, mOrF);
         if (msg) {
             return result.message ? {
                 ...result,
@@ -200,6 +212,11 @@ export function report<TIn, TOut>(
             return result;
         }
     };
+}
+
+export function expect<TI, TO>(parser: Parser<TI, TO>, mOrF?: MessageOrFn<TO | undefined>): Parser<TI, TO | undefined> {
+    const m = mOrF || 'expected'; // TODO: are you sure ?
+    return report(m, maybe(parser));
 }
 
 export function skipTo<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO> {
