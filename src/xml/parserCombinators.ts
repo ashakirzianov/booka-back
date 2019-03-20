@@ -3,35 +3,35 @@ export type Success<In, Out> = {
     value: Out,
     next: In[],
     success: true,
-    warning: Reason,
+    message: Message,
 };
-export type ReasonEmpty = undefined;
-export type ReasonSingle = string;
-export type ReasonCompound = { reasons: Reason[] };
-export type ReasonTagged = { tag: string, reason: Reason };
-export type Reason = ReasonSingle | ReasonCompound | ReasonTagged | ReasonEmpty;
+export type MessageEmpty = undefined;
+export type MessageSingle = string;
+export type MessageCompound = { messages: Message[] };
+export type MessageTagged = { tag: string, message: Message };
+export type Message = MessageSingle | MessageCompound | MessageTagged | MessageEmpty;
 export type Fail = {
     success: false,
-    reason: Reason,
+    message: Message,
 };
 
-export function compoundReason(reasons: Reason[]): Reason {
-    const nonEmpty = reasons.filter(r => r !== undefined);
-    return nonEmpty.length > 0 ? { reasons } : undefined;
+export function compoundMessage(messages: Message[]): Message {
+    const nonEmpty = messages.filter(r => r !== undefined);
+    return nonEmpty.length > 0 ? { messages } : undefined;
 }
 
-export function taggedReason(reason: Reason, tag: string): Reason {
-    return reason && { tag, reason };
+export function taggedMessage(message: Message, tag: string): Message {
+    return message && { tag, message };
 }
 
 export type Result<In, Out> = Success<In, Out> | Fail;
 
-export function fail(reason: Reason): Fail {
-    return { success: false, reason: reason };
+export function fail(reason: Message): Fail {
+    return { success: false, message: reason };
 }
 
-export function success<TIn, TOut>(value: TOut, next: TIn[], warning?: Reason): Success<TIn, TOut> {
-    return { value, next, success: true, warning };
+export function success<TIn, TOut>(value: TOut, next: TIn[], message?: Message): Success<TIn, TOut> {
+    return { value, next, success: true, message };
 }
 
 export function split<T>(arr: T[]) {
@@ -75,7 +75,7 @@ export function and<TI, T1, T2, T3, T4>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, 
 export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
     return input => {
         const results: any[] = [];
-        const warnings: Reason[] = [];
+        const messages: Message[] = [];
         let lastInput = input;
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](input);
@@ -83,12 +83,12 @@ export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
                 return result;
             }
             results.push(result.value);
-            warnings.push(result.warning);
+            messages.push(result.message);
             lastInput = result.next;
         }
 
-        const warning = compoundReason(warnings);
-        return success(results, lastInput, warning);
+        const message = compoundMessage(messages);
+        return success(results, lastInput, message);
     };
 }
 
@@ -99,19 +99,19 @@ export function seq<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
         let currentInput = input;
         const results: any[] = [];
-        const warnings: Reason[] = [];
+        const messages: Message[] = [];
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](currentInput);
             if (!result.success) {
                 return result;
             }
             results.push(result.value);
-            warnings.push(result.warning);
+            messages.push(result.message);
             currentInput = result.next;
         }
 
-        const warning = compoundReason(warnings);
-        return success(results, currentInput, warning);
+        const message = compoundMessage(messages);
+        return success(results, currentInput, message);
     };
 }
 
@@ -122,16 +122,16 @@ export function choice<TI, T1, T2, T3, T4>(
 ): Parser<TI, T1 | T2 | T3 | T4>;
 export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
-        const failReasons: Reason[] = [];
+        const failReasons: Message[] = [];
         for (let i = 0; i < ps.length; i++) {
             const result = ps[i](input);
             if (result.success) {
                 return result;
             }
-            failReasons.push(result.reason);
+            failReasons.push(result.message);
         }
 
-        return fail({ reasons: failReasons });
+        return fail(compoundMessage(failReasons));
     };
 }
 
@@ -144,20 +144,20 @@ export function projectLast<TI>(parser: Parser<TI, any>): Parser<TI, any> {
 export function some<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
     return input => {
         const results: T[] = [];
-        const warnings: Reason[] = [];
+        const messages: Message[] = [];
         let currentInput = input;
         let currentResult: Result<TI, T>;
         do {
             currentResult = parser(currentInput);
             if (currentResult.success) {
                 results.push(currentResult.value);
-                warnings.push(currentResult.warning);
+                messages.push(currentResult.message);
                 currentInput = currentResult.next;
             }
         } while (currentResult.success);
 
-        const warning = compoundReason(warnings);
-        return success(results, currentInput, warning);
+        const message = compoundMessage(messages);
+        return success(results, currentInput, message);
     };
 }
 
@@ -173,7 +173,7 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
             const translated = f(from.value);
             return translated === null
                 ? fail('translate: result rejected by transform function')
-                : success(translated, from.next, from.warning);
+                : success(translated, from.next, from.message);
         } else {
             return from;
         }
@@ -186,7 +186,7 @@ export function report<TIn, TOut>(tag: string, parser: Parser<TIn, TOut>): Parse
         const result = parser(input);
         return result.success ? result : fail({
             tag: tag,
-            reason: result.reason,
+            message: result.message,
         });
     };
 }

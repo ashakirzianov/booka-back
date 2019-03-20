@@ -60,7 +60,7 @@ export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<
             if (!result.success) {
                 return result;
             } else {
-                return success(result.value, list.tail, result.warning);
+                return success(result.value, list.tail, result.message);
             }
         }
 
@@ -108,7 +108,7 @@ export function children<T>(parser: XmlParser<T>): XmlParser<T> {
 
         const result = parser(list.head.children);
         if (result.success) {
-            return success(result.value, list.tail, result.warning);
+            return success(result.value, list.tail, result.message);
         } else {
             return result;
         }
@@ -127,7 +127,7 @@ export function parent<T>(parser: XmlParser<T>): XmlParser<T> {
 
         const result = parser([list.head.parent]);
         if (result.success) {
-            return success(result.value, list.tail, result.warning);
+            return success(result.value, list.tail, result.message);
         } else {
             return result;
         }
