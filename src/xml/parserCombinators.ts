@@ -103,6 +103,7 @@ export function not<T>(parser: Parser<T, any>): Parser<T, T> {
 export function and<TI, T1, T2>(p1: Parser<TI, T1>, p2: Parser<TI, T2>): Parser<TI, [T1, T2]>;
 export function and<TI, T1, T2, T3>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>): Parser<TI, [T1, T2, T3]>;
 export function and<TI, T1, T2, T3, T4>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>, p4: Parser<TI, T4>): Parser<TI, [T1, T2, T3, T4]>;
+export function and<TI, TS>(...ps: Array<Parser<TI, TS>>): Parser<TI, TS[]>;
 export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
     return input => {
         const results: any[] = [];
@@ -126,6 +127,7 @@ export function and<T>(...ps: Array<Parser<T, any>>): Parser<T, any[]> {
 export function seq<TI, T1, T2>(p1: Parser<TI, T1>, p2: Parser<TI, T2>): Parser<TI, [T1, T2]>;
 export function seq<TI, T1, T2, T3>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>): Parser<TI, [T1, T2, T3]>;
 export function seq<TI, T1, T2, T3, T4>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>, p4: Parser<TI, T4>): Parser<TI, [T1, T2, T3, T4]>;
+export function seq<TI, TS>(...ps: Array<Parser<TI, TS>>): Parser<TI, TS[]>;
 export function seq<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
     return input => {
         let currentInput = input;
@@ -151,7 +153,8 @@ export function choice<TI, T1, T2, T3>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p
 export function choice<TI, T1, T2, T3, T4>(
     p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>, p4: Parser<TI, T4>
 ): Parser<TI, T1 | T2 | T3 | T4>;
-export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
+export function choice<TI, TS>(...ps: Array<Parser<TI, TS>>): Parser<TI, TS>;
+export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any> {
     return input => {
         const failReasons: Message[] = [];
         for (let i = 0; i < ps.length; i++) {
@@ -168,6 +171,7 @@ export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any[]> {
 
 export function projectLast<TI, T1, T2>(parser: Parser<TI, [T1, T2]>): Parser<TI, T2>;
 export function projectLast<TI, T1, T2, T3>(parser: Parser<TI, [T1, T2, T3]>): Parser<TI, T3>;
+export function projectLast<TI, TS>(...ps: Array<Parser<TI, TS>>): Parser<TI, TS>;
 export function projectLast<TI>(parser: Parser<TI, any>): Parser<TI, any> {
     return translate(parser, result => result[result.length - 1]);
 }
