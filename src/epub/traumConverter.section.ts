@@ -83,9 +83,12 @@ const paragraph = translate(
 
 // ---- Normal page
 
-const skipOneNode = report(
-    n => `Unexpected node: ${nodeToString(n)}`,
-    headNode(n => n)
+const skipOneNode = translate(
+    report(
+        n => `Unexpected node: ${nodeToString(n)}`,
+        headNode(n => n)
+    ),
+    () => undefined,
 );
 
 const normalContent = some(
