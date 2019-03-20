@@ -1,5 +1,5 @@
 import { string2tree, XmlParser } from '../xml';
-import { sectionP, titlePageP, normalPageP, separatorP, separatorHeaderP, paragraphP } from './traumConverter';
+import { sectionP, titlePageP, normalPageP, separatorP, separatorHeaderP, paragraphP } from './traumConverter.section';
 import { expectSuccess } from '../testUtils';
 
 /* spellchecker:disable */
