@@ -3,7 +3,7 @@ import {
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString,
 } from '../xml';
-import { filterUndefined } from '../utils';
+import { filterUndefined, equalsToOneOf } from '../utils';
 import { span, Span } from '../contracts';
 
 // ---- Title page
@@ -35,12 +35,15 @@ const titlePage = translate(path(['html', 'body', 'div'],
 
 // ---- Ignored pages
 
-const ignoredPage = translate(path(['html', 'body', 'div'],
-    element(el =>
-        el.attributes.class === 'fb2_info'
-        || el.attributes.class === 'about'
-        || el.attributes.class === 'titlepage' // TODO: handle this title page properly ?
-    )),
+const ignoredPage = translate(
+    report(
+        classAttr =>
+            equalsToOneOf(classAttr,
+                undefined, 'fb2_info', 'about',
+                'coverpage', 'titlepage', 'annotation', // TODO: handle properly
+            ) ? undefined : `Unexpected page: ${classAttr}`,
+        path(['html', 'body', 'div'], headNode(n => n.type === 'element' ? n.attributes.class : undefined))
+    ),
     () => [{
         element: 'ignore' as 'ignore',
     }]
@@ -119,20 +122,21 @@ const normalContent = some(
     )
 );
 
-const normalPage = translate(path(['html', 'body'],
-    children(afterWhitespaces(element(
-        el => el.attributes.class !== undefined,
+const normalPage = translate(path(['html', 'body', 'div'],
+    element(
+        el =>
+            el.attributes.class !== undefined && el.attributes.class.startsWith('section'),
         normalContent,
-    )))),
+    )),
     content => filterUndefined(content),
 );
 
 // ---- Section parser
 
 export const section = choice(
-    ignoredPage,
     normalPage,
     titlePage,
+    ignoredPage,
 );
 
 // Test exports

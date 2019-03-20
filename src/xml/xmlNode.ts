@@ -67,7 +67,7 @@ export function xmlElement(
 
 export function attributesToString(attr: XmlAttributes): string {
     const result = Object.keys(attr)
-        .map(k => attr[k] ? `${k}=${attr[k]}` : k)
+        .map(k => attr[k] ? `${k}="${attr[k]}"` : k)
         .join(' ');
 
     return result;

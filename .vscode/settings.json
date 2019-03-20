@@ -18,6 +18,7 @@
         "Truthy",
         "Whitespaces",
         "backend",
+        "coverpage",
         "epub",
         "promisify",
         "rgrove",

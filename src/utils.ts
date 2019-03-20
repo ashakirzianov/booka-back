@@ -13,3 +13,7 @@ export function filterUndefined<T>(arr: Array<T | undefined>): T[] {
 export function assertNever(x: never): never {
     throw new Error(`Should be never: ${x}`);
 }
+
+export function equalsToOneOf<T>(x: T, ...opts: T[]): boolean {
+    return opts.reduce((res, o) => res || o === x, false);
+}
