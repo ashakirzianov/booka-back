@@ -2,7 +2,7 @@ import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString, XmlNode, declare,
-    namePred, translateAndWarn, expect, elem, projectFirst, attrsPred,
+    namePred, translateAndWarn, expect, elem, projectFirst, attrsPred, attrMapPred,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh, attrs } from '../contracts';
@@ -96,7 +96,7 @@ const isKnown = oneOf(
 const divParagraph = translateAndWarn(
     and(
         elem(namePred('div')),
-        expect(elem(attrsPred(a => isKnown(a.class)))),
+        expect(elem(attrMapPred({ class: isKnown }))),
         children(paragraph)
     ),
     ([{ attributes }, _, p]) => isDecoration(attributes.class) ? assign(attributes.class)(p)

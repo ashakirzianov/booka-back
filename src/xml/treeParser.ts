@@ -2,14 +2,14 @@ import {
     XmlNode, hasChildren, isElement,
     XmlAttributes, XmlNodeElement, nodeToString, attributesToString,
 } from './xmlNode';
-import { caseInsensitiveEq, isWhitespaces } from '../utils';
+import { caseInsensitiveEq, isWhitespaces, equalsToOneOf } from '../utils';
 import {
     Result, success, fail,
     seq, some,
     translate,
 } from './parserCombinators';
 import { ArrayParser, buildHead, split, not, predicate } from './arrayParser';
-import { predSucc, predFail, Predicate } from './predicate';
+import { predSucc, predFail, Predicate, andPred } from './predicate';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
@@ -204,3 +204,54 @@ export function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
 
 export const name = (n: string) => predicate(elemPred(), namePred(n));
 export const elementAttrs = (f: (x: XmlAttributes) => boolean) => elem(attrsPred(f));
+
+export type AttributePair = {
+    key: string,
+    value: AttributeValue,
+};
+export type AttributeValue = string | undefined;
+export type AttributeConstraintValue = AttributeValue | AttributeValue[] | ((v: AttributeValue) => boolean);
+export type AttributeConstraint = {
+    key: string,
+    value: AttributeConstraintValue,
+};
+export type AttributeMap = {
+    [k in string]?: AttributeConstraintValue;
+};
+
+export function attrPred(c: AttributeConstraint): ElementPredicate {
+    const { key, value } = c;
+    if (typeof value === 'function') {
+        return en => value(en.attributes[key])
+            ? predSucc(en)
+            : predFail(`Unexpected attribute ${key}='${en.attributes[key]}'`);
+    } else if (Array.isArray(value)) {
+        return en => equalsToOneOf(en.attributes[key], value)
+            ? predSucc(en)
+            : predFail(`Unexpected attribute ${key}='${en.attributes[key]}', expected values: ${value}`);
+    } else {
+        return en => en.attributes[key] === value
+            ? predSucc(en)
+            : predFail(`Unexpected attribute ${key}='${en.attributes[key]}', expected value: ${value}`);
+    }
+}
+
+export function notSetExcept(keys: string[]): ElementPredicate {
+    return en => {
+        const extra = Object.keys(en.attributes)
+            .filter(k => !equalsToOneOf(k, ...keys))
+            .map(ue => `${ue}=${en.attributes[ue]}`);
+        return extra.length === 0
+            ? predSucc(en)
+            : predFail(`Unexpected attributes: ${extra}`);
+    };
+}
+
+export function attrMapPred(map: AttributeMap): ElementPredicate {
+    const keys = Object.keys(map);
+    const notSet = notSetExcept(keys);
+    const constraints = keys
+        .map(key => attrPred({ key: key, value: map[key] }));
+
+    return andPred(notSet, ...constraints);
+}
