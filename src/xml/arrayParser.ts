@@ -73,7 +73,7 @@ export function predFail(message: Message): PredicateResultFail {
     };
 }
 
-export type Predicate<TI, TO> = (x: TI) => PredicateResult<TI & TO>;
+export type Predicate<TI, TO = TI> = (x: TI) => PredicateResult<TI & TO>;
 
 function singlePred<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
     return (input: TI[]) => {
@@ -106,6 +106,6 @@ export function predicate<TI, T>(
 export function predicate<TI>(...preds: Array<Predicate<TI, any>>): ArrayParser<TI, any> {
     const parsers = preds.map(singlePred);
     return parsers.length > 1
-        ? and(...parsers)
+        ? projectLast(and(...parsers))
         : parsers[0];
 }

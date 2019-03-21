@@ -174,16 +174,19 @@ export function path<T>(paths: string[], then: XmlParser<T>): XmlParser<T> {
 }
 
 export type NodePredicate<TR> = Predicate<XmlNode, TR>;
-export function node<TR>(pred: NodePredicate<TR>): XmlParser<TR> {
-    return predicate(pred);
+
+export function namePred(n: string): Predicate<XmlNodeElement> {
+    return nd => {
+        return nameEq(nd.name, n)
+            ? predSucc(nd)
+            : predFail(`Expected name: '${n}', got: '${nd.name}'`);
+    };
 }
 
-export function name(n: string): NodePredicate<XmlNodeElement> {
+export function elemPred(): NodePredicate<XmlNodeElement> {
     return nd => {
         if (isElement(nd)) {
-            return nameEq(nd.name, n)
-                ? predSucc(nd)
-                : predFail(`Expected name: '${n}', got: '${nd.name}'`);
+            return predSucc(nd);
         } else {
             return predFail(`Expected xml element, got: ${nodeToString(nd)}`);
         }

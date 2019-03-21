@@ -2,7 +2,7 @@ import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString, XmlNode, declare,
-    node, name, projectLast, translateAndWarn,
+    namePred, translateAndWarn, predicate, elemPred,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -94,7 +94,10 @@ const isKnown = oneOf(
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 );
 const divParagraph = translateAndWarn(
-    and(node(name('div')), children(paragraph)),
+    and(
+        predicate(elemPred(), namePred('div')),
+        children(paragraph)
+    ),
     ([{ attributes }, p]) => isDecoration(attributes.class) ? assign(attributes.class)(p)
         : isKnown(attributes.class) ? p
             : {
