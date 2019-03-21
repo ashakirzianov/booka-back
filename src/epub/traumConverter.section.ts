@@ -4,7 +4,7 @@ import {
     choice, report, nodeToString, XmlNode, declare,
     node, name, projectLast,
 } from '../xml';
-import { filterUndefined, equalsToOneOf } from '../utils';
+import { filterUndefined, equalsToOneOf, oneOfString } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
@@ -90,8 +90,8 @@ const pParagraph = element('p', paragraph);
 // const divParagraph = element('div', paragraph);
 const divParagraph = translate(
     and(node(name('div')), children(paragraph)),
-    ([div, p]) => div.attributes.class === 'poem'
-        ? assign('poem')(p)
+    ([{ attributes }, p]) => oneOfString(attributes.class, 'poem')
+        ? assign(attributes.class)(p)
         : p
 );
 

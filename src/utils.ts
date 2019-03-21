@@ -17,3 +17,7 @@ export function assertNever(x: never): never {
 export function equalsToOneOf<T>(x: T, ...opts: T[]): boolean {
     return opts.reduce((res, o) => res || o === x, false);
 }
+
+export function oneOfString<T extends string>(x: string | undefined, ...opts: T[]): x is T {
+    return x !== undefined && equalsToOneOf(x, ...opts);
+}
