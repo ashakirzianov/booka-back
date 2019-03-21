@@ -1,7 +1,7 @@
 import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, Result,
+    choice, report, nodeToString, XmlNode, Result, declare,
 } from '../xml';
 import { filterUndefined, equalsToOneOf } from '../utils';
 import { pph, Paragraph } from '../contracts';
@@ -76,23 +76,23 @@ const header = element('div', afterWhitespaces(headerContent));
 
 // ---- Paragraph
 
+const paragraph = declare<XmlNode[], Paragraph>();
 const plainText = textNode();
-const spanText = element('span', recursiveParagraph);
+const spanText = element('span', paragraph);
 const emphasis = translate(
     element('em', plainText),
     t => pph(t, 'italic'),
 );
 const footnote = translate(element('a'), _ => pph('')); // TODO: implement links
 
-const pParagraph = element('p', recursiveParagraph);
-const divParagraph = element('div', recursiveParagraph);
+const pParagraph = element('p', paragraph);
+const divParagraph = element('div', paragraph);
 
 // TODO: report unexpected spans ?
-const paragraph = translate(some(choice(plainText, spanText, emphasis, footnote, pParagraph, divParagraph)), pph);
-
-function recursiveParagraph(input: XmlNode[]): Result<XmlNode[], Paragraph> {
-    return paragraph(input);
-}
+paragraph.implementation = translate(
+    some(choice(plainText, spanText, emphasis, footnote, pParagraph, divParagraph)),
+    pph
+);
 
 const paragraphElement = translate(paragraph, p => ({
     element: 'paragraph' as 'paragraph',

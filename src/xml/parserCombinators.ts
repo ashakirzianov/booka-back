@@ -180,6 +180,19 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
     };
 }
 
+export type DeclaredParser<TIn, TOut> = {
+    (input: TIn): Result<TIn, TOut>,
+    implementation: (input: TIn) => Result<TIn, TOut>,
+};
+export function declare<TIn, TOut>(): DeclaredParser<TIn, TOut> {
+    const declared = (input: TIn) => {
+        // TODO: consider throw in no implementation provided
+        return (declared as any).implementation(input);
+    };
+
+    return declared as DeclaredParser<TIn, TOut>;
+}
+
 type MessageOrFn<TOut> = Message | ((x: TOut) => Message);
 function getMessage<TOut>(result: Result<any, TOut>, mOrF: MessageOrFn<TOut>) {
     return typeof mOrF === 'function'
