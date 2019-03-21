@@ -1,5 +1,5 @@
 import {
-    Parser, success, fail, seq, some, projectLast,
+    Parser, success, fail, seq, some, projectLast, Message, compoundMessage,
 } from './parserCombinators';
 
 export type ArrayParser<TIn, TOut = TIn> = Parser<TIn[], TOut>;
@@ -47,3 +47,47 @@ export function skipTo<TI, TO>(parser: ArrayParser<TI, TO>): ArrayParser<TI, TO>
 }
 
 export const anyItem = buildHead()(x => x);
+
+// ---- Predicates
+
+export type PredicateResultSuccess<T> = {
+    success: true,
+    message: Message,
+    value: T,
+};
+export type PredicateResultFail = {
+    success: false,
+    message: Message,
+};
+export type PredicateResult<T> = PredicateResultSuccess<T> | PredicateResultFail;
+
+export function predSucc<T>(value: T, message?: Message): PredicateResultSuccess<T> {
+    return {
+        success: true,
+        value, message,
+    };
+}
+
+export function predFail(message: Message): PredicateResultFail {
+    return {
+        success: false,
+        message,
+    };
+}
+
+export type Predicate<TI, TO> = (x: TI) => PredicateResult<TI & TO>;
+export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
+    return (input: TI[]) => {
+        const { head, tail } = split(input);
+        if (!head) {
+            return fail('node: empty input');
+        }
+
+        const result = pred(head);
+        if (result.success) {
+            return success(result.value, tail, result.message);
+        } else {
+            return fail(compoundMessage(['node: predicate failed', result.message]));
+        }
+    };
+}

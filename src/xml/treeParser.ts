@@ -1,15 +1,14 @@
 import {
     XmlNode, hasChildren, isElement,
-    XmlAttributes, XmlNodeElement,
+    XmlAttributes, XmlNodeElement, nodeToString,
 } from './xmlNode';
 import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
     Result, success, fail,
     seq, some,
     translate,
-    Message,
 } from './parserCombinators';
-import { ArrayParser, buildHead, split, not } from './arrayParser';
+import { ArrayParser, buildHead, split, not, Predicate, predicate, predSucc, predFail } from './arrayParser';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
@@ -174,25 +173,19 @@ export function path<T>(paths: string[], then: XmlParser<T>): XmlParser<T> {
     return (input: XmlNode[]) => parsePathHelper(paths, then, input);
 }
 
-export type NodePredicate<TR> = (e: XmlNode) => XmlNode & TR | null;
-export function node<TR>(predicate: NodePredicate<TR>): XmlParser<TR> {
-    return (input: XmlNode[]) => {
-        const { head, tail } = split(input);
-        if (!head) {
-            return fail('node: empty input');
-        }
-
-        const result = predicate(head);
-        if (result === null) {
-            return fail('node: predicate failed');
-        }
-
-        return success(result, tail);
-    };
+export type NodePredicate<TR> = Predicate<XmlNode, TR>;
+export function node<TR>(pred: NodePredicate<TR>): XmlParser<TR> {
+    return predicate(pred);
 }
 
 export function name(n: string): NodePredicate<XmlNodeElement> {
-    return nd => isElement(nd) && nameEq(nd.name, n)
-        ? nd
-        : null;
+    return nd => {
+        if (isElement(nd)) {
+            return nameEq(nd.name, n)
+                ? predSucc(nd)
+                : predFail(`Expected name: '${n}', got: '${nd.name}'`);
+        } else {
+            return predFail(`Expected xml element, got: ${nodeToString(nd)}`);
+        }
+    };
 }

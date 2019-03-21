@@ -180,16 +180,16 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
     };
 }
 
-type TranslateAndWarnPair<T> = {
+type WarnFnPair<T> = {
     message: Message,
     result: T,
 };
-type TranslateAndWarnFnResult<To> = To | TranslateAndWarnPair<To> | null;
-type TranslateAndWarnFn<From, To> = (x: From) => TranslateAndWarnFnResult<To>;
-function isTaWPair<To>(x: TranslateAndWarnFnResult<To>): x is TranslateAndWarnPair<To> {
+type WarnFnResult<To> = To | WarnFnPair<To> | null;
+export type WarnFn<From, To> = (x: From) => WarnFnResult<To>;
+export function isWarnPair<To>(x: WarnFnResult<To>): x is WarnFnPair<To> {
     return x !== null && x['message'] !== undefined;
 }
-export function translateAndWarn<TI, From, To>(parser: Parser<TI, From>, f: TranslateAndWarnFn<From, To>): Parser<TI, To> {
+export function translateAndWarn<TI, From, To>(parser: Parser<TI, From>, f: WarnFn<From, To>): Parser<TI, To> {
     return input => {
         const from = parser(input);
         if (!from.success) {
@@ -199,7 +199,7 @@ export function translateAndWarn<TI, From, To>(parser: Parser<TI, From>, f: Tran
         const translated = f(from.value);
         if (translated === null) {
             return fail('translate: result rejected by transform function');
-        } else if (isTaWPair(translated)) {
+        } else if (isWarnPair(translated)) {
             return success(translated.result, from.next, compoundMessage([translated.message, from.message]));
         } else {
             return success(translated, from.next, from.message);
