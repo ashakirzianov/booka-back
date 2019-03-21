@@ -1,5 +1,5 @@
 import * as parseXmlLib from '@rgrove/parse-xml';
-import { assertNever } from '../utils';
+import { assertNever, isWhitespaces } from '../utils';
 
 export type XmlAttributes = { [key: string]: string | undefined };
 export type XmlNodeBase<T extends string> = { type: T, parent: XmlNodeWithChildren };
@@ -91,7 +91,9 @@ export function nodeToString(n: XmlNode): string {
                 ? `<${name}${attrsStr}>${chs}</${name}>`
                 : `<${name}${attrsStr}/>`;
         case 'text':
-            return n.text;
+            return isWhitespaces(n.text)
+                ? '*' + n.text
+                : n.text;
         case 'comment':
             return `<!--${n.content}-->`;
         case 'cdata':

@@ -89,13 +89,28 @@ const paragraphSpans = translate(
     texts => texts.reduce((acc, t) => acc.concat(t), [] as Span[]),
 );
 
-const paragraph = translate(
+const basicParagraph = translate(
     element('p', paragraphSpans),
     spans => ({
         element: 'paragraph' as 'paragraph',
         spans: spans,
     }),
 );
+
+// TODO: properly handle "poems"
+const poemDiv = translate(element(
+    e => e.attributes.class === 'poem',
+    afterWhitespaces(element(e => e.attributes.class === 'stanza',
+        some(afterWhitespaces(element('p',
+            choice(afterWhitespaces(emphasis), plainText)))) // TODO: parse any paragraph spans here
+    ))),
+    spans => ({
+        element: 'paragraph' as 'paragraph',
+        spans: spans,
+    }),
+);
+
+const paragraph = choice(basicParagraph, poemDiv);
 
 // ---- Normal page
 
@@ -143,5 +158,5 @@ export const section = choice(
 
 export const toTest = {
     normalPage, titlePage, section,
-    paragraph, separator: header, separatorHeader: headerContent,
+    paragraph: basicParagraph, separator: header, separatorHeader: headerContent,
 };
