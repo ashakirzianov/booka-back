@@ -7,16 +7,6 @@ export type Span = {
     attrs: SpanAttrs,
 };
 
-export function span(text: string, ...attributes: SpanAttributeName[]): Span {
-    const attrs = attributes
-        .reduce((as, a) =>
-            ({ ...as, [a]: true }), {} as SpanAttrs);
-    return {
-        text: text,
-        attrs: attrs,
-    };
-}
-
 export type Paragraph = {
     node: 'paragraph',
     spans: Span[],
@@ -44,3 +34,27 @@ export type BookContent = {
 export type Library = {
     [key: string]: BookMeta | undefined;
 };
+
+// Helpers:
+
+export function isParagraph(bn: BookNode): bn is Paragraph {
+    return bn.node === 'paragraph';
+}
+
+export function isChapter(bn: BookNode): bn is Chapter {
+    return bn.node === 'chapter';
+}
+
+export function children(node: BookNode) {
+    return isChapter(node) ? node.nodes : [];
+}
+
+export function span(text: string, ...attributes: SpanAttributeName[]): Span {
+    const attrs = attributes
+        .reduce((as, a) =>
+            ({ ...as, [a]: true }), {} as SpanAttrs);
+    return {
+        text: text,
+        attrs: attrs,
+    };
+}
