@@ -75,7 +75,7 @@ function findTitlePage(structures: Element[]): TitlePage | undefined {
 
 const headElement = head<Element>();
 
-function chapterParser<T extends BookNode>(level: number, contentE: Parser<Element, T>): Parser<Element, BookNode> {
+function chapterParser<T extends BookNode>(level: number, contentE: Parser<Element[], T>): Parser<Element[], BookNode> {
     return choice(
         translate(
             seq(

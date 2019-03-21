@@ -1,7 +1,7 @@
-export type Parser<TIn, TOut> = (input: TIn[]) => Result<TIn, TOut>;
+export type Parser<TIn, TOut> = (input: TIn) => Result<TIn, TOut>;
 export type Success<In, Out> = {
     value: Out,
-    next: In[],
+    next: In,
     success: true,
     message: Message,
 };
@@ -52,52 +52,8 @@ export function fail(reason: Message): Fail {
     return { success: false, message: reason };
 }
 
-export function success<TIn, TOut>(value: TOut, next: TIn[], message?: Message): Success<TIn, TOut> {
+export function success<TIn, TOut>(value: TOut, next: TIn, message?: Message): Success<TIn, TOut> {
     return { value, next, success: true, message };
-}
-
-export function split<T>(arr: T[]) {
-    return {
-        head: arr.length > 0 ? arr[0] : undefined,
-        tail: arr.length > 1 ? arr.slice(1) : [],
-    };
-}
-
-export function head<TIn>() {
-    return <TOut>(f: (n: TIn) => TOut | null) => (input: TIn[]) => {
-        const list = split(input);
-        if (!list.head) {
-            return fail('first node: empty input');
-        }
-        const result = f(list.head);
-        return result === null
-            ? fail('first node: func returned null')
-            : success(result, list.tail)
-            ;
-    };
-}
-
-export function maybe<TIn, TOut>(parser: Parser<TIn, TOut>): Parser<TIn, TOut | undefined> {
-    return input => {
-        const result = parser(input);
-        return result.success
-            ? result
-            : success(undefined, input);
-    };
-}
-
-export function not<T>(parser: Parser<T, any>): Parser<T, T> {
-    return input => {
-        const list = split(input);
-        if (!list.head) {
-            return fail('not: empty input');
-        }
-
-        const result = parser(input);
-        return !result.success
-            ? success(list.head, list.tail)
-            : fail('not: parser succeed');
-    };
 }
 
 export function and<TI, T1, T2>(p1: Parser<TI, T1>, p2: Parser<TI, T2>): Parser<TI, [T1, T2]>;
@@ -196,6 +152,15 @@ export function some<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
     };
 }
 
+export function maybe<TIn, TOut>(parser: Parser<TIn, TOut>): Parser<TIn, TOut | undefined> {
+    return input => {
+        const result = parser(input);
+        return result.success
+            ? result
+            : success(undefined, input);
+    };
+}
+
 // TODO: implement proper reason reporting
 export function oneOrMore<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
     return translate(some(parser), nodes => nodes.length > 0 ? nodes : null);
@@ -223,7 +188,7 @@ function getMessage<TOut>(result: Result<any, TOut>, mOrF: MessageOrFn<TOut>) {
 }
 
 export function report<TIn, TOut>(mOrF: MessageOrFn<TOut>, parser: Parser<TIn, TOut>): Parser<TIn, TOut> {
-    return (input: TIn[]) => {
+    return (input: TIn) => {
         const result = parser(input);
         const msg = getMessage(result, mOrF);
         if (msg) {
@@ -243,11 +208,4 @@ export function report<TIn, TOut>(mOrF: MessageOrFn<TOut>, parser: Parser<TIn, T
 export function expect<TI, TO>(parser: Parser<TI, TO>, mOrF?: MessageOrFn<TO | undefined>): Parser<TI, TO | undefined> {
     const m = mOrF || 'expected'; // TODO: are you sure ?
     return report(m, maybe(parser));
-}
-
-export function skipTo<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO> {
-    return projectLast(seq(
-        some(not(parser)),
-        parser,
-    ));
 }

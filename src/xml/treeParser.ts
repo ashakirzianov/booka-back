@@ -5,12 +5,54 @@ import {
 import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
     Parser, Result, success, fail,
-    head,
-    split, seq, some, not,
+    seq, some,
     translate,
+    projectLast,
 } from './parserCombinators';
 
-export type XmlParser<TOut = XmlNode> = Parser<XmlNode, TOut>;
+export type XmlParser<TOut = XmlNode> = Parser<XmlNode[], TOut>;
+
+export function split<T>(arr: T[]) {
+    return {
+        head: arr.length > 0 ? arr[0] : undefined,
+        tail: arr.length > 1 ? arr.slice(1) : [],
+    };
+}
+
+export function head<TIn>() {
+    return <TOut>(f: (n: TIn) => TOut | null) => (input: TIn[]) => {
+        const list = split(input);
+        if (!list.head) {
+            return fail('first node: empty input');
+        }
+        const result = f(list.head);
+        return result === null
+            ? fail('first node: func returned null')
+            : success(result, list.tail)
+            ;
+    };
+}
+
+export function not<T>(parser: Parser<T[], any>): Parser<T[], T> {
+    return input => {
+        const list = split(input);
+        if (!list.head) {
+            return fail('not: empty input');
+        }
+
+        const result = parser(input);
+        return !result.success
+            ? success(list.head, list.tail)
+            : fail('not: parser succeed');
+    };
+}
+
+export function skipTo<TI, TO>(parser: Parser<TI[], TO>): Parser<TI[], TO> {
+    return projectLast(seq(
+        some(not(parser)),
+        parser,
+    ));
+}
 
 export const headNode = head<XmlNode>();
 
@@ -150,7 +192,7 @@ export function between<T>(left: XmlParser<any>, right: XmlParser<any>, inside: 
     };
 }
 
-function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input: XmlNode[]): Result<XmlNode, T> {
+function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input: XmlNode[]): Result<XmlNode[], T> {
     if (pathComponents.length === 0) {
         return fail('parse path: can\'t parse to empty path');
     }

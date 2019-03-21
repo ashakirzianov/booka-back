@@ -1,6 +1,6 @@
 import { xmlElement } from './xmlNode';
-import { skipTo, and } from './parserCombinators';
-import { element, children } from './treeParser';
+import { and } from './parserCombinators';
+import { skipTo, element, children } from './treeParser';
 import { expectSuccess } from '../testUtils';
 
 it('skipTo', () => {

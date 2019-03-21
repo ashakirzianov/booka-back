@@ -65,6 +65,6 @@ const extractTextParser = translate(
     arrays => arrays.reduce((result, arr) => result.concat(arr), [] as C.BookNode[]),
 );
 
-function extractText(tree: XmlNode[]): Result<XmlNode, C.BookNode[]> {
+function extractText(tree: XmlNode[]): Result<XmlNode[], C.BookNode[]> {
     return extractTextParser(tree);
 }
