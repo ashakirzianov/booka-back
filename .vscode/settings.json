@@ -21,6 +21,7 @@
         "backend",
         "coverpage",
         "epub",
+        "preds",
         "promisify",
         "rgrove",
         "titlepage",

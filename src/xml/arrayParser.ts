@@ -1,5 +1,5 @@
 import {
-    Parser, success, fail, seq, some, projectLast, Message, compoundMessage,
+    Parser, success, fail, seq, some, projectLast, Message, compoundMessage, and,
 } from './parserCombinators';
 
 export type ArrayParser<TIn, TOut = TIn> = Parser<TIn[], TOut>;
@@ -60,14 +60,12 @@ export type PredicateResultFail = {
     message: Message,
 };
 export type PredicateResult<T> = PredicateResultSuccess<T> | PredicateResultFail;
-
 export function predSucc<T>(value: T, message?: Message): PredicateResultSuccess<T> {
     return {
         success: true,
         value, message,
     };
 }
-
 export function predFail(message: Message): PredicateResultFail {
     return {
         success: false,
@@ -76,7 +74,8 @@ export function predFail(message: Message): PredicateResultFail {
 }
 
 export type Predicate<TI, TO> = (x: TI) => PredicateResult<TI & TO>;
-export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
+
+function singlePred<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
     return (input: TI[]) => {
         const { head, tail } = split(input);
         if (!head) {
@@ -90,4 +89,23 @@ export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> 
             return fail(compoundMessage(['node: predicate failed', result.message]));
         }
     };
+}
+
+export function predicate<TI, T1, T2>(
+    p1: Predicate<TI, T1>, p2: Predicate<TI & T1, T2>
+): ArrayParser<TI, TI & T1 & T2>;
+
+export function predicate<TI, T1, T2, T3>(
+    p1: Predicate<TI, T1>, p2: Predicate<TI & T1, T2>, p3: Predicate<TI & T1 & T2, T3>
+): ArrayParser<TI, TI & T1 & T2 & T3>;
+
+export function predicate<TI, T>(
+    ...preds: Array<Predicate<TI, T>>
+): ArrayParser<TI, TI & T>;
+
+export function predicate<TI>(...preds: Array<Predicate<TI, any>>): ArrayParser<TI, any> {
+    const parsers = preds.map(singlePred);
+    return parsers.length > 1
+        ? and(...parsers)
+        : parsers[0];
 }
