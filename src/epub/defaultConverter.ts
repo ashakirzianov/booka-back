@@ -1,4 +1,3 @@
-import * as C from '../contracts';
 import { Epub, Section } from './epubParser';
 import {
     string2tree, XmlNodeDocument, XmlNode,
@@ -7,13 +6,14 @@ import {
 } from '../xml';
 import { EpubConverter } from './epubConverter';
 import { filterUndefined } from '../utils';
+import { BookContent, BookNode } from '../contracts';
 
 export const converter: EpubConverter = {
     canHandleEpub: _ => true,
     convertEpub: defaultEpubConverter,
 };
 
-function defaultEpubConverter(epub: Epub): Promise<C.BookContent> {
+function defaultEpubConverter(epub: Epub): Promise<BookContent> {
     return Promise.resolve({
         book: 'book' as 'book',
         meta: {
@@ -24,11 +24,11 @@ function defaultEpubConverter(epub: Epub): Promise<C.BookContent> {
     });
 }
 
-function convertSections(sections: Section[]): C.BookNode[] {
+function convertSections(sections: Section[]): BookNode[] {
     return filterUndefined(sections.map(convertSingleSection));
 }
 
-function convertSingleSection(section: Section): C.BookNode | undefined {
+function convertSingleSection(section: Section): BookNode | undefined {
     const tree = string2tree(section.htmlString);
     if (!tree) {
         return undefined;
@@ -43,18 +43,18 @@ function convertSingleSection(section: Section): C.BookNode | undefined {
     };
 }
 
-function tree2node(tree: XmlNodeDocument): C.BookNode[] {
+function tree2node(tree: XmlNodeDocument): BookNode[] {
     const result = extractText(tree.children);
     return result.success ?
         result.value
-        : [] as C.BookNode[] // TODO: better reporting
+        : [] as BookNode[] // TODO: better reporting
         ;
 }
 
 const anyText = textNode(t => [{
     node: 'paragraph',
-    spans: [C.pph(t)],
-} as C.BookNode]);
+    spans: [t],
+} as BookNode]);
 const childrenText = children(extractText);
 
 const extractTextParser = translate(
@@ -62,9 +62,9 @@ const extractTextParser = translate(
         anyText,
         childrenText,
     )),
-    arrays => arrays.reduce((result, arr) => result.concat(arr), [] as C.BookNode[]),
+    arrays => arrays.reduce((result, arr) => result.concat(arr), [] as BookNode[]),
 );
 
-function extractText(tree: XmlNode[]): Result<XmlNode[], C.BookNode[]> {
+function extractText(tree: XmlNode[]): Result<XmlNode[], BookNode[]> {
     return extractTextParser(tree);
 }

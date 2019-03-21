@@ -54,21 +54,26 @@ export function children(node: BookNode) {
     return isChapter(node) ? node.nodes : [];
 }
 
-export function pph(input: SimpleParagraph | Paragraph[], ...attributes: AttributeName[]): Paragraph {
-    if (attributes.length === 0) {
-        if (typeof input === 'string') {
-            return input;
-        } else if (input.length === 1) {
-            return input[0];
-        }
-    }
-
-    const attrs = attributes
+export function attrs(...attributes: AttributeName[]): Attrs {
+    return attributes
         .reduce((as, a) =>
             ({ ...as, [a]: true }), {} as Attrs);
+}
+
+export function assign(...attributes: AttributeName[]) {
+    return (p: Paragraph): AttributedParagraph => {
+        return {
+            node: 'paragraph',
+            spans: [p],
+            attrs: attrs(...attributes),
+        };
+    };
+}
+
+export function compoundPh(ps: Paragraph[]): Paragraph {
     return {
         node: 'paragraph',
-        spans: typeof input === 'string' ? [input] : input,
-        attrs: attrs,
+        spans: [],
+        attrs: {},
     };
 }

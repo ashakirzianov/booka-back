@@ -1,10 +1,10 @@
 import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, Result, declare,
+    choice, report, nodeToString, XmlNode, declare,
 } from '../xml';
 import { filterUndefined, equalsToOneOf } from '../utils';
-import { pph, Paragraph } from '../contracts';
+import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
 
@@ -81,9 +81,9 @@ const plainText = textNode();
 const spanText = element('span', paragraph);
 const emphasis = translate(
     element('em', plainText),
-    t => pph(t, 'italic'),
+    assign('italic'),
 );
-const footnote = translate(element('a'), _ => pph('')); // TODO: implement links
+const footnote = translate(element('a'), _ => ''); // TODO: implement links
 
 const pParagraph = element('p', paragraph);
 const divParagraph = element('div', paragraph);
@@ -91,7 +91,7 @@ const divParagraph = element('div', paragraph);
 // TODO: report unexpected spans ?
 paragraph.implementation = translate(
     some(choice(plainText, spanText, emphasis, footnote, pParagraph, divParagraph)),
-    pph
+    compoundPh
 );
 
 const paragraphElement = translate(paragraph, p => ({
