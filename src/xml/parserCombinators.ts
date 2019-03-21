@@ -245,7 +245,11 @@ export function report<TIn, TOut>(mOrF: MessageOrFn<TOut>, parser: Parser<TIn, T
     };
 }
 
-export function expect<TI, TO>(parser: Parser<TI, TO>, mOrF?: MessageOrFn<TO | undefined>): Parser<TI, TO | undefined> {
-    const m = mOrF || 'expected'; // TODO: are you sure ?
-    return report(m, maybe(parser));
+export function expect<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO | undefined> {
+    return input => {
+        const result = parser(input);
+        return result.success
+            ? result
+            : success(undefined, input, result.message);
+    };
 }
