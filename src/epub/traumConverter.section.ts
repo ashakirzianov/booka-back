@@ -2,10 +2,10 @@ import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString, XmlNode, declare,
-    namePred, translateAndWarn, predicate, elemPred,
+    namePred, translateAndWarn, expect, elem, projectFirst, attrsPred,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
-import { Paragraph, assign, compoundPh } from '../contracts';
+import { Paragraph, assign, compoundPh, attrs } from '../contracts';
 
 // ---- Title page
 
@@ -95,10 +95,11 @@ const isKnown = oneOf(
 );
 const divParagraph = translateAndWarn(
     and(
-        predicate(elemPred(), namePred('div')),
+        elem(namePred('div')),
+        expect(elem(attrsPred(a => isKnown(a.class)))),
         children(paragraph)
     ),
-    ([{ attributes }, p]) => isDecoration(attributes.class) ? assign(attributes.class)(p)
+    ([{ attributes }, _, p]) => isDecoration(attributes.class) ? assign(attributes.class)(p)
         : isKnown(attributes.class) ? p
             : {
                 message: 'Unexpected class: ' + attributes.class,

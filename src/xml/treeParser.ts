@@ -1,6 +1,6 @@
 import {
     XmlNode, hasChildren, isElement,
-    XmlAttributes, XmlNodeElement, nodeToString,
+    XmlAttributes, XmlNodeElement, nodeToString, attributesToString,
 } from './xmlNode';
 import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
@@ -173,17 +173,7 @@ export function path<T>(paths: string[], then: XmlParser<T>): XmlParser<T> {
     return (input: XmlNode[]) => parsePathHelper(paths, then, input);
 }
 
-export type NodePredicate<TR> = Predicate<XmlNode, TR>;
-
-export function namePred(n: string): Predicate<XmlNodeElement> {
-    return nd => {
-        return nameEq(nd.name, n)
-            ? predSucc(nd)
-            : predFail(`Expected name: '${n}', got: '${nd.name}'`);
-    };
-}
-
-export function elemPred(): NodePredicate<XmlNodeElement> {
+export function elemPred(): Predicate<XmlNode, XmlNodeElement> {
     return nd => {
         if (isElement(nd)) {
             return predSucc(nd);
@@ -192,3 +182,27 @@ export function elemPred(): NodePredicate<XmlNodeElement> {
         }
     };
 }
+
+export type ElementPredicate<T = XmlNodeElement> = Predicate<XmlNodeElement, T>;
+export function namePred(n: string): ElementPredicate {
+    return nd => {
+        return nameEq(nd.name, n)
+            ? predSucc(nd)
+            : predFail(`Expected name: '${n}', got: '${nd.name}'`);
+    };
+}
+export function attrsPred(f: (x: XmlAttributes) => boolean): ElementPredicate {
+    return en => f(en.attributes)
+        ? predSucc(en)
+        : predFail(`Unexpected attributes: '${attributesToString(en.attributes)}`);
+}
+export function classPred(f: (c: string | undefined) => boolean): ElementPredicate {
+    return attrsPred(x => f(x.class));
+}
+
+export function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
+    return predicate(elemPred(), ...preds);
+}
+
+export const name = (n: string) => elem(namePred(n));
+export const elementAttrs = (f: (x: XmlAttributes) => boolean) => elem(attrsPred(f));
