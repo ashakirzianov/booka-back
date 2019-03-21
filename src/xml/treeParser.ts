@@ -205,10 +205,6 @@ export function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
 export const name = (n: string) => predicate(elemPred(), namePred(n));
 export const elementAttrs = (f: (x: XmlAttributes) => boolean) => elem(attrsPred(f));
 
-export type AttributePair = {
-    key: string,
-    value: AttributeValue,
-};
 export type AttributeValue = string | undefined;
 export type AttributeConstraintValue = AttributeValue | AttributeValue[] | ((v: AttributeValue) => boolean);
 export type AttributeConstraint = {
@@ -226,7 +222,7 @@ export function attrPred(c: AttributeConstraint): ElementPredicate {
             ? predSucc(en)
             : predFail(`Unexpected attribute ${key}='${en.attributes[key]}'`);
     } else if (Array.isArray(value)) {
-        return en => equalsToOneOf(en.attributes[key], value)
+        return en => equalsToOneOf(en.attributes[key], ...value)
             ? predSucc(en)
             : predFail(`Unexpected attribute ${key}='${en.attributes[key]}', expected values: ${value}`);
     } else {

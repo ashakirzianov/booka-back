@@ -89,14 +89,14 @@ const footnote = translate(element('a'), _ => ''); // TODO: implement links
 const pParagraph = element('p', paragraph);
 
 const isDecoration = oneOf('poem');
-const isKnown = oneOf(
+const knownAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
-);
+];
 const divParagraph = translateAndWarn(
     and(
         elem(namePred('div')),
-        expect(elem(attrMapPred({ class: isKnown }))),
+        expect(elem(attrMapPred({ class: knownAttrs }))),
         children(paragraph)
     ),
     ([{ attributes }, _, p]) => isDecoration(attributes.class)
