@@ -90,7 +90,7 @@ const pParagraph = element('p', paragraph);
 
 const isDecoration = oneOf('poem');
 const isKnown = oneOf(
-    'stanza', 'note_section', undefined,
+    'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 );
 const divParagraph = translateAndWarn(

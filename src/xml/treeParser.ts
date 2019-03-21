@@ -8,7 +8,8 @@ import {
     seq, some,
     translate,
 } from './parserCombinators';
-import { ArrayParser, buildHead, split, not, Predicate, predicate, predSucc, predFail } from './arrayParser';
+import { ArrayParser, buildHead, split, not, predicate } from './arrayParser';
+import { predSucc, predFail, Predicate } from './predicate';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
@@ -196,13 +197,10 @@ export function attrsPred(f: (x: XmlAttributes) => boolean): ElementPredicate {
         ? predSucc(en)
         : predFail(`Unexpected attributes: '${attributesToString(en.attributes)}`);
 }
-export function classPred(f: (c: string | undefined) => boolean): ElementPredicate {
-    return attrsPred(x => f(x.class));
-}
 
 export function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
     return predicate(elemPred(), ...preds);
 }
 
-export const name = (n: string) => elem(namePred(n));
+export const name = (n: string) => predicate(elemPred(), namePred(n));
 export const elementAttrs = (f: (x: XmlAttributes) => boolean) => elem(attrsPred(f));
