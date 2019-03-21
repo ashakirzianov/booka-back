@@ -2,9 +2,9 @@ import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString, XmlNode, declare,
-    node, name, projectLast,
+    node, name, projectLast, translateAndWarn,
 } from '../xml';
-import { filterUndefined, equalsToOneOf, oneOfString } from '../utils';
+import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
@@ -87,12 +87,20 @@ const emphasis = translate(
 const footnote = translate(element('a'), _ => ''); // TODO: implement links
 
 const pParagraph = element('p', paragraph);
-// const divParagraph = element('div', paragraph);
-const divParagraph = translate(
+
+const isDecoration = oneOf('poem');
+const isKnown = oneOf(
+    'stanza', 'note_section', undefined,
+    'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
+);
+const divParagraph = translateAndWarn(
     and(node(name('div')), children(paragraph)),
-    ([{ attributes }, p]) => oneOfString(attributes.class, 'poem')
-        ? assign(attributes.class)(p)
-        : p
+    ([{ attributes }, p]) => isDecoration(attributes.class) ? assign(attributes.class)(p)
+        : isKnown(attributes.class) ? p
+            : {
+                message: 'Unexpected class: ' + attributes.class,
+                result: p,
+            }
 );
 
 // TODO: report unexpected spans ?

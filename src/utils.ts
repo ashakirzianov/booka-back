@@ -14,10 +14,12 @@ export function assertNever(x: never): never {
     throw new Error(`Should be never: ${x}`);
 }
 
-export function equalsToOneOf<T>(x: T, ...opts: T[]): boolean {
-    return opts.reduce((res, o) => res || o === x, false);
+export function equalsToOneOf<TX, TO>(x: TX, ...opts: TO[]): boolean {
+    return opts.reduce((res, o) => res || o === (x as any), false);
 }
 
-export function oneOfString<T extends string>(x: string | undefined, ...opts: T[]): x is T {
-    return x !== undefined && equalsToOneOf(x, ...opts);
+export function oneOf<T extends string | undefined>(...opts: T[]) {
+    return (x: string | undefined): x is T => {
+        return equalsToOneOf(x, ...opts);
+    };
 }

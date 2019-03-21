@@ -180,6 +180,33 @@ export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From
     };
 }
 
+type TranslateAndWarnPair<T> = {
+    message: Message,
+    result: T,
+};
+type TranslateAndWarnFnResult<To> = To | TranslateAndWarnPair<To> | null;
+type TranslateAndWarnFn<From, To> = (x: From) => TranslateAndWarnFnResult<To>;
+function isTaWPair<To>(x: TranslateAndWarnFnResult<To>): x is TranslateAndWarnPair<To> {
+    return x !== null && x['message'] !== undefined;
+}
+export function translateAndWarn<TI, From, To>(parser: Parser<TI, From>, f: TranslateAndWarnFn<From, To>): Parser<TI, To> {
+    return input => {
+        const from = parser(input);
+        if (!from.success) {
+            return from;
+        }
+
+        const translated = f(from.value);
+        if (translated === null) {
+            return fail('translate: result rejected by transform function');
+        } else if (isTaWPair(translated)) {
+            return success(translated.result, from.next, compoundMessage([translated.message, from.message]));
+        } else {
+            return success(translated, from.next, from.message);
+        }
+    };
+}
+
 export type DeclaredParser<TIn, TOut> = {
     (input: TIn): Result<TIn, TOut>,
     implementation: (input: TIn) => Result<TIn, TOut>,
