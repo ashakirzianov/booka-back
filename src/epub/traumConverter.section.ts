@@ -2,10 +2,10 @@ import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString, XmlNode, declare,
-    namePred, translateAndWarn, expect, elem, projectFirst, attrsPred, attrMapPred,
+    namePred, translateAndWarn, expect, elem, attrMapPred,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
-import { Paragraph, assign, compoundPh, attrs } from '../contracts';
+import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
 
@@ -99,12 +99,9 @@ const divParagraph = translateAndWarn(
         expect(elem(attrMapPred({ class: isKnown }))),
         children(paragraph)
     ),
-    ([{ attributes }, _, p]) => isDecoration(attributes.class) ? assign(attributes.class)(p)
-        : isKnown(attributes.class) ? p
-            : {
-                message: 'Unexpected class: ' + attributes.class,
-                result: p,
-            }
+    ([{ attributes }, _, p]) => isDecoration(attributes.class)
+        ? assign(attributes.class)(p)
+        : p
 );
 
 // TODO: report unexpected spans ?
