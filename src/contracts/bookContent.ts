@@ -1,4 +1,4 @@
-export type AttributeName = 'italic';
+export type AttributeName = 'italic' | 'poem';
 export type Attrs = {
     [k in AttributeName]?: boolean;
 };
@@ -73,7 +73,7 @@ export function assign(...attributes: AttributeName[]) {
 export function compoundPh(ps: Paragraph[]): Paragraph {
     return {
         node: 'paragraph',
-        spans: [],
+        spans: ps,
         attrs: {},
     };
 }

@@ -2,6 +2,7 @@ import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
     choice, report, nodeToString, XmlNode, declare,
+    node, name, projectLast,
 } from '../xml';
 import { filterUndefined, equalsToOneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -86,7 +87,13 @@ const emphasis = translate(
 const footnote = translate(element('a'), _ => ''); // TODO: implement links
 
 const pParagraph = element('p', paragraph);
-const divParagraph = element('div', paragraph);
+// const divParagraph = element('div', paragraph);
+const divParagraph = translate(
+    and(node(name('div')), children(paragraph)),
+    ([div, p]) => div.attributes.class === 'poem'
+        ? assign('poem')(p)
+        : p
+);
 
 // TODO: report unexpected spans ?
 paragraph.implementation = translate(
