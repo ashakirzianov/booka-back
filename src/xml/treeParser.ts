@@ -185,37 +185,29 @@ export function elemPred(): Predicate<XmlNode, XmlNodeElement> {
 }
 
 export type ElementPredicate<T = XmlNodeElement> = Predicate<XmlNodeElement, T>;
-export function namePred(n: string): ElementPredicate {
+function namePred(n: string): ElementPredicate {
     return nd => {
         return nameEq(nd.name, n)
             ? predSucc(nd)
             : predFail(`Expected name: '${n}', got: '${nd.name}'`);
     };
 }
-export function attrsPred(f: (x: XmlAttributes) => boolean): ElementPredicate {
-    return en => f(en.attributes)
-        ? predSucc(en)
-        : predFail(`Unexpected attributes: '${attributesToString(en.attributes)}`);
-}
 
-export function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
+function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
     return predicate(elemPred(), ...preds);
 }
 
-export const name = (n: string) => predicate(elemPred(), namePred(n));
-export const elementAttrs = (f: (x: XmlAttributes) => boolean) => elem(attrsPred(f));
-
 export type AttributeValue = string | undefined;
 export type AttributeConstraintValue = AttributeValue | AttributeValue[] | ((v: AttributeValue) => boolean);
-export type AttributeConstraint = {
-    key: string,
-    value: AttributeConstraintValue,
-};
 export type AttributeMap = {
     [k in string]?: AttributeConstraintValue;
 };
 
-export function attrPred(c: AttributeConstraint): ElementPredicate {
+type AttributeConstraint = {
+    key: string,
+    value: AttributeConstraintValue,
+};
+function attrPred(c: AttributeConstraint): ElementPredicate {
     const { key, value } = c;
     if (typeof value === 'function') {
         return en => value(en.attributes[key])
@@ -232,7 +224,7 @@ export function attrPred(c: AttributeConstraint): ElementPredicate {
     }
 }
 
-export function notSetExcept(keys: string[]): ElementPredicate {
+function notSetExcept(keys: string[]): ElementPredicate {
     return en => {
         const extra = Object.keys(en.attributes)
             .filter(k => !equalsToOneOf(k, ...keys))
@@ -243,7 +235,7 @@ export function notSetExcept(keys: string[]): ElementPredicate {
     };
 }
 
-export function attrMapPred(map: AttributeMap): ElementPredicate {
+function attrMapPred(map: AttributeMap): ElementPredicate {
     const keys = Object.keys(map);
     const notSet = notSetExcept(keys);
     const constraints = keys
@@ -251,3 +243,6 @@ export function attrMapPred(map: AttributeMap): ElementPredicate {
 
     return andPred(notSet, ...constraints);
 }
+
+export const name = (x: string) => predicate(elemPred(), namePred(x));
+export const attrs = (x: AttributeMap) => predicate(elemPred(), attrMapPred(x));

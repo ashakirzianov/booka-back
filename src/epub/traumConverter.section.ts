@@ -1,8 +1,7 @@
 import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, declare,
-    namePred, translateAndWarn, expect, elem, attrMapPred,
+    choice, report, nodeToString, XmlNode, declare, expect, attrs, name,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -93,10 +92,10 @@ const knownAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 ];
-const divParagraph = translateAndWarn(
+const divParagraph = translate(
     and(
-        elem(namePred('div')),
-        expect(elem(attrMapPred({ class: knownAttrs }))),
+        name('div'),
+        expect(attrs({ class: knownAttrs })),
         children(paragraph)
     ),
     ([{ attributes }, _, p]) => isDecoration(attributes.class)
