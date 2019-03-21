@@ -97,16 +97,19 @@ describe('Example parsing', () => {
 
     const success = expectSuccess(result);
 
-    expect(success.value.spans.toString()).toBe([
+    expect(success.value.paragraph.spans.toString()).toBe([
       {
+        node: 'paragraph',
         attrs: { italic: true },
-        text: 'Italics',
+        spans: 'Italics',
       },
       {
+        node: 'paragraph',
         attrs: {},
         text: ' Normal ',
       },
       {
+        node: 'paragraph',
         attrs: { italic: true },
         text: 'Italics again',
       },

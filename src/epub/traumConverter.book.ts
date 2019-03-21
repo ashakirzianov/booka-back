@@ -2,7 +2,7 @@ import { translate, string2tree, XmlNodeDocument, head, Parser, choice, seq, som
 import { section } from './traumConverter.section';
 import { filterUndefined } from '../utils';
 import { Section, Epub } from './epubParser';
-import { Span, BookContent, BookNode, Chapter, Paragraph } from '../contracts';
+import { BookContent, BookNode, Chapter, Paragraph } from '../contracts';
 import { logString } from '../logger';
 
 type Header = {
@@ -13,7 +13,7 @@ type Header = {
 
 type ParagraphElement = {
     element: 'paragraph',
-    spans: Span[],
+    paragraph: Paragraph,
 };
 
 type TitlePage = {
@@ -95,7 +95,7 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
 
 const paragraph = headElement(
     se => se.element === 'paragraph'
-        ? { node: 'paragraph', spans: se.spans } as Paragraph
+        ? se.paragraph
         : null
 );
 

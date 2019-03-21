@@ -4,7 +4,7 @@ import {
     choice, report, nodeToString,
 } from '../xml';
 import { filterUndefined, equalsToOneOf } from '../utils';
-import { span, Span } from '../contracts';
+import { pph, Paragraph } from '../contracts';
 
 // ---- Title page
 
@@ -76,24 +76,28 @@ const header = element('div', afterWhitespaces(headerContent));
 
 // ---- Paragraph
 
-const plainText = translate(textNode(), span);
-const spanText = translate(element('span', textNode()), span);
+const plainText = translate(textNode(), pph);
+const spanText = translate(element('span', textNode()), pph);
 const emphasis = translate(
     element('em', textNode()),
-    t => span(t, 'italic'),
+    t => pph(t, 'italic'),
 );
-const footnote = translate(element('a'), _ => span('')); // TODO: implement links
+const footnote = translate(element('a'), _ => pph('')); // TODO: implement links
 
 const paragraphSpans = translate(
     some(choice(plainText, spanText, emphasis, footnote)), // TODO: report unexpected spans
-    texts => texts.reduce((acc, t) => acc.concat(t), [] as Span[]),
+    texts => texts.reduce((acc, t) => acc.concat(t), [] as Paragraph[]),
 );
 
 const basicParagraph = translate(
     element('p', paragraphSpans),
     spans => ({
         element: 'paragraph' as 'paragraph',
-        spans: spans,
+        paragraph: {
+            node: 'paragraph' as 'paragraph',
+            attrs: {},
+            spans: spans,
+        },
     }),
 );
 
@@ -106,7 +110,11 @@ const poemDiv = translate(element(
     ))),
     spans => ({
         element: 'paragraph' as 'paragraph',
-        spans: spans,
+        paragraph: {
+            node: 'paragraph' as 'paragraph',
+            attrs: {},
+            spans: spans,
+        },
     }),
 );
 

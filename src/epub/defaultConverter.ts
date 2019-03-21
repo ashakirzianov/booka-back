@@ -53,7 +53,7 @@ function tree2node(tree: XmlNodeDocument): C.BookNode[] {
 
 const anyText = textNode(t => [{
     node: 'paragraph',
-    spans: [C.span(t)],
+    spans: [C.pph(t)],
 } as C.BookNode]);
 const childrenText = children(extractText);
 
