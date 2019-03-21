@@ -1,7 +1,7 @@
 import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString,
+    choice, report, nodeToString, XmlNode, Result,
 } from '../xml';
 import { filterUndefined, equalsToOneOf } from '../utils';
 import { pph, Paragraph } from '../contracts';
@@ -76,49 +76,28 @@ const header = element('div', afterWhitespaces(headerContent));
 
 // ---- Paragraph
 
-const plainText = translate(textNode(), pph);
-const spanText = translate(element('span', textNode()), pph);
+const plainText = textNode();
+const spanText = element('span', recursiveParagraph);
 const emphasis = translate(
-    element('em', textNode()),
+    element('em', plainText),
     t => pph(t, 'italic'),
 );
 const footnote = translate(element('a'), _ => pph('')); // TODO: implement links
 
-const paragraphSpans = translate(
-    some(choice(plainText, spanText, emphasis, footnote)), // TODO: report unexpected spans
-    texts => texts.reduce((acc, t) => acc.concat(t), [] as Paragraph[]),
-);
+const pParagraph = element('p', recursiveParagraph);
+const divParagraph = element('div', recursiveParagraph);
 
-const basicParagraph = translate(
-    element('p', paragraphSpans),
-    spans => ({
-        element: 'paragraph' as 'paragraph',
-        paragraph: {
-            node: 'paragraph' as 'paragraph',
-            attrs: {},
-            spans: spans,
-        },
-    }),
-);
+// TODO: report unexpected spans ?
+const paragraph = translate(some(choice(plainText, spanText, emphasis, footnote, pParagraph, divParagraph)), pph);
 
-// TODO: properly handle "poems"
-const poemDiv = translate(element(
-    e => e.attributes.class === 'poem',
-    afterWhitespaces(element(e => e.attributes.class === 'stanza',
-        some(afterWhitespaces(element('p',
-            choice(afterWhitespaces(emphasis), plainText)))) // TODO: parse any paragraph spans here
-    ))),
-    spans => ({
-        element: 'paragraph' as 'paragraph',
-        paragraph: {
-            node: 'paragraph' as 'paragraph',
-            attrs: {},
-            spans: spans,
-        },
-    }),
-);
+function recursiveParagraph(input: XmlNode[]): Result<XmlNode[], Paragraph> {
+    return paragraph(input);
+}
 
-const paragraph = choice(basicParagraph, poemDiv);
+const paragraphElement = translate(paragraph, p => ({
+    element: 'paragraph' as 'paragraph',
+    paragraph: p,
+}));
 
 // ---- Normal page
 
@@ -141,7 +120,7 @@ const ignore = choice(noteAnchor, br, skipOneNode);
 
 const normalContent = some(
     afterWhitespaces(
-        choice(paragraph, header, ignore)
+        choice(paragraphElement, header, ignore)
     )
 );
 
@@ -166,5 +145,5 @@ export const section = choice(
 
 export const toTest = {
     normalPage, titlePage, section,
-    paragraph: basicParagraph, separator: header, separatorHeader: headerContent,
+    paragraph: pParagraph, separator: header, separatorHeader: headerContent,
 };
