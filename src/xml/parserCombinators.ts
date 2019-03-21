@@ -30,13 +30,13 @@ export function messageToString(message: Message): string | undefined {
     } else if (typeof message === 'string') {
         return message;
     } else if (isCompound(message)) {
-        const result = message.messages
+        const results = message.messages
             .map(messageToString)
             .filter(m => m && m.length > 0)
-            .join(', \n');
-        return result.length > 0
-            ? `{ ${result} }`
-            : undefined;
+            ;
+        return results.length === 0 ? undefined
+            : results.length === 1 ? results[0]
+                : `{ ${results.join(', \n')} }`;
     } else {
         return `{ tag: ${message.tag}, message: ${message.message} }`;
     }
