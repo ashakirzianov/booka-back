@@ -1,4 +1,4 @@
-import { translate, string2tree, XmlNodeDocument, head, Parser, choice, seq, some, messageToString } from '../xml';
+import { translate, string2tree, XmlNodeDocument, buildHead, Parser, choice, seq, some, messageToString } from '../xml';
 import { section } from './traumConverter.section';
 import { filterUndefined } from '../utils';
 import { Section, Epub } from './epubParser';
@@ -73,7 +73,7 @@ function findTitlePage(structures: Element[]): TitlePage | undefined {
     return structures.find(s => s.element === 'title') as TitlePage;
 }
 
-const headElement = head<Element>();
+const headElement = buildHead<Element>();
 
 function chapterParser<T extends BookNode>(level: number, contentE: Parser<Element[], T>): Parser<Element[], BookNode> {
     return choice(

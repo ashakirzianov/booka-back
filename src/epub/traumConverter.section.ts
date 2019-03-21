@@ -13,7 +13,7 @@ const titleContent = translate(
         el => el.name === 'div' && el.attributes.class === 'title2',
         oneOrMore(afterWhitespaces(element('h2', textNode()))),
     )),
-    lines => lines.length > 1 ? // TODO: report extra lines
+    lines => lines.length > 1 ? // TODO: report extra lines // TODO: move this logic up
         {
             element: 'title' as 'title',
             author: lines[0],

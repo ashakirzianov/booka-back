@@ -1,7 +1,7 @@
 import {
     children, textNode, element, path, afterWhitespaces, headNode, projectElement,
     string2tree, XmlNodeDocument,
-    head, Parser, choice, translate, seq, and, oneOrMore, some,
+    buildHead, Parser, choice, translate, seq, and, oneOrMore, some,
 } from '../xml';
 import * as C from '../contracts';
 import { filterUndefined } from '../utils';

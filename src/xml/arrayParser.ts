@@ -11,7 +11,7 @@ export function split<T>(arr: T[]) {
     };
 }
 
-export function head<TIn>() {
+export function buildHead<TIn>() {
     return <TOut>(f: (n: TIn) => TOut | null) => (input: TIn[]) => {
         const list = split(input);
         if (!list.head) {
@@ -46,4 +46,4 @@ export function skipTo<TI, TO>(parser: ArrayParser<TI, TO>): ArrayParser<TI, TO>
     ));
 }
 
-export const anyItem = head()(x => x);
+export const anyItem = buildHead()(x => x);
