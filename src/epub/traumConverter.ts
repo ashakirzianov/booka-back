@@ -29,6 +29,6 @@ function checkAboutSection(section: Section): boolean {
     return section.htmlString.includes(marker);
 }
 
-function convertEpub(epub: Epub): Promise<C.ActualBook> {
+function convertEpub(epub: Epub): Promise<C.Book> {
     return Promise.resolve(buildBook(epub));
 }

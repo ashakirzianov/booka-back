@@ -35,26 +35,12 @@ export type BookMeta = {
     author?: string,
 };
 
-export type ActualBook = {
+export type Book = {
     book: 'book',
     meta: BookMeta,
     nodes: BookNode[],
 };
 
-export type ErrorBook = {
-    book: 'error',
-    error: string,
-};
-
-export type Book = ActualBook | ErrorBook;
-
 export type Library = {
     [key: string]: BookMeta | undefined;
 };
-
-export function errorBook(error: string): ErrorBook {
-    return {
-        book: 'error',
-        error: error,
-    };
-}

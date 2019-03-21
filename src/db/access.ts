@@ -7,14 +7,14 @@ export const removeAllBooks = bookDb.removeAll;
 export async function bookById(id: string): Promise<Contracts.Book> {
     const book = await bookDb.byId(id);
     if (!book || !book.raw) {
-        return Contracts.errorBook(`Can't find book with id: '${id}'`);
+        throw new Error(`Can't find book with id: '${id}'`);
     }
     const parsed = JSON.parse(book.raw);
     const contract = parsed as Contracts.Book;
     return contract;
 }
 
-export async function insertBook(book: Contracts.ActualBook) {
+export async function insertBook(book: Contracts.Book) {
     const bookDocument: bookDb.Book = {
         title: book.meta.title,
         author: book.meta.author,

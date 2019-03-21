@@ -13,7 +13,7 @@ export const converter: EpubConverter = {
     convertEpub: defaultEpubConverter,
 };
 
-function defaultEpubConverter(epub: Epub): Promise<C.ActualBook> {
+function defaultEpubConverter(epub: Epub): Promise<C.Book> {
     return Promise.resolve({
         book: 'book' as 'book',
         meta: {
