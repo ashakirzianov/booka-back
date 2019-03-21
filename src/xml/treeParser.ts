@@ -9,55 +9,11 @@ import {
     translate,
     projectLast,
 } from './parserCombinators';
+import { ArrayParser, head, split, not } from './arrayParser';
 
-export type XmlParser<TOut = XmlNode> = Parser<XmlNode[], TOut>;
-
-export function split<T>(arr: T[]) {
-    return {
-        head: arr.length > 0 ? arr[0] : undefined,
-        tail: arr.length > 1 ? arr.slice(1) : [],
-    };
-}
-
-export function head<TIn>() {
-    return <TOut>(f: (n: TIn) => TOut | null) => (input: TIn[]) => {
-        const list = split(input);
-        if (!list.head) {
-            return fail('first node: empty input');
-        }
-        const result = f(list.head);
-        return result === null
-            ? fail('first node: func returned null')
-            : success(result, list.tail)
-            ;
-    };
-}
-
-export function not<T>(parser: Parser<T[], any>): Parser<T[], T> {
-    return input => {
-        const list = split(input);
-        if (!list.head) {
-            return fail('not: empty input');
-        }
-
-        const result = parser(input);
-        return !result.success
-            ? success(list.head, list.tail)
-            : fail('not: parser succeed');
-    };
-}
-
-export function skipTo<TI, TO>(parser: Parser<TI[], TO>): Parser<TI[], TO> {
-    return projectLast(seq(
-        some(not(parser)),
-        parser,
-    ));
-}
+export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
 export const headNode = head<XmlNode>();
-
-export const nodeAny = headNode(x => x);
-
 export function nameEq(n1: string, n2: string) {
     return caseInsensitiveEq(n1, n2);
 }

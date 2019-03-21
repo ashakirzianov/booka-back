@@ -1,7 +1,8 @@
 import { xmlElement } from './xmlNode';
 import { and } from './parserCombinators';
-import { skipTo, element, children } from './treeParser';
+import { element, children } from './treeParser';
 import { expectSuccess } from '../testUtils';
+import { skipTo } from './arrayParser';
 
 it('skipTo', () => {
     const input = [
