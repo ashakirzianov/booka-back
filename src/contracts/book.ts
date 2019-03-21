@@ -35,7 +35,7 @@ export type BookMeta = {
     author?: string,
 };
 
-export type Book = {
+export type BookContent = {
     book: 'book',
     meta: BookMeta,
     nodes: BookNode[],

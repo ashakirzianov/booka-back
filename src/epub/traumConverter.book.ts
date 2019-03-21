@@ -2,7 +2,7 @@ import { translate, string2tree, XmlNodeDocument, head, Parser, choice, seq, som
 import { section } from './traumConverter.section';
 import { filterUndefined } from '../utils';
 import { Section, Epub } from './epubParser';
-import { Span, Book, BookNode, Chapter, Paragraph } from '../contracts';
+import { Span, BookContent, BookNode, Chapter, Paragraph } from '../contracts';
 import { logString } from '../logger';
 
 type Header = {
@@ -28,7 +28,7 @@ type Ignore = {
 
 type Element = Header | ParagraphElement | TitlePage | Ignore;
 
-export function buildBook(epub: Epub): Book {
+export function buildBook(epub: Epub): BookContent {
     const structures = epub.sections
         .map(section2elements)
         .reduce((acc, arr) => acc.concat(arr), [])
