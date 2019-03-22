@@ -1,19 +1,18 @@
 import {
-    headNode, some, afterWhitespaces, translate, element,
+    headNode, some, afterWhitespaces, translate,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, declare, expected, attrs, name, element2,
+    choice, report, nodeToString, XmlNode, declare, expected, attrs, name, element2, element,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
 
-const titleContent = translate(
-    afterWhitespaces(element(
-        el => el.name === 'div' && el.attributes.class === 'title2',
-        oneOrMore(afterWhitespaces(element('h2', textNode()))),
-    )),
-    lines => lines.length > 1 ? // TODO: report extra lines // TODO: move this logic up
+const titleContent = afterWhitespaces(element2({
+    name: 'div',
+    attrs: { class: 'title2' },
+    children: oneOrMore(afterWhitespaces(element2({ name: 'h2', children: textNode() }))),
+    translate: ([_, lines]) => lines.length > 1 ? // TODO: report extra lines // TODO: move this logic up
         {
             element: 'title' as 'title',
             author: lines[0],
@@ -23,31 +22,28 @@ const titleContent = translate(
             element: 'title' as 'title',
             title: lines[0],
         },
-);
+}));
 
-const titlePage = translate(path(['html', 'body', 'div'],
-    element(
-        el => el.attributes.class === undefined,
-        titleContent,
-    )),
-    tp => [tp],
+const titlePage = path(['html', 'body', 'div'],
+    element2({
+        attrs: { class: undefined },
+        children: titleContent,
+        translate: tp => [tp],
+    })
 );
 
 // ---- Ignored pages
 
-const ignoredPage = translate(
-    report(
-        classAttr =>
-            equalsToOneOf(classAttr,
-                undefined, 'fb2_info', 'about',
-                'coverpage', 'titlepage', 'annotation', // TODO: handle properly
-            ) ? undefined : `Unexpected page: ${classAttr}`,
-        path(['html', 'body', 'div'], headNode(n => n.type === 'element' ? n.attributes.class : undefined))
-    ),
-    () => [{
+const ignoredPage = path(['html', 'body', 'div'], element2({
+    attrs: {
+        id: () => true,
+        class: [undefined, 'fb2_info', 'about',
+            'coverpage', 'titlepage', 'annotation'],
+    },
+    translate: () => [{
         element: 'ignore' as 'ignore',
-    }]
-);
+    }],
+}));
 
 // ---- Separator parser
 
@@ -83,7 +79,7 @@ const emphasis = translate(
     element('em', plainText),
     assign('italic'),
 );
-const footnote = translate(element('a'), _ => ''); // TODO: implement links
+const footnote = element2({ name: 'a', translate: () => '' }); // TODO: implement links
 
 const pParagraph = element('p', paragraph);
 
@@ -92,16 +88,6 @@ const knownAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 ];
-// const divParagraph = translate(
-//     and(
-//         name('div'),
-//         expect(attrs({ class: knownAttrs })),
-//         children(paragraph)
-//     ),
-//     ([{ attributes }, _, p]) => isDecoration(attributes.class)
-//         ? assign(attributes.class)(p)
-//         : p
-// );
 
 const divParagraph = element2({
     name: 'div',
@@ -134,10 +120,11 @@ const skipOneNode = translate(
     () => undefined,
 );
 
-const noteAnchor = translate(
-    element(e => e.name === 'a' && e.attributes.class === 'note_anchor'),
-    () => undefined
-); // TODO: expect it when implement footnote parsing
+const noteAnchor = element2({
+    name: 'a',
+    attrs: { class: 'note_anchor' },
+    translate: () => undefined,
+}); // TODO: expect it when implement footnote parsing
 
 const br = translate(element('br'), () => undefined);
 
@@ -149,13 +136,15 @@ const normalContent = some(
     )
 );
 
-const normalPage = translate(path(['html', 'body', 'div'],
-    element(
-        el =>
-            el.attributes.class !== undefined && el.attributes.class.startsWith('section'),
-        normalContent,
-    )),
-    content => filterUndefined(content),
+const normalPage = path(['html', 'body', 'div'],
+    element2({
+        attrs: {
+            class: c => c !== undefined && c.startsWith('section'),
+        },
+        expectedAttrs: { id: true },
+        children: normalContent,
+        translate: ([_, c]) => filterUndefined(c),
+    }),
 );
 
 // ---- Section parser

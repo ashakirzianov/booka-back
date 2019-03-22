@@ -28,43 +28,43 @@ export function attrsCompare(attrs1: XmlAttributes, attrs2: XmlAttributes) {
 export const projectElement = <T>(f: (e: XmlNodeElement) => T | null) =>
     headNode(n => isElement(n) ? f(n) : null);
 
-type ElementParserArg =
-    | string // match element name
-    | ((node: XmlNodeElement) => boolean) // element predicate
-    ;
-export function element<T>(arg: ElementParserArg, ch: XmlParser<T>): XmlParser<T>;
-export function element<T>(arg: ElementParserArg): XmlParser<XmlNodeElement>;
-export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<T | XmlNodeElement> {
-    return function f(input: XmlNode[]) {
-        const list = split(input);
-        if (!list.head) {
-            return fail('element: empty input');
-        }
+// type ElementParserArg =
+//     | string // match element name
+//     | ((node: XmlNodeElement) => boolean) // element predicate
+//     ;
+// export function element<T>(arg: ElementParserArg, ch: XmlParser<T>): XmlParser<T>;
+// export function element<T>(arg: ElementParserArg): XmlParser<XmlNodeElement>;
+// export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<T | XmlNodeElement> {
+//     return function f(input: XmlNode[]) {
+//         const list = split(input);
+//         if (!list.head) {
+//             return fail('element: empty input');
+//         }
 
-        if (!isElement(list.head)) {
-            return fail('element: head is not an element');
-        }
+//         if (!isElement(list.head)) {
+//             return fail('element: head is not an element');
+//         }
 
-        if (typeof arg === 'string') {
-            if (!nameEq(arg, list.head.name)) {
-                return fail(`element: name ${list.head.name} does not match ${arg}`);
-            }
-        } else if (!arg(list.head)) {
-            return fail('element: predicate failed');
-        }
+//         if (typeof arg === 'string') {
+//             if (!nameEq(arg, list.head.name)) {
+//                 return fail(`element: name ${list.head.name} does not match ${arg}`);
+//             }
+//         } else if (!arg(list.head)) {
+//             return fail('element: predicate failed');
+//         }
 
-        if (ch) {
-            const result = ch(list.head.children);
-            if (!result.success) {
-                return result;
-            } else {
-                return success(result.value, list.tail, result.message);
-            }
-        }
+//         if (ch) {
+//             const result = ch(list.head.children);
+//             if (!result.success) {
+//                 return result;
+//             } else {
+//                 return success(result.value, list.tail, result.message);
+//             }
+//         }
 
-        return success(list.head, list.tail);
-    };
-}
+//         return success(list.head, list.tail);
+//     };
+// }
 
 const textNodeImpl = <T>(f?: (text: string) => T | null) => headNode(n =>
     n.type === 'text'
@@ -198,7 +198,7 @@ function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
 }
 
 export type AttributeValue = string | undefined;
-export type AttributeConstraintValue = AttributeValue | AttributeValue[] | ((v: AttributeValue) => boolean);
+export type AttributeConstraintValue = AttributeValue | AttributeValue[] | ((v: AttributeValue) => boolean) | true;
 export type AttributeMap = {
     [k in string]?: AttributeConstraintValue;
 };
@@ -217,6 +217,8 @@ function attrPred(c: AttributeConstraint): ElementPredicate {
         return en => equalsToOneOf(en.attributes[key], ...value)
             ? predSucc(en)
             : predFail(`Unexpected attribute ${key}='${en.attributes[key]}', expected values: ${value}`);
+    } else if (value === true) {
+        return en => predSucc(en);
     } else {
         return en => en.attributes[key] === value
             ? predSucc(en)
@@ -237,11 +239,10 @@ function notSetExcept(keys: string[]): ElementPredicate {
 
 function attrMapPred(map: AttributeMap): ElementPredicate {
     const keys = Object.keys(map);
-    const notSet = notSetExcept(keys);
     const constraints = keys
         .map(key => attrPred({ key: key, value: map[key] }));
 
-    return andPred(notSet, ...constraints);
+    return andPred(...constraints);
 }
 
 export const name = (x: string) => predicate(andPred(elemPred(), namePred(x)));
@@ -264,9 +265,14 @@ type ElementDescChildrenTranslate<TC, TT> = {
 };
 type ElementDescNoChildren<TT> = {
     children?: undefined,
-    translate?: (x: XmlNodeElement) => TT,
+    translate: (x: XmlNodeElement) => TT,
 };
-type ElementDescFns<TC, TT> = ElementDescChildren<TC> | ElementDescNoChildren<TT> | ElementDescChildrenTranslate<TC, TT>;
+type ElementDescFns<TC, TT> =
+    | ElementDescChildren<TC>
+    | ElementDescNoChildren<TT>
+    | ElementDescChildrenTranslate<TC, TT>
+    | { children?: undefined, translate?: undefined }
+    ;
 
 export type ElementDesc<TC, TT> = Partial<ElementDescBase> & ElementDescFns<TC, TT>;
 
@@ -274,36 +280,41 @@ function descPred(desc: Partial<ElementDesc<any, any>>) {
     const nameP = desc.name === undefined ? undefined : namePred(desc.name);
     const attrsParser = desc.attrs && attrMapPred(desc.attrs);
     const expectedAttrsParser = desc.expectedAttrs && expect(attrMapPred(desc.expectedAttrs));
-    const ps = filterUndefined([nameP, attrsParser, expectedAttrsParser]);
+    const allKeys = Object.keys(desc.attrs || {})
+        .concat(Object.keys(desc.expectedAttrs || {}));
+    const notSet = allKeys.length > 0
+        ? notSetExcept(allKeys)
+        : undefined;
+    const ps = filterUndefined([nameP, attrsParser, expectedAttrsParser, notSet]);
     const pred = andPred(elemPred(), ...ps);
 
     return pred;
 }
 
 export function element2(desc: Partial<ElementDescBase>): XmlParser<XmlNodeElement>;
-export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildren<TC>): XmlParser<TC>;
+export function element2<TC>(desc: Partial<ElementDescBase> & ElementDescChildren<TC>): XmlParser<TC>;
 export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildrenTranslate<TC, TT>): XmlParser<TT>;
 export function element2<TT>(desc: Partial<ElementDescBase> & ElementDescNoChildren<TT>): XmlParser<TT>;
 export function element2<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT | XmlNodeElement> {
-    // const pred = descPred(desc);
-    // const predParser = predicate(pred);
-    // if (desc.children) {
-    //     const withChildren = and(predParser, children(desc.children));
-    //     return desc.translate
-    //         ? translate(withChildren, desc.translate)
-    //         : projectLast(withChildren);
-    // } else {
-    //     return desc.translate
-    //         ? translate(predParser, desc.translate)
-    //         : predParser;
-    // }
-    return input => {
-        const { head, tail } = split(input);
-        if (!head || !isElement(head) || head.name !== desc.name) {
-            return fail('fail!!!');
-        } else {
-            const ch = desc.children as any;
-            return ch(head.children);
-        }
-    };
+    const pred = descPred(desc);
+    const predParser = predicate(pred);
+    if (desc.children) {
+        const withChildren = and(predParser, children(desc.children));
+        return desc.translate
+            ? translate(withChildren, desc.translate)
+            : projectLast(withChildren);
+    } else {
+        return desc.translate
+            ? translate(predParser, desc.translate)
+            : predParser;
+    }
+}
+
+export function element<T>(nm: string): XmlParser<XmlNodeElement>;
+export function element<T>(nm: string, ch: XmlParser<T>): XmlParser<T>;
+export function element<T>(nm: string, ch?: XmlParser<T>) {
+    return element2({
+        name: nm,
+        children: ch as any, // TODO: remove as any
+    });
 }
