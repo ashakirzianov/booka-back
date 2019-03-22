@@ -64,7 +64,8 @@ function tree2elements(tree: XmlNodeDocument): Element[] {
     // TODO: implement better logging strategy
     const message = messageToString(result.message);
     if (message) {
-        logString(message);
+        const prefix = result.success ? 'Warnings: ' : 'Errors: ';
+        logString(prefix + message);
     }
     return result.success ? result.value : [];
 }

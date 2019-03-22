@@ -16,7 +16,8 @@ export const elementNode = <T>(f: (e: XmlNodeElement) => T | null) =>
 function fromPredicate(pred: ElementPredicate) {
     return tagged(
         predicate(andPred(elemPred(), pred)),
-        nodes => `On node: ${nodes[0] && nodes[0]['name']}`
+        nodes =>
+            `On node: ${nodes[0] && nodeToString(nodes[0])}`
     );
 }
 export const name = (n: ConstraintValue<string>) =>
@@ -76,7 +77,9 @@ function attrPred(c: AttributeConstraint): ElementPredicate {
             ? predSucc(en)
             : predFail(`Unexpected attribute ${key}='${en.attributes[key]}', expected values: ${value}`);
     } else if (value === true) {
-        return en => predSucc(en);
+        return en => en.attributes[key]
+            ? predSucc(en)
+            : predFail(`Expected attribute ${key} to be set`);
     } else {
         return en => en.attributes[key] === value
             ? predSucc(en)

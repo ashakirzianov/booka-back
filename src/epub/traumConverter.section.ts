@@ -4,6 +4,7 @@ import {
     choice, nodeToString, XmlNode, declare,
     nameChildren, name, expected, unexpected,
     attrs,
+    nameAttrs,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -138,7 +139,11 @@ const noteAnchor = translate(
 
 const br = translate(name('br'), () => undefined);
 
-const ignore = choice(noteAnchor, br, skipOneNode);
+const noteSection = translate(
+    nameAttrs('div', { class: 'note_section' }),
+    () => undefined
+);
+const ignore = choice(noteAnchor, br, noteSection, skipOneNode);
 
 const normalContent = some(
     whitespaced(
@@ -149,13 +154,12 @@ const normalContent = some(
 const normalPage = path(['html', 'body', 'div'], translate(
     and(
         attrs({
-            // TODO: learn what 'section' semantic is
-            class: c => c !== undefined && c.startsWith('section'),
+            class: s => s ? s.startsWith('section') : false,
+            id: () => true,
         }),
-        expected(attrs({ id: true })),
         children(normalContent),
     ),
-    ([_, __, c]) => filterUndefined(c),
+    ([_, c]) => filterUndefined(c),
 ),
 );
 
