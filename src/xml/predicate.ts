@@ -105,7 +105,7 @@ export function andPred<TI>(...preds: Array<Predicate<TI, any>>): Predicate<TI, 
     };
 }
 
-export function expect<TI>(pred: Predicate<TI, any>): Predicate<TI> {
+export function expectPred<TI>(pred: Predicate<TI, any>): Predicate<TI> {
     return i => {
         const result = pred(i);
         return result.success
