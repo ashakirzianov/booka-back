@@ -12,3 +12,13 @@ export async function logTimeAsync<T = void>(f: () => Promise<T>, msg?: string) 
     logString(`${msg} duration: ${diff / 1000}s`);
     return result;
 }
+
+export function logTime<T = void>(f: () => T, msg?: string) {
+    const begin = Date.now();
+    logString(`${msg} - start`);
+    const result = f();
+    const end = Date.now();
+    const diff = end - begin;
+    logString(`${msg} duration: ${diff / 1000}s`);
+    return result;
+}

@@ -4,7 +4,8 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { buffer2book } from './epub';
 import { countBooks, insertBook, removeAllBooks } from './db';
-import { logTimeAsync } from './logger';
+import { logTimeAsync, logTime, logString } from './logger';
+import { optimizeBook } from './optimizeBook';
 
 const epubLocation = 'public/epub/';
 
@@ -29,8 +30,14 @@ async function seed() {
     const promises = files.map(async (file) => {
         const epubFile = await readFile(epubLocation + file);
         const book = await logTimeAsync(() => buffer2book(epubFile), `Book: ${file}`);
+        const optimized = optimizeBook(book);
 
-        insertBook(book);
+        const before = JSON.stringify(book).length;
+        const after = JSON.stringify(optimized).length;
+        const won = Math.floor((before - after) / before * 100);
+        logString(`Optimized by ${won}%`);
+
+        insertBook(optimized);
     });
 
     await Promise.all(promises);
