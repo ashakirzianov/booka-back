@@ -251,7 +251,7 @@ export function report<TIn, TOut>(mOrF: MessageOrFn<TOut>, parser: Parser<TIn, T
     };
 }
 
-export function expect<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO | undefined> {
+export function expected<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO | undefined> {
     return input => {
         const result = parser(input);
         return result.success

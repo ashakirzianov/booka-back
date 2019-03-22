@@ -1,15 +1,15 @@
 import {
     XmlNode, hasChildren, isElement,
-    XmlAttributes, XmlNodeElement, nodeToString, attributesToString,
+    XmlAttributes, XmlNodeElement, nodeToString,
 } from './xmlNode';
-import { caseInsensitiveEq, isWhitespaces, equalsToOneOf } from '../utils';
+import { caseInsensitiveEq, isWhitespaces, equalsToOneOf, filterUndefined } from '../utils';
 import {
     Result, success, fail,
     seq, some,
-    translate,
+    translate, and, projectLast,
 } from './parserCombinators';
 import { ArrayParser, buildHead, split, not, predicate } from './arrayParser';
-import { predSucc, predFail, Predicate, andPred } from './predicate';
+import { predSucc, predFail, Predicate, andPred, expect } from './predicate';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
@@ -194,7 +194,7 @@ function namePred(n: string): ElementPredicate {
 }
 
 function elem(...preds: ElementPredicate[]): XmlParser<XmlNodeElement> {
-    return predicate(elemPred(), ...preds);
+    return predicate(andPred(elemPred(), ...preds));
 }
 
 export type AttributeValue = string | undefined;
@@ -244,5 +244,52 @@ function attrMapPred(map: AttributeMap): ElementPredicate {
     return andPred(notSet, ...constraints);
 }
 
-export const name = (x: string) => predicate(elemPred(), namePred(x));
-export const attrs = (x: AttributeMap) => predicate(elemPred(), attrMapPred(x));
+export const name = (x: string) => predicate(andPred(elemPred(), namePred(x)));
+export const attrs = (x: AttributeMap) => predicate(andPred(elemPred(), attrMapPred(x)));
+
+// Elements sugar
+
+type ElementDescBase = {
+    name: string,
+    attrs: AttributeMap,
+    expectedAttrs: AttributeMap,
+};
+type ElementDescChildren<TC, TT> = {
+    children: XmlParser<TC>,
+    translate: (x: [XmlNodeElement, TC]) => TT,
+};
+type ElementDescNoChildren<TT> = {
+    children?: undefined,
+    translate?: (x: XmlNodeElement) => TT,
+};
+
+export type ElementDesc<TC, TT> = Partial<ElementDescBase>
+    & (ElementDescChildren<TC, TT> | ElementDescNoChildren<TT>);
+
+function descPred(desc: Partial<ElementDesc<any, any>>) {
+    const nameP = desc.name === undefined ? undefined : namePred(desc.name);
+    const attrsParser = desc.attrs && attrMapPred(desc.attrs);
+    const expectedAttrsParser = desc.expectedAttrs && expect(attrMapPred(desc.expectedAttrs));
+    const ps = filterUndefined([nameP, attrsParser, expectedAttrsParser]);
+    const pred = andPred(elemPred(), ...ps);
+
+    return pred;
+}
+
+export function element2(desc: Partial<ElementDescBase>): XmlParser<XmlNodeElement>;
+export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildren<TC, TT>): XmlParser<TT>;
+export function element2<TT>(desc: Partial<ElementDescBase> & ElementDescNoChildren<TT>): XmlParser<TT>;
+export function element2<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT | XmlNodeElement> {
+    const pred = descPred(desc);
+    const predParser = predicate(pred);
+    if (desc.children) {
+        const withChildren = and(predParser, children(desc.children));
+        return desc.translate
+            ? translate(withChildren, desc.translate)
+            : projectLast(withChildren);
+    } else {
+        return desc.translate
+            ? translate(predParser, desc.translate)
+            : predParser;
+    }
+}

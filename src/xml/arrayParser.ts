@@ -49,7 +49,7 @@ export function skipTo<TI, TO>(parser: ArrayParser<TI, TO>): ArrayParser<TI, TO>
 
 export const anyItem = buildHead()(x => x);
 
-function singlePred<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
+export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
     return (input: TI[]) => {
         const { head, tail } = split(input);
         if (!head) {
@@ -65,19 +65,19 @@ function singlePred<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
     };
 }
 
-export function predicate<TI, T>(
-    ...preds: Array<Predicate<TI, T>>
-): ArrayParser<TI, TI & T>;
+// export function predicate<TI, T>(
+//     ...preds: Array<Predicate<TI, T>>
+// ): ArrayParser<TI, TI & T>;
 
-export function predicate<TI, T1, T2>(
-    p1: Predicate<TI, T1>, ...p2: Array<Predicate<TI & T1, T2>>
-): ArrayParser<TI, TI & T1 & T2>;
+// export function predicate<TI, T1, T2>(
+//     p1: Predicate<TI, T1>, ...p2: Array<Predicate<TI & T1, T2>>
+// ): ArrayParser<TI, TI & T1 & T2>;
 
-export function predicate<TI, T1, T2, T3>(
-    p1: Predicate<TI, T1>, p2: Predicate<TI & T1, T2>, ...p3: Array<Predicate<TI & T1 & T2, T3>>
-): ArrayParser<TI, TI & T1 & T2 & T3>;
+// export function predicate<TI, T1, T2, T3>(
+//     p1: Predicate<TI, T1>, p2: Predicate<TI & T1, T2>, ...p3: Array<Predicate<TI & T1 & T2, T3>>
+// ): ArrayParser<TI, TI & T1 & T2 & T3>;
 
-export function predicate<TI>(...preds: Array<Predicate<TI, any>>): ArrayParser<TI, any> {
-    const pred = andPred(...preds);
-    return singlePred(pred);
-}
+// export function predicate<TI>(...preds: Array<Predicate<TI, any>>): ArrayParser<TI, any> {
+//     const pred = andPred(...preds);
+//     return singlePred(pred);
+// }

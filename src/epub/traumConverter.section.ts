@@ -1,7 +1,7 @@
 import {
     headNode, some, afterWhitespaces, translate, element,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, declare, expect, attrs, name,
+    choice, report, nodeToString, XmlNode, declare, expected, attrs, name, element2,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -92,16 +92,26 @@ const knownAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 ];
-const divParagraph = translate(
-    and(
-        name('div'),
-        expect(attrs({ class: knownAttrs })),
-        children(paragraph)
-    ),
-    ([{ attributes }, _, p]) => isDecoration(attributes.class)
-        ? assign(attributes.class)(p)
-        : p
-);
+// const divParagraph = translate(
+//     and(
+//         name('div'),
+//         expect(attrs({ class: knownAttrs })),
+//         children(paragraph)
+//     ),
+//     ([{ attributes }, _, p]) => isDecoration(attributes.class)
+//         ? assign(attributes.class)(p)
+//         : p
+// );
+
+const divParagraph = element2({
+    name: 'div',
+    expectedAttrs: { class: knownAttrs },
+    children: paragraph,
+    translate: ([{ attributes }, p]) =>
+        isDecoration(attributes.class)
+            ? assign(attributes.class)(p)
+            : p,
+});
 
 // TODO: report unexpected spans ?
 paragraph.implementation = translate(

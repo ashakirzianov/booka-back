@@ -38,6 +38,9 @@ export function andPred<TI, T1, T2, T3>(
 ): Predicate<TI, T1 & T2 & T3>;
 
 export function andPred<TI>(...preds: Array<Predicate<TI, any>>): Predicate<TI, any> {
+    if (preds.length === 0) {
+        return truePred;
+    }
     return (input: TI) => {
         const messages: Message[] = [];
         for (const p of preds) {
@@ -51,4 +54,17 @@ export function andPred<TI>(...preds: Array<Predicate<TI, any>>): Predicate<TI, 
 
         return predSucc(input, compoundMessage(messages));
     };
+}
+
+export function expect<TI>(pred: Predicate<TI, any>): Predicate<TI> {
+    return i => {
+        const result = pred(i);
+        return result.success
+            ? result
+            : predSucc(i, result.message);
+    };
+}
+
+export function truePred<T>(x: T): PredicateResultSuccess<T> {
+    return predSucc(x);
 }
