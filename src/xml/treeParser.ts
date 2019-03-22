@@ -6,7 +6,7 @@ import { caseInsensitiveEq, isWhitespaces, equalsToOneOf, filterUndefined } from
 import {
     Result, success, fail,
     seq, some,
-    translate, and, projectLast, taggedMessage, tagged,
+    translate, and, projectLast, taggedMessage, tagged, projectFirst, expected,
 } from './parserCombinators';
 import { ArrayParser, buildHead, not, predicate } from './arrayParser';
 import { predSucc, predFail, Predicate, andPred, expect, keyValuePred, ConstraintValue } from './predicate';
@@ -138,9 +138,17 @@ function fromPredicate(pred: ElementPredicate) {
 export const name = (n: ConstraintValue<string>) =>
     fromPredicate(namePred(n));
 export const attrs = (x: ConstraintMap) =>
-    fromPredicate(attrsPred(x));
-export const nameChildren = <T>(n: string, ch: XmlParser<T>) =>
+    projectFirst(and(
+        fromPredicate(attrsPred(x)),
+        expected(fromPredicate(noAttrsExceptPred(Object.keys(x)))),
+    ));
+
+export const nameChildren = <T>(n: ConstraintValue<string>, ch: XmlParser<T>) =>
     projectLast(and(name(n), children(ch)));
+export const nameAttrs = (n: ConstraintValue<string>, attrMap: ConstraintMap) =>
+    projectFirst(and(name(n), attrs(attrMap)));
+export const nameAttrsChildren = <T>(n: ConstraintValue<string>, attrMap: ConstraintMap, ch: XmlParser<T>) =>
+    projectLast(and(name(n), attrs(attrMap), ch));
 
 // ---- Predicates
 
