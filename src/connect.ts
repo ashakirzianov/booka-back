@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { buffer2book } from './epub';
 import { countBooks, insertBook, removeAllBooks } from './db';
-import { logString } from './logger';
+import { logTimeAsync } from './logger';
 
 const epubLocation = 'public/epub/';
 
@@ -19,23 +19,21 @@ export async function connectDb() {
     const bookCount = await countBooks();
 
     if (bookCount === 0) {
-        await seed();
+        logTimeAsync(seed, 'seed');
     }
 }
 
 async function seed() {
-    logString('Start seed');
     const files = await readdir(epubLocation);
 
     const promises = files.map(async (file) => {
         const epubFile = await readFile(epubLocation + file);
-        const book = await buffer2book(epubFile);
+        const book = await logTimeAsync(() => buffer2book(epubFile), `Book: ${file}`);
 
         insertBook(book);
     });
 
     await Promise.all(promises);
-    logString('End seed');
 }
 
 const readdir = promisify(fs.readdir);

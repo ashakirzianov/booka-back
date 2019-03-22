@@ -254,7 +254,11 @@ type ElementDescBase = {
     attrs: AttributeMap,
     expectedAttrs: AttributeMap,
 };
-type ElementDescChildren<TC, TT> = {
+type ElementDescChildren<TC> = {
+    translate?: undefined,
+    children: XmlParser<TC>,
+};
+type ElementDescChildrenTranslate<TC, TT> = {
     children: XmlParser<TC>,
     translate: (x: [XmlNodeElement, TC]) => TT,
 };
@@ -262,9 +266,9 @@ type ElementDescNoChildren<TT> = {
     children?: undefined,
     translate?: (x: XmlNodeElement) => TT,
 };
+type ElementDescFns<TC, TT> = ElementDescChildren<TC> | ElementDescNoChildren<TT> | ElementDescChildrenTranslate<TC, TT>;
 
-export type ElementDesc<TC, TT> = Partial<ElementDescBase>
-    & (ElementDescChildren<TC, TT> | ElementDescNoChildren<TT>);
+export type ElementDesc<TC, TT> = Partial<ElementDescBase> & ElementDescFns<TC, TT>;
 
 function descPred(desc: Partial<ElementDesc<any, any>>) {
     const nameP = desc.name === undefined ? undefined : namePred(desc.name);
@@ -277,19 +281,29 @@ function descPred(desc: Partial<ElementDesc<any, any>>) {
 }
 
 export function element2(desc: Partial<ElementDescBase>): XmlParser<XmlNodeElement>;
-export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildren<TC, TT>): XmlParser<TT>;
+export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildren<TC>): XmlParser<TC>;
+export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildrenTranslate<TC, TT>): XmlParser<TT>;
 export function element2<TT>(desc: Partial<ElementDescBase> & ElementDescNoChildren<TT>): XmlParser<TT>;
 export function element2<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT | XmlNodeElement> {
-    const pred = descPred(desc);
-    const predParser = predicate(pred);
-    if (desc.children) {
-        const withChildren = and(predParser, children(desc.children));
-        return desc.translate
-            ? translate(withChildren, desc.translate)
-            : projectLast(withChildren);
-    } else {
-        return desc.translate
-            ? translate(predParser, desc.translate)
-            : predParser;
-    }
+    // const pred = descPred(desc);
+    // const predParser = predicate(pred);
+    // if (desc.children) {
+    //     const withChildren = and(predParser, children(desc.children));
+    //     return desc.translate
+    //         ? translate(withChildren, desc.translate)
+    //         : projectLast(withChildren);
+    // } else {
+    //     return desc.translate
+    //         ? translate(predParser, desc.translate)
+    //         : predParser;
+    // }
+    return input => {
+        const { head, tail } = split(input);
+        if (!head || !isElement(head) || head.name !== desc.name) {
+            return fail('fail!!!');
+        } else {
+            const ch = desc.children as any;
+            return ch(head.children);
+        }
+    };
 }
