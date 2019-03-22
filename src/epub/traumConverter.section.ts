@@ -6,6 +6,7 @@ import {
     attrs,
     nameAttrs,
     nameAttrsChildren,
+    projectLast,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -83,15 +84,18 @@ const headerElement = translate(
 
 const paragraph = declare<XmlNode[], Paragraph>();
 const plainText = textNode();
-const spanText = nameChildren('span', paragraph);
 const emphasis = translate(
     nameChildren('em', paragraph),
     assign('italic'),
 );
 const footnote = translate(name('a'), () => ''); // TODO: implement links
 
-const pClasses = [undefined, 'empty-line'];
-const pParagraph = nameAttrsChildren('p', { class: pClasses }, paragraph);
+const pClasses = [undefined, 'empty-line', 'drop', 'v'];
+const pParagraph = projectLast(and(
+    name(['p', 'span']),
+    expected(attrs({ class: pClasses })),
+    children(paragraph),
+));
 
 const isDecoration = oneOf('poem');
 // TODO: handle all of this classes separately
@@ -112,7 +116,7 @@ const divParagraph = translate(
 );
 
 const pOptions = choice(
-    plainText, spanText, emphasis, footnote, pParagraph, divParagraph,
+    plainText, emphasis, footnote, pParagraph, divParagraph,
 );
 
 // TODO: report unexpected spans ?

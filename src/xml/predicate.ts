@@ -34,9 +34,10 @@ export type Constraint<T, TK extends keyof T, TV extends T[TK]> = {
 export function keyValuePred<T>() {
     return <TK extends keyof T, TV extends T[TK]>(c: Constraint<T, TK, TV>): Predicate<T, { [k in TK]: T[TK] }> => {
         if (Array.isArray(c.value)) {
+            const arr = c.value;
             return (input: any) => {
                 const inspected: any = input !== undefined ? input[c.key] : undefined;
-                return equalsToOneOf(inspected, c.value)
+                return equalsToOneOf(inspected, ...arr)
                     ? predSucc(input)
                     : predFail(`'${input}.${c.key}=${inspected}', expected to be one of [${c.value}]`);
             };

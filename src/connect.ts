@@ -35,7 +35,8 @@ async function seed() {
         const before = JSON.stringify(book).length;
         const after = JSON.stringify(optimized).length;
         const won = Math.floor((before - after) / before * 100);
-        logString(`Optimized by ${won}%`);
+        const length = Math.floor(after / 1000);
+        logString(`Optimized by ${won}%, length: ${length}kCh`);
 
         insertBook(optimized);
     });

@@ -29,7 +29,7 @@ export const attrs = (x: ConstraintMap) =>
     ));
 
 export const nameChildren = <T>(n: ConstraintValue<string>, ch: XmlParser<T>) =>
-    projectLast(and(name(n), attrs({}), children(ch)));
+    projectLast(and(name(n), expected(attrs({})), children(ch)));
 export const nameAttrs = (n: ConstraintValue<string>, attrMap: ConstraintMap) =>
     projectFirst(and(name(n), attrs(attrMap)));
 export const nameAttrsChildren = <T>(n: ConstraintValue<string>, attrMap: ConstraintMap, ch: XmlParser<T>) =>
