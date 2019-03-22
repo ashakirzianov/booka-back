@@ -32,7 +32,7 @@ export function textNode<T>(f?: (text: string) => T | null): XmlParser<T | strin
 
 export const whitespaces = textNode(text => isWhitespaces(text) ? true : null);
 
-export function afterWhitespaces<T>(parser: XmlParser<T>): XmlParser<T> {
+export function whitespaced<T>(parser: XmlParser<T>): XmlParser<T> {
     return translate(
         seq(whitespaces, parser),
         ([_, result]) => result,

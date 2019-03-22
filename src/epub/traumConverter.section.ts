@@ -1,17 +1,17 @@
 import {
-    headNode, some, afterWhitespaces, translate,
+    headNode, some, whitespaced, translate,
     oneOrMore, textNode, path, and, elementNode, children,
     choice, nodeToString, XmlNode, declare,
     nameChildren, name, expected, unexpected,
     attrs,
 } from '../xml';
-import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
+import { filterUndefined, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
 
-const titleLine = afterWhitespaces(nameChildren('h2', textNode()));
-const titleContent = translate(afterWhitespaces(
+const titleLine = whitespaced(nameChildren('h2', textNode()));
+const titleContent = translate(whitespaced(
     and(
         name('div'),
         attrs({ class: 'title2' }),
@@ -42,8 +42,10 @@ const titlePage = translate(path(['html', 'body', 'div'],
 const ignoredPage = translate(path(['html', 'body', 'div'],
     attrs({
         id: () => true,
-        class: [undefined, 'fb2_info', 'about',
-            'coverpage', 'titlepage', 'annotation'],
+        class: [
+            undefined, 'fb2_info', 'about',
+            'coverpage', 'titlepage', 'annotation',
+        ],
     })),
     () => [{
         element: 'ignore' as 'ignore',
@@ -67,7 +69,7 @@ const headerContent = and(
 );
 
 const headerElement = translate(
-    nameChildren('div', afterWhitespaces(headerContent)),
+    nameChildren('div', whitespaced(headerContent)),
     ([level, title]) => ({
         element: 'header' as 'header',
         title: title,
@@ -139,7 +141,7 @@ const br = translate(name('br'), () => undefined);
 const ignore = choice(noteAnchor, br, skipOneNode);
 
 const normalContent = some(
-    afterWhitespaces(
+    whitespaced(
         choice(paragraphElement, headerElement, ignore)
     )
 );

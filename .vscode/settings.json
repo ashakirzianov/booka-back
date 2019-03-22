@@ -25,6 +25,7 @@
         "promisify",
         "rgrove",
         "titlepage",
-        "traum"
+        "traum",
+        "whitespaced"
     ],
 }
