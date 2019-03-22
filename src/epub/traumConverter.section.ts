@@ -1,6 +1,6 @@
 import {
     headNode, some, afterWhitespaces, translate,
-    oneOrMore, textNode, path, and, projectElement, children,
+    oneOrMore, textNode, path, and, elementNode, children,
     choice, report, nodeToString, XmlNode, declare, element,
     nameChildren, name,
 } from '../xml';
@@ -59,7 +59,7 @@ function headerToLevel(tag: string): number | null {
 
 const headerContent = translate(
     and(
-        projectElement(el => headerToLevel(el.name)),
+        elementNode(el => headerToLevel(el.name)),
         children(textNode()),
     ),
     ([level, title]) => ({

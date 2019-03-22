@@ -8,7 +8,7 @@ import {
     seq, some,
     translate, and, projectLast,
 } from './parserCombinators';
-import { ArrayParser, buildHead, split, not, predicate } from './arrayParser';
+import { ArrayParser, buildHead, not, predicate } from './arrayParser';
 import { predSucc, predFail, Predicate, andPred, expect } from './predicate';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
@@ -48,17 +48,17 @@ export function beforeWhitespaces<T>(parser: XmlParser<T>): XmlParser<T> {
 
 export function children<T>(parser: XmlParser<T>): XmlParser<T> {
     return input => {
-        const list = split(input);
-        if (!list.head) {
+        const head = input[0];
+        if (head === undefined) {
             return fail('children: empty input');
         }
-        if (!hasChildren(list.head)) {
+        if (!hasChildren(head)) {
             return fail('children: no children');
         }
 
-        const result = parser(list.head.children);
+        const result = parser(head.children);
         if (result.success) {
-            return success(result.value, list.tail, result.message);
+            return success(result.value, input.slice(1), result.message);
         } else {
             return result;
         }
@@ -67,17 +67,17 @@ export function children<T>(parser: XmlParser<T>): XmlParser<T> {
 
 export function parent<T>(parser: XmlParser<T>): XmlParser<T> {
     return input => {
-        const list = split(input);
-        if (!list.head) {
+        const head = input[0];
+        if (head === undefined) {
             return fail('parent: empty input');
         }
-        if (!list.head.parent) {
+        if (head.parent === undefined) {
             return fail('parent: no parent');
         }
 
-        const result = parser([list.head.parent]);
+        const result = parser([head.parent]);
         if (result.success) {
-            return success(result.value, list.tail, result.message);
+            return success(result.value, input.slice(1), result.message);
         } else {
             return result;
         }
@@ -126,7 +126,7 @@ export function path<T>(paths: string[], then: XmlParser<T>): XmlParser<T> {
     return (input: XmlNode[]) => parsePathHelper(paths, then, input);
 }
 
-export const projectElement = <T>(f: (e: XmlNodeElement) => T | null) =>
+export const elementNode = <T>(f: (e: XmlNodeElement) => T | null) =>
     headNode(n => isElement(n) ? f(n) : null);
 
 export const name = (x: string) =>
@@ -199,8 +199,6 @@ function descPred(desc: Partial<ElementDesc<any, any>>) {
 
     return pred;
 }
-
-// ---- Predicated
 
 function elemPred(): Predicate<XmlNode, XmlNodeElement> {
     return nd => {

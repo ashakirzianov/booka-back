@@ -5,37 +5,30 @@ import { Predicate, andPred } from './predicate';
 
 export type ArrayParser<TIn, TOut = TIn> = Parser<TIn[], TOut>;
 
-export function split<T>(arr: T[]) {
-    return {
-        head: arr[0],
-        tail: arr.slice(1),
-    };
-}
-
 export function buildHead<TIn>() {
     return <TOut>(f: (n: TIn) => TOut | null) => (input: TIn[]) => {
-        const list = split(input);
-        if (!list.head) {
+        const head = input[0];
+        if (head === undefined) {
             return fail('first node: empty input');
         }
-        const result = f(list.head);
+        const result = f(head);
         return result === null
             ? fail('first node: func returned null')
-            : success(result, list.tail)
+            : success(result, input.slice(1))
             ;
     };
 }
 
 export function not<T>(parser: ArrayParser<T, any>): ArrayParser<T, T> {
     return input => {
-        const list = split(input);
-        if (!list.head) {
+        const head = input[0];
+        if (head === undefined) {
             return fail('not: empty input');
         }
 
         const result = parser(input);
         return !result.success
-            ? success(list.head, list.tail)
+            ? success(head, input.slice(1))
             : fail('not: parser succeed');
     };
 }
@@ -64,20 +57,3 @@ export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> 
         }
     };
 }
-
-// export function predicate<TI, T>(
-//     ...preds: Array<Predicate<TI, T>>
-// ): ArrayParser<TI, TI & T>;
-
-// export function predicate<TI, T1, T2>(
-//     p1: Predicate<TI, T1>, ...p2: Array<Predicate<TI & T1, T2>>
-// ): ArrayParser<TI, TI & T1 & T2>;
-
-// export function predicate<TI, T1, T2, T3>(
-//     p1: Predicate<TI, T1>, p2: Predicate<TI & T1, T2>, ...p3: Array<Predicate<TI & T1 & T2, T3>>
-// ): ArrayParser<TI, TI & T1 & T2 & T3>;
-
-// export function predicate<TI>(...preds: Array<Predicate<TI, any>>): ArrayParser<TI, any> {
-//     const pred = andPred(...preds);
-//     return singlePred(pred);
-// }
