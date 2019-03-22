@@ -253,3 +253,12 @@ export function failed<T>(mOrF: Message | ((x: T) => Message)): Parser<T, undefi
         return input => fail(mOrF);
     }
 }
+
+export function tagged<TIn, TOut>(parser: Parser<TIn, TOut>, f: (x: TIn) => string): Parser<TIn, TOut> {
+    return input => {
+        const result = parser(input);
+        return result.success
+            ? result
+            : fail(taggedMessage(result.message, f(input)));
+    };
+}
