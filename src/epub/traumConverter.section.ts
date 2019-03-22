@@ -5,6 +5,7 @@ import {
     nameChildren, name, expected, unexpected,
     attrs,
     nameAttrs,
+    nameAttrsChildren,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -89,7 +90,8 @@ const emphasis = translate(
 );
 const footnote = translate(name('a'), () => ''); // TODO: implement links
 
-const pParagraph = nameChildren('p', paragraph);
+const pClasses = [undefined, 'empty-line'];
+const pParagraph = nameAttrsChildren('p', { class: pClasses }, paragraph);
 
 const isDecoration = oneOf('poem');
 // TODO: handle all of this classes separately
@@ -165,10 +167,16 @@ const normalPage = path(['html', 'body', 'div'], translate(
 
 // ---- Section parser
 
+const unexpectedSection = translate(
+    unexpected<XmlNode[]>(ns =>
+        `Unexpected section: ${ns.map(nodeToString).join(' ')}`),
+    () => [{ element: 'ignore' as 'ignore' }],
+);
 export const section = choice(
     normalPage,
     titlePage,
     ignoredPage,
+    unexpectedSection,
 );
 
 // Test exports

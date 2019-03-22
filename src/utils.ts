@@ -15,7 +15,7 @@ export function assertNever(x: never): never {
 }
 
 export function equalsToOneOf<TX, TO>(x: TX, ...opts: TO[]): boolean {
-    return opts.reduce((res, o) => res || o === (x as any), false);
+    return opts.reduce((res, o) => res === true || o === (x as any), false);
 }
 
 export function keys<T>(obj: T): Array<keyof T> {
