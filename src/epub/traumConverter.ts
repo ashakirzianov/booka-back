@@ -1,10 +1,4 @@
-import {
-    children, textNode, element, path, afterWhitespaces, headNode, projectElement,
-    string2tree, XmlNodeDocument,
-    buildHead, Parser, choice, translate, seq, and, oneOrMore, some,
-} from '../xml';
-import * as C from '../contracts';
-import { filterUndefined } from '../utils';
+import { BookContent } from '../contracts';
 import { Epub, Section } from './epubParser';
 import { EpubConverter } from './epubConverter';
 import { buildBook } from './traumConverter.book';
@@ -29,6 +23,6 @@ function checkAboutSection(section: Section): boolean {
     return section.htmlString.includes(marker);
 }
 
-function convertEpub(epub: Epub): Promise<C.BookContent> {
+function convertEpub(epub: Epub): Promise<BookContent> {
     return Promise.resolve(buildBook(epub));
 }

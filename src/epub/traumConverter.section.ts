@@ -1,7 +1,8 @@
 import {
     headNode, some, afterWhitespaces, translate,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, declare, expected, attrs, name, element2, element,
+    choice, report, nodeToString, XmlNode, declare, element2,
+    nameChildren, name,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
 import { Paragraph, assign, compoundPh } from '../contracts';
@@ -68,27 +69,27 @@ const headerContent = translate(
     }),
 );
 
-const header = element('div', afterWhitespaces(headerContent));
+const header = nameChildren('div', afterWhitespaces(headerContent));
 
 // ---- Paragraph
 
 const paragraph = declare<XmlNode[], Paragraph>();
 const plainText = textNode();
-const spanText = element('span', paragraph);
+const spanText = nameChildren('span', paragraph);
 const emphasis = translate(
-    element('em', plainText),
+    nameChildren('em', paragraph),
     assign('italic'),
 );
 const footnote = element2({ name: 'a', translate: () => '' }); // TODO: implement links
 
-const pParagraph = element('p', paragraph);
+const pParagraph = nameChildren('p', paragraph);
 
 const isDecoration = oneOf('poem');
+// TODO: handle all of this classes separately
 const knownAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 ];
-
 const divParagraph = element2({
     name: 'div',
     expectedAttrs: { class: knownAttrs },
@@ -126,7 +127,7 @@ const noteAnchor = element2({
     translate: () => undefined,
 }); // TODO: expect it when implement footnote parsing
 
-const br = translate(element('br'), () => undefined);
+const br = translate(name('br'), () => undefined);
 
 const ignore = choice(noteAnchor, br, skipOneNode);
 

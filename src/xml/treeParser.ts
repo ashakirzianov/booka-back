@@ -247,6 +247,7 @@ function attrMapPred(map: AttributeMap): ElementPredicate {
 
 export const name = (x: string) => predicate(andPred(elemPred(), namePred(x)));
 export const attrs = (x: AttributeMap) => predicate(andPred(elemPred(), attrMapPred(x)));
+export const nameChildren = <T>(n: string, ch: XmlParser<T>) => projectLast(and(name(n), children(ch)));
 
 // Elements sugar
 
@@ -310,11 +311,11 @@ export function element2<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT |
     }
 }
 
-export function element<T>(nm: string): XmlParser<XmlNodeElement>;
-export function element<T>(nm: string, ch: XmlParser<T>): XmlParser<T>;
-export function element<T>(nm: string, ch?: XmlParser<T>) {
-    return element2({
-        name: nm,
-        children: ch as any, // TODO: remove as any
-    });
-}
+// export function element<T>(nm: string): XmlParser<XmlNodeElement>;
+// export function element<T>(nm: string, ch: XmlParser<T>): XmlParser<T>;
+// export function element<T>(nm: string, ch?: XmlParser<T>) {
+//     return element2({
+//         name: nm,
+//         children: ch as any, // TODO: remove as any
+//     });
+// }
