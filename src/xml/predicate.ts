@@ -26,9 +26,10 @@ export function predFail(message: Message): PredicateResultFail {
 
 export type Predicate<TI, TO = TI> = (x: TI) => PredicateResult<TI & TO>;
 
+export type ConstraintValue<TV> = TV | TV[] | ((x: TV) => boolean);
 export type Constraint<T, TK extends keyof T, TV extends T[TK]> = {
     key: TK,
-    value: TV | TV[] | Predicate<TV>,
+    value: ConstraintValue<TV>,
 };
 export function keyValuePred<T>() {
     return <TK extends keyof T, TV extends T[TK]>(c: Constraint<T, TK, TV>): Predicate<T, { [k in TK]: T[TK] }> => {
@@ -40,13 +41,13 @@ export function keyValuePred<T>() {
                     : predFail(`'${input}.${c.key}=${inspected}', expected to be one of [${c.value}]`);
             };
         } else if (typeof c.value === 'function') {
-            const value = c.value as Predicate<TV>;
+            const value = c.value as (x: TV) => boolean;
             return (input: any) => {
                 const inspected: any = input !== undefined ? input[c.key] : undefined;
                 const result = value(inspected);
-                return result.success
-                    ? predSucc(input, result.message)
-                    : predFail(result.message);
+                return result
+                    ? predSucc(input)
+                    : predFail(`Unexpected ${input}.${c.key}=${inspected}`);
             };
         } else {
             return (input: any) => {

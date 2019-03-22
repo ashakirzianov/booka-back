@@ -1,5 +1,5 @@
 import {
-    headNode, some, whitespaced, translate,
+    some, whitespaced, translate,
     oneOrMore, textNode, path, and, elementNode, children,
     choice, nodeToString, XmlNode, declare,
     nameChildren, name, expected, unexpected,

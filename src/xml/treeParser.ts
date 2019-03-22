@@ -9,7 +9,7 @@ import {
     translate, and, projectLast, taggedMessage, tagged,
 } from './parserCombinators';
 import { ArrayParser, buildHead, not, predicate } from './arrayParser';
-import { predSucc, predFail, Predicate, andPred, expect } from './predicate';
+import { predSucc, predFail, Predicate, andPred, expect, keyValuePred, ConstraintValue } from './predicate';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
@@ -135,9 +135,9 @@ function fromPredicate(pred: ElementPredicate) {
         nodes => `On node: ${nodes[0] && nodeToString(nodes[0])}`
     );
 }
-export const name = (x: string) =>
-    fromPredicate(namePred(x));
-export const attrs = (x: AttributeMap) =>
+export const name = (n: ConstraintValue<string>) =>
+    fromPredicate(namePred(n));
+export const attrs = (x: ConstraintMap) =>
     fromPredicate(attrsPred(x));
 export const nameChildren = <T>(n: string, ch: XmlParser<T>) =>
     projectLast(and(name(n), children(ch)));
@@ -154,24 +154,24 @@ function elemPred(): Predicate<XmlNode, XmlNodeElement> {
     };
 }
 
-type ElementPredicate<T = XmlNodeElement> = Predicate<XmlNodeElement, T>;
-function namePred(n: string): ElementPredicate {
-    return nd => {
-        return nameEq(nd.name, n)
-            ? predSucc(nd)
-            : predFail(`Expected name: '${n}', got: '${nd.name}'`);
-    };
+function namePred(n: ConstraintValue<string>): ElementPredicate {
+    return keyValuePred<XmlNodeElement>()({
+        key: 'name',
+        value: n,
+    });
 }
 
-export type AttributeValue = string | undefined;
-export type AttributeConstraintValue = AttributeValue | AttributeValue[] | ((v: AttributeValue) => boolean) | true;
-export type AttributeMap = {
-    [k in string]?: AttributeConstraintValue;
+type ElementPredicate<T = XmlNodeElement> = Predicate<XmlNodeElement, T>;
+type OptString = string | undefined;
+export type ValueConstraint = OptString | OptString[] | ((v: OptString) => boolean) | true;
+
+export type ConstraintMap = {
+    [k in string]?: ValueConstraint;
 };
 
 type AttributeConstraint = {
     key: string,
-    value: AttributeConstraintValue,
+    value: ValueConstraint,
 };
 function attrPred(c: AttributeConstraint): ElementPredicate {
     const { key, value } = c;
@@ -203,7 +203,7 @@ function noAttrsExceptPred(keys: string[]): ElementPredicate {
     };
 }
 
-function attrsPred(map: AttributeMap): ElementPredicate {
+function attrsPred(map: ConstraintMap): ElementPredicate {
     const keys = Object.keys(map);
     const constraints = keys
         .map(key => attrPred({ key: key, value: map[key] }));
@@ -215,8 +215,8 @@ function attrsPred(map: AttributeMap): ElementPredicate {
 
 type ElementDescBase = {
     name: string,
-    attrs: AttributeMap,
-    expectedAttrs: AttributeMap,
+    attrs: ConstraintMap,
+    expectedAttrs: ConstraintMap,
 };
 type ElementDescChildren<TC> = {
     children: XmlParser<TC>,
