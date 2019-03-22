@@ -1,7 +1,7 @@
 import {
     headNode, some, afterWhitespaces, translate,
     oneOrMore, textNode, path, and, projectElement, children,
-    choice, report, nodeToString, XmlNode, declare, element2,
+    choice, report, nodeToString, XmlNode, declare, element,
     nameChildren, name,
 } from '../xml';
 import { filterUndefined, equalsToOneOf, oneOf } from '../utils';
@@ -9,10 +9,10 @@ import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
 
-const titleContent = afterWhitespaces(element2({
+const titleContent = afterWhitespaces(element({
     name: 'div',
     attrs: { class: 'title2' },
-    children: oneOrMore(afterWhitespaces(element2({ name: 'h2', children: textNode() }))),
+    children: oneOrMore(afterWhitespaces(element({ name: 'h2', children: textNode() }))),
     translate: ([_, lines]) => lines.length > 1 ? // TODO: report extra lines // TODO: move this logic up
         {
             element: 'title' as 'title',
@@ -26,7 +26,7 @@ const titleContent = afterWhitespaces(element2({
 }));
 
 const titlePage = path(['html', 'body', 'div'],
-    element2({
+    element({
         attrs: { class: undefined },
         children: titleContent,
         translate: tp => [tp],
@@ -35,7 +35,7 @@ const titlePage = path(['html', 'body', 'div'],
 
 // ---- Ignored pages
 
-const ignoredPage = path(['html', 'body', 'div'], element2({
+const ignoredPage = path(['html', 'body', 'div'], element({
     attrs: {
         id: () => true,
         class: [undefined, 'fb2_info', 'about',
@@ -80,7 +80,7 @@ const emphasis = translate(
     nameChildren('em', paragraph),
     assign('italic'),
 );
-const footnote = element2({ name: 'a', translate: () => '' }); // TODO: implement links
+const footnote = element({ name: 'a', translate: () => '' }); // TODO: implement links
 
 const pParagraph = nameChildren('p', paragraph);
 
@@ -90,7 +90,7 @@ const knownAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 ];
-const divParagraph = element2({
+const divParagraph = element({
     name: 'div',
     expectedAttrs: { class: knownAttrs },
     children: paragraph,
@@ -121,7 +121,7 @@ const skipOneNode = translate(
     () => undefined,
 );
 
-const noteAnchor = element2({
+const noteAnchor = element({
     name: 'a',
     attrs: { class: 'note_anchor' },
     translate: () => undefined,
@@ -138,7 +138,7 @@ const normalContent = some(
 );
 
 const normalPage = path(['html', 'body', 'div'],
-    element2({
+    element({
         attrs: {
             class: c => c !== undefined && c.startsWith('section'),
         },

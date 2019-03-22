@@ -28,44 +28,6 @@ export function attrsCompare(attrs1: XmlAttributes, attrs2: XmlAttributes) {
 export const projectElement = <T>(f: (e: XmlNodeElement) => T | null) =>
     headNode(n => isElement(n) ? f(n) : null);
 
-// type ElementParserArg =
-//     | string // match element name
-//     | ((node: XmlNodeElement) => boolean) // element predicate
-//     ;
-// export function element<T>(arg: ElementParserArg, ch: XmlParser<T>): XmlParser<T>;
-// export function element<T>(arg: ElementParserArg): XmlParser<XmlNodeElement>;
-// export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<T | XmlNodeElement> {
-//     return function f(input: XmlNode[]) {
-//         const list = split(input);
-//         if (!list.head) {
-//             return fail('element: empty input');
-//         }
-
-//         if (!isElement(list.head)) {
-//             return fail('element: head is not an element');
-//         }
-
-//         if (typeof arg === 'string') {
-//             if (!nameEq(arg, list.head.name)) {
-//                 return fail(`element: name ${list.head.name} does not match ${arg}`);
-//             }
-//         } else if (!arg(list.head)) {
-//             return fail('element: predicate failed');
-//         }
-
-//         if (ch) {
-//             const result = ch(list.head.children);
-//             if (!result.success) {
-//                 return result;
-//             } else {
-//                 return success(result.value, list.tail, result.message);
-//             }
-//         }
-
-//         return success(list.head, list.tail);
-//     };
-// }
-
 const textNodeImpl = <T>(f?: (text: string) => T | null) => headNode(n =>
     n.type === 'text'
         ? (f ? f(n.text) : n.text)
@@ -292,11 +254,11 @@ function descPred(desc: Partial<ElementDesc<any, any>>) {
     return pred;
 }
 
-export function element2(desc: Partial<ElementDescBase>): XmlParser<XmlNodeElement>;
-export function element2<TC>(desc: Partial<ElementDescBase> & ElementDescChildren<TC>): XmlParser<TC>;
-export function element2<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildrenTranslate<TC, TT>): XmlParser<TT>;
-export function element2<TT>(desc: Partial<ElementDescBase> & ElementDescNoChildren<TT>): XmlParser<TT>;
-export function element2<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT | XmlNodeElement> {
+export function element(desc: Partial<ElementDescBase>): XmlParser<XmlNodeElement>;
+export function element<TC>(desc: Partial<ElementDescBase> & ElementDescChildren<TC>): XmlParser<TC>;
+export function element<TC, TT>(desc: Partial<ElementDescBase> & ElementDescChildrenTranslate<TC, TT>): XmlParser<TT>;
+export function element<TT>(desc: Partial<ElementDescBase> & ElementDescNoChildren<TT>): XmlParser<TT>;
+export function element<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT | XmlNodeElement> {
     const pred = descPred(desc);
     const predParser = predicate(pred);
     if (desc.children) {
@@ -310,12 +272,3 @@ export function element2<TC, TT>(desc: ElementDesc<TC, TT>): XmlParser<TC | TT |
             : predParser;
     }
 }
-
-// export function element<T>(nm: string): XmlParser<XmlNodeElement>;
-// export function element<T>(nm: string, ch: XmlParser<T>): XmlParser<T>;
-// export function element<T>(nm: string, ch?: XmlParser<T>) {
-//     return element2({
-//         name: nm,
-//         children: ch as any, // TODO: remove as any
-//     });
-// }
