@@ -1,4 +1,5 @@
 import { Message, compoundMessage } from './parserCombinators';
+import { equalsToOneOf, keys } from '../utils';
 
 export type PredicateResultSuccess<T> = {
     success: true,
@@ -24,6 +25,53 @@ export function predFail(message: Message): PredicateResultFail {
 }
 
 export type Predicate<TI, TO = TI> = (x: TI) => PredicateResult<TI & TO>;
+
+export type Constraint<T, TK extends keyof T, TV extends T[TK]> = {
+    key: TK,
+    value: TV | TV[] | Predicate<TV>,
+};
+export function keyValuePred<T>() {
+    return <TK extends keyof T, TV extends T[TK]>(c: Constraint<T, TK, TV>): Predicate<T, { [k in TK]: T[TK] }> => {
+        if (Array.isArray(c.value)) {
+            return (input: any) => {
+                const inspected: any = input !== undefined ? input[c.key] : undefined;
+                return equalsToOneOf(inspected, c.value)
+                    ? predSucc(input)
+                    : predFail(`'${input}.${c.key}=${inspected}', expected to be one of [${c.value}]`);
+            };
+        } else if (typeof c.value === 'function') {
+            const value = c.value as Predicate<TV>;
+            return (input: any) => {
+                const inspected: any = input !== undefined ? input[c.key] : undefined;
+                const result = value(inspected);
+                return result.success
+                    ? predSucc(input, result.message)
+                    : predFail(result.message);
+            };
+        } else {
+            return (input: any) => {
+                const inspected: any = input !== undefined ? input[c.key] : undefined;
+                return inspected === c.value
+                    ? predSucc(input)
+                    : predFail(`'${input}.${c.key}=${inspected}', expected to be '${c.value}'`);
+            };
+        }
+    };
+}
+
+export type ConstraintMap<T> = {
+    [K in keyof T]: Constraint<T, K, T[K]>
+};
+export function mapPredicate<T>(map: ConstraintMap<T>) {
+    const kvp = keyValuePred<T>();
+    const constraints = keys(map)
+        .map(key => {
+            const value = map[key];
+            return kvp({ key: key, value: value as any });
+        });
+
+    return andPred(...constraints);
+}
 
 export function andPred<TI, T>(
     ...preds: Array<Predicate<TI, T>>

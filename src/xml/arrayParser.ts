@@ -7,8 +7,8 @@ export type ArrayParser<TIn, TOut = TIn> = Parser<TIn[], TOut>;
 
 export function split<T>(arr: T[]) {
     return {
-        head: arr.length > 0 ? arr[0] : undefined,
-        tail: arr.length > 1 ? arr.slice(1) : [],
+        head: arr[0],
+        tail: arr.slice(1),
     };
 }
 
@@ -51,14 +51,14 @@ export const anyItem = buildHead()(x => x);
 
 export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
     return (input: TI[]) => {
-        const { head, tail } = split(input);
+        const head = input[0];
         if (!head) {
             return fail('pred: empty input');
         }
 
         const result = pred(head);
         if (result.success) {
-            return success(result.value, tail, result.message);
+            return success(result.value, input.slice(1), result.message);
         } else {
             return fail(result.message);
         }

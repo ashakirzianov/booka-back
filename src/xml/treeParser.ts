@@ -1,6 +1,6 @@
 import {
     XmlNode, hasChildren, isElement,
-    XmlAttributes, XmlNodeElement, nodeToString,
+    XmlNodeElement, nodeToString,
 } from './xmlNode';
 import { caseInsensitiveEq, isWhitespaces, equalsToOneOf, filterUndefined } from '../utils';
 import {
@@ -17,16 +17,6 @@ export const headNode = buildHead<XmlNode>();
 export function nameEq(n1: string, n2: string): boolean {
     return caseInsensitiveEq(n1, n2);
 }
-
-export function attrsCompare(attrs1: XmlAttributes, attrs2: XmlAttributes) {
-    return Object.keys(attrs1).every(k =>
-        (attrs1[k] === attrs2[k])
-        || (!attrs1[k] && !attrs2[k])
-    );
-}
-
-export const projectElement = <T>(f: (e: XmlNodeElement) => T | null) =>
-    headNode(n => isElement(n) ? f(n) : null);
 
 const textNodeImpl = <T>(f?: (text: string) => T | null) => headNode(n =>
     n.type === 'text'
@@ -136,9 +126,15 @@ export function path<T>(paths: string[], then: XmlParser<T>): XmlParser<T> {
     return (input: XmlNode[]) => parsePathHelper(paths, then, input);
 }
 
-export const name = (x: string) => predicate(andPred(elemPred(), namePred(x)));
-export const attrs = (x: AttributeMap) => predicate(andPred(elemPred(), attrMapPred(x)));
-export const nameChildren = <T>(n: string, ch: XmlParser<T>) => projectLast(and(name(n), children(ch)));
+export const projectElement = <T>(f: (e: XmlNodeElement) => T | null) =>
+    headNode(n => isElement(n) ? f(n) : null);
+
+export const name = (x: string) =>
+    predicate(andPred(elemPred(), namePred(x)));
+export const attrs = (x: AttributeMap) =>
+    predicate(andPred(elemPred(), attrMapPred(x)));
+export const nameChildren = <T>(n: string, ch: XmlParser<T>) =>
+    projectLast(and(name(n), children(ch)));
 
 // Elements sugar
 
@@ -203,6 +199,8 @@ function descPred(desc: Partial<ElementDesc<any, any>>) {
 
     return pred;
 }
+
+// ---- Predicated
 
 function elemPred(): Predicate<XmlNode, XmlNodeElement> {
     return nd => {
