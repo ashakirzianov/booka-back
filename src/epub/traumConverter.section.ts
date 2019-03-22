@@ -10,10 +10,13 @@ import { Paragraph, assign, compoundPh } from '../contracts';
 
 // ---- Title page
 
-const titleContent = afterWhitespaces(translate(and(
-    name('div'),
-    attrs({ class: 'title2' }),
-    children(oneOrMore(afterWhitespaces(nameChildren('h2', textNode()))))),
+const titleLine = afterWhitespaces(nameChildren('h2', textNode()));
+const titleContent = translate(afterWhitespaces(
+    and(
+        name('div'),
+        attrs({ class: 'title2' }),
+        children(oneOrMore(titleLine))
+    )),
     ([_, __, lines]) => lines.length > 1 ? // TODO: report extra lines // TODO: move this logic up
         {
             element: 'title' as 'title',
@@ -24,25 +27,28 @@ const titleContent = afterWhitespaces(translate(and(
             element: 'title' as 'title',
             title: lines[0],
         }
-));
+);
 
-const titlePage = path(['html', 'body', 'div'], translate(and(
-    attrs({ class: undefined }), children(titleContent)),
+const titlePage = translate(path(['html', 'body', 'div'],
+    and(
+        attrs({ class: undefined }),
+        children(titleContent)
+    )),
     ([_, ch]) => [ch],
-));
+);
 
 // ---- Ignored pages
 
-const ignoredPage = path(['html', 'body', 'div'], translate(
+const ignoredPage = translate(path(['html', 'body', 'div'],
     attrs({
         id: () => true,
         class: [undefined, 'fb2_info', 'about',
             'coverpage', 'titlepage', 'annotation'],
-    }),
+    })),
     () => [{
         element: 'ignore' as 'ignore',
     }],
-));
+);
 
 // ---- Separator parser
 
@@ -55,19 +61,19 @@ function headerToLevel(tag: string): number | null {
     return null;
 }
 
-const headerContent = translate(
-    and(
-        elementNode(el => headerToLevel(el.name)),
-        children(textNode()),
-    ),
+const headerContent = and(
+    elementNode(el => headerToLevel(el.name)),
+    children(textNode()),
+);
+
+const headerElement = translate(
+    nameChildren('div', afterWhitespaces(headerContent)),
     ([level, title]) => ({
         element: 'header' as 'header',
         title: title,
-        level: 4 - level,
+        level: 4 - level, // h4 is a chapter level header
     }),
 );
-
-const header = nameChildren('div', afterWhitespaces(headerContent));
 
 // ---- Paragraph
 
@@ -84,23 +90,29 @@ const pParagraph = nameChildren('p', paragraph);
 
 const isDecoration = oneOf('poem');
 // TODO: handle all of this classes separately
-const knownAttrs = [
+const knownClassAttrs = [
     'poem', 'stanza', 'note_section', undefined,
     'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
 ];
-const divParagraph = translate(and(
-    name('div'),
-    expected(attrs({ class: knownAttrs })),
-    children(paragraph)),
+const divParagraph = translate(
+    and(
+        name('div'),
+        expected(attrs({ class: knownClassAttrs })),
+        children(paragraph),
+    ),
     ([{ attributes }, _, p]) =>
         isDecoration(attributes.class)
             ? assign(attributes.class)(p)
             : p
 );
 
+const pOptions = choice(
+    plainText, spanText, emphasis, footnote, pParagraph, divParagraph,
+);
+
 // TODO: report unexpected spans ?
 paragraph.implementation = translate(
-    some(choice(plainText, spanText, emphasis, footnote, pParagraph, divParagraph)),
+    some(pOptions),
     compoundPh
 );
 
@@ -128,7 +140,7 @@ const ignore = choice(noteAnchor, br, skipOneNode);
 
 const normalContent = some(
     afterWhitespaces(
-        choice(paragraphElement, header, ignore)
+        choice(paragraphElement, headerElement, ignore)
     )
 );
 
@@ -157,5 +169,5 @@ export const section = choice(
 
 export const toTest = {
     normalPage, titlePage, section,
-    paragraph: pParagraph, separator: header, separatorHeader: headerContent,
+    paragraph: pParagraph, separator: headerElement, separatorHeader: headerContent,
 };
