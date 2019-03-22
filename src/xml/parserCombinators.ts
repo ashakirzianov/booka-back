@@ -233,24 +233,6 @@ function getMessage<TOut>(result: Result<any, TOut>, mOrF: MessageOrFn<TOut>) {
         : mOrF;
 }
 
-export function report<TIn, TOut>(mOrF: MessageOrFn<TOut>, parser: Parser<TIn, TOut>): Parser<TIn, TOut> {
-    return (input: TIn) => {
-        const result = parser(input);
-        const msg = getMessage(result, mOrF);
-        if (msg) {
-            return result.message ? {
-                ...result,
-                message: compoundMessage([result.message, msg]),
-            } : {
-                    ...result,
-                    message: msg,
-                };
-        } else {
-            return result;
-        }
-    };
-}
-
 export function expected<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO | undefined> {
     return input => {
         const result = parser(input);
@@ -258,4 +240,16 @@ export function expected<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO | undefi
             ? result
             : success(undefined, input, result.message);
     };
+}
+
+export function unexpected<T>(mOrF: Message | ((x: T) => Message)) {
+    return expected(failed<T>(mOrF));
+}
+
+export function failed<T>(mOrF: Message | ((x: T) => Message)): Parser<T, undefined> {
+    if (typeof mOrF === 'function') {
+        return input => fail(mOrF(input));
+    } else {
+        return input => fail(mOrF);
+    }
 }
