@@ -79,11 +79,11 @@ export function attrs(p: Paragraph) {
     return attrObject(arr);
 }
 
-type Attrs = {
+export type AttributesObject = {
     [k in AttributeName]?: boolean;
 };
-function attrObject(attributes: AttributeName[]): Attrs {
+function attrObject(attributes: AttributeName[]): AttributesObject {
     return attributes
         .reduce((as, a) =>
-            ({ ...as, [a]: true }), {} as Attrs);
+            ({ ...as, [a]: true }), {} as AttributesObject);
 }
