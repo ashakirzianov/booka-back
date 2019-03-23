@@ -47,7 +47,7 @@ export function isAttributed(bn: BookNode): bn is AttributedParagraph {
 }
 
 export function isChapter(bn: BookNode): bn is Chapter {
-    return bn['node'] === 'chapter';
+    return (bn as any).node === 'chapter';
 }
 
 export function children(node: BookNode) {
