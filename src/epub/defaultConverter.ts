@@ -6,7 +6,7 @@ import {
 } from '../xml';
 import { EpubConverter } from './epubConverter';
 import { filterUndefined } from '../utils';
-import { BookContent, BookNode } from '../contracts';
+import { BookContent, BookNode, createParagraph } from '../contracts';
 
 export const converter: EpubConverter = {
     canHandleEpub: _ => true,
@@ -51,10 +51,7 @@ function tree2node(tree: XmlNodeDocument): BookNode[] {
         ;
 }
 
-const anyText = textNode(t => [{
-    node: 'paragraph',
-    spans: [t],
-} as BookNode]);
+const anyText = textNode(t => [createParagraph(t)]);
 const childrenText = children(extractText);
 
 const extractTextParser = translate(
@@ -62,7 +59,8 @@ const extractTextParser = translate(
         anyText,
         childrenText,
     )),
-    arrays => arrays.reduce((result, arr) => result.concat(arr), [] as BookNode[]),
+    arrays => arrays.reduce<BookNode[]>((result, arr) =>
+        result.concat(arr), []),
 );
 
 function extractText(tree: XmlNode[]): Result<XmlNode[], BookNode[]> {

@@ -8,7 +8,7 @@ export type Span = SimpleSpan | AttributedSpan;
 
 export type ParagraphNode = {
     node: 'paragraph',
-    spans: Span[],
+    span: Span,
 };
 export type ChapterNode = {
     node: 'chapter',
@@ -52,18 +52,18 @@ export function children(node: BookNode) {
 }
 
 export function assign(...attributes: AttributeName[]) {
-    return (p: Span): AttributedSpan => {
+    return (p: Span[]): AttributedSpan => {
         return {
-            spans: [p],
+            spans: p,
             attrs: attributes,
         };
     };
 }
 
-export function createParagraph(ps: Span[]): ParagraphNode {
+export function createParagraph(span: Span): ParagraphNode {
     return {
         node: 'paragraph',
-        spans: ps,
+        span,
     };
 }
 

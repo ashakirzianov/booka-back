@@ -250,7 +250,7 @@ export function failed<T>(mOrF: Message | ((x: T) => Message)): Parser<T, undefi
     if (typeof mOrF === 'function') {
         return input => fail(mOrF(input));
     } else {
-        return input => fail(mOrF);
+        return () => fail(mOrF);
     }
 }
 

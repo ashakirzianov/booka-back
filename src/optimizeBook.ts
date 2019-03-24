@@ -29,7 +29,7 @@ function optimizeNode(node: BookNode): BookNode {
 }
 
 function optimizeParagraph(p: ParagraphNode): BookNode {
-    const optimized = p.spans.map(optimizeSpan);
+    const optimized = optimizeSpan(p.span);
     return createParagraph(optimized);
 }
 

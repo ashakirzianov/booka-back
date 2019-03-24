@@ -85,7 +85,7 @@ const headerElement = translate(
 const span = declare<XmlNode[], Span>();
 const plainText = textNode();
 const emphasis = translate(
-    nameChildren('em', span),
+    nameChildren('em', some(span)),
     assign('italic'),
 );
 const footnote = translate(name('a'), () => ''); // TODO: implement links
@@ -107,12 +107,12 @@ const divParagraph = translate(
     and(
         name('div'),
         expected(attrs({ class: knownClassAttrs })),
-        children(span),
+        children(some(span)),
     ),
     ([{ attributes }, _, p]) =>
         isDecoration(attributes.class)
             ? assign(attributes.class)(p)
-            : p
+            : assign()(p)
 );
 
 const pOptions = choice(
@@ -120,20 +120,17 @@ const pOptions = choice(
 );
 
 // TODO: report unexpected spans ?
-span.implementation = translate(
-    some(pOptions),
-    createParagraph
-);
+span.implementation = pOptions;
 
 const paragraphElement = translate(span, s => ({
     element: 'paragraph' as 'paragraph',
-    paragraph: createParagraph([s]),
+    paragraph: createParagraph(s),
 }));
 
 // ---- Normal page
 
 const skipOneNode = unexpected<XmlNode[]>(n =>
-    `Unexpected node: ${nodeToString(n[0])}`
+    `Unexpected node: ${(n[0] && nodeToString(n[0]))}`
 );
 
 const noteAnchor = translate(
