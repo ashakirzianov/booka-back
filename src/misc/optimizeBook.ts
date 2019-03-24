@@ -1,8 +1,8 @@
 import {
     BookContent, BookNode, isChapter, isSimple, isAttributed,
     AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph,
-} from './contracts';
-import { assertNever } from './utils';
+} from '../contracts';
+import { assertNever } from '../utils';
 
 export function optimizeBook(book: BookContent): BookContent {
     return {

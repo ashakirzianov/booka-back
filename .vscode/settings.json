@@ -24,6 +24,7 @@
         "preds",
         "promisify",
         "rgrove",
+        "slugify",
         "titlepage",
         "traum",
         "whitespaced"
