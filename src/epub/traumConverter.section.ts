@@ -72,8 +72,16 @@ const headerContent = and(
     children(textNode()),
 );
 
+const knownHeaderClasses = [
+    'note_section', // TODO: remove after footnote support
+    'title1', 'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
+];
 const headerElement = translate(
-    nameChildren('div', whitespaced(headerContent)),
+    projectLast(and(
+        name('div'),
+        expected(attrs({ class: knownHeaderClasses })),
+        children(whitespaced(headerContent)),
+    )),
     ([level, title]) => ({
         element: 'header' as 'header',
         title: title,
@@ -158,7 +166,7 @@ const ignore = choice(noteAnchor, br, noteSection, skipOneNode);
 
 const normalContent = some(
     whitespaced(
-        choice(paragraphElement, headerElement, end(), ignore)
+        choice(headerElement, paragraphElement, end(), ignore)
     )
 );
 
