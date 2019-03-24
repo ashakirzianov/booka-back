@@ -1,1 +1,2 @@
-export * from './book';
+export * from './bookContent';
+export * from './library';

@@ -15,12 +15,17 @@
         "Combinators",
         "Metas",
         "Shakirzianov",
+        "Succ",
         "Truthy",
         "Whitespaces",
         "backend",
+        "coverpage",
         "epub",
+        "preds",
         "promisify",
         "rgrove",
-        "traum"
+        "titlepage",
+        "traum",
+        "whitespaced"
     ],
 }

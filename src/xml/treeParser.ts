@@ -1,78 +1,20 @@
-import {
-    XmlNode, hasChildren, isElement,
-    XmlAttributes, XmlNodeElement,
-} from './xmlNode';
+import { XmlNode, hasChildren } from './xmlNode';
 import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
-    Parser, Result, success, fail,
-    head,
-    split, seq, some, not, report,
-    translate,
+    Result, success, fail, seq, some, translate,
 } from './parserCombinators';
+import { ArrayParser, headParser, not } from './arrayParser';
 
-export type XmlParser<TOut = XmlNode> = Parser<XmlNode, TOut>;
+export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
-export const headNode = head<XmlNode>();
-
-export const nodeAny = headNode(x => x);
-
-export function nameEq(n1: string, n2: string) {
+export const headNode = headParser<XmlNode>();
+export function nameEq(n1: string, n2: string): boolean {
     return caseInsensitiveEq(n1, n2);
 }
 
-export function attrsCompare(attrs1: XmlAttributes, attrs2: XmlAttributes) {
-    return Object.keys(attrs1).every(k =>
-        (attrs1[k] === attrs2[k])
-        || (!attrs1[k] && !attrs2[k])
-    );
-}
-
-export const projectElement = <T>(f: (e: XmlNodeElement) => T | null) =>
-    headNode(n => isElement(n) ? f(n) : null);
-
-type ElementParserArg =
-    | string // match element name
-    | ((node: XmlNodeElement) => boolean) // element predicate
-    ;
-export function element<T>(arg: ElementParserArg, ch: XmlParser<T>): XmlParser<T>;
-export function element<T>(arg: ElementParserArg): XmlParser<XmlNodeElement>;
-export function element<T>(arg: ElementParserArg, ch?: XmlParser<T>): XmlParser<T | XmlNodeElement> {
-    return function f(input: XmlNode[]) {
-        const list = split(input);
-        if (!list.head) {
-            return fail('element: empty input');
-        }
-
-        if (!isElement(list.head)) {
-            return fail('element: head is not an element');
-        }
-
-        if (typeof arg === 'string') {
-            if (!nameEq(arg, list.head.name)) {
-                return fail(`element: name ${list.head.name} does not match ${arg}`);
-            }
-        } else {
-            if (!arg(list.head)) {
-                return fail('element: predicate failed');
-            }
-        }
-
-        if (ch) {
-            const result = ch(list.head.children);
-            if (!result.success) {
-                return result;
-            } else {
-                return success(result.value, list.tail);
-            }
-        }
-
-        return success(list.head, list.tail);
-    };
-}
-
-const textNodeImpl = <T>(f?: (text: string) => T | null) => headNode(node =>
-    node.type === 'text'
-        ? (f ? f(node.text) : node.text)
+const textNodeImpl = <T>(f?: (text: string) => T | null) => headNode(n =>
+    n.type === 'text'
+        ? (f ? f(n.text) : n.text)
         : null
 );
 
@@ -84,7 +26,7 @@ export function textNode<T>(f?: (text: string) => T | null): XmlParser<T | strin
 
 export const whitespaces = textNode(text => isWhitespaces(text) ? true : null);
 
-export function afterWhitespaces<T>(parser: XmlParser<T>): XmlParser<T> {
+export function whitespaced<T>(parser: XmlParser<T>): XmlParser<T> {
     return translate(
         seq(whitespaces, parser),
         ([_, result]) => result,
@@ -100,17 +42,17 @@ export function beforeWhitespaces<T>(parser: XmlParser<T>): XmlParser<T> {
 
 export function children<T>(parser: XmlParser<T>): XmlParser<T> {
     return input => {
-        const list = split(input);
-        if (!list.head) {
+        const head = input[0];
+        if (head === undefined) {
             return fail('children: empty input');
         }
-        if (!hasChildren(list.head)) {
+        if (!hasChildren(head)) {
             return fail('children: no children');
         }
 
-        const result = parser(list.head.children);
+        const result = parser(head.children);
         if (result.success) {
-            return success(result.value, list.tail);
+            return success(result.value, input.slice(1), result.message);
         } else {
             return result;
         }
@@ -119,17 +61,17 @@ export function children<T>(parser: XmlParser<T>): XmlParser<T> {
 
 export function parent<T>(parser: XmlParser<T>): XmlParser<T> {
     return input => {
-        const list = split(input);
-        if (!list.head) {
+        const head = input[0];
+        if (head === undefined) {
             return fail('parent: empty input');
         }
-        if (!list.head.parent) {
+        if (head.parent === undefined) {
             return fail('parent: no parent');
         }
 
-        const result = parser([list.head.parent]);
+        const result = parser([head.parent]);
         if (result.success) {
-            return success(result.value, list.tail);
+            return success(result.value, input.slice(1), result.message);
         } else {
             return result;
         }
@@ -152,7 +94,7 @@ export function between<T>(left: XmlParser<any>, right: XmlParser<any>, inside: 
     };
 }
 
-function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input: XmlNode[]): Result<XmlNode, T> {
+function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input: XmlNode[]): Result<XmlNode[], T> {
     if (pathComponents.length === 0) {
         return fail('parse path: can\'t parse to empty path');
     }
@@ -166,7 +108,7 @@ function parsePathHelper<T>(pathComponents: string[], then: XmlParser<T>, input:
     }
 
     if (pathComponents.length < 2) {
-        return report('parse path: then', then)(input.slice(childIndex));
+        return then(input.slice(childIndex));
     }
 
     const nextInput = hasChildren(child) ? child.children : [];

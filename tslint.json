@@ -1,6 +1,7 @@
 {
     "extends": "tslint:latest",
     "rules": {
+        "no-string-literal": false,
         "no-object-literal-type-assertion": false,
         "no-unnecessary-initializer": false,
         "quotemark": [

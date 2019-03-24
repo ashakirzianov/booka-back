@@ -1,3 +1,6 @@
 export * from './xmlNode';
-export * from './treeParser';
 export * from './parserCombinators';
+export * from './predicate';
+export * from './arrayParser';
+export * from './treeParser';
+export * from './elementParser';
