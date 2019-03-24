@@ -39,7 +39,6 @@ export function buildBook(epub: Epub): BookContent {
 
     // TODO: report when no title page
     return {
-        book: 'book' as 'book',
         meta: {
 
             title: titlePage && titlePage.title || epub.info.title,

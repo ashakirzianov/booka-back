@@ -22,7 +22,6 @@ export type BookMeta = {
 };
 
 export type BookContent = {
-    book: 'book',
     meta: BookMeta,
     nodes: BookNode[],
 };
