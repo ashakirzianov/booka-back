@@ -91,19 +91,23 @@ describe('Example parsing', () => {
     it('Paragraph italics', () => {
         const result = stringParser(paragraph)(`<p><em>Italics</em> Normal <em>Italics again</em></p>`);
 
-        const expected: ParagraphNode = {
+        const expectedNode: ParagraphNode = {
             node: 'paragraph',
             span: {
                 spans: [
-                    { spans: ['Italics'], attrs: ['italic'] },
+                    {
+                        spans: ['Italics'],
+                        attrs: ['italic'],
+                    },
                     ' Normal ',
                     { spans: ['Italics again'], attrs: ['italic'] },
                 ],
+                attrs: ['line'],
             },
         };
         if (expectSuccess(result)) {
-            expect(JSON.stringify(result.value))
-                .toEqual(JSON.stringify(expected));
+            expect(JSON.stringify(result.value, undefined, 2))
+                .toEqual(JSON.stringify(expectedNode, undefined, 2));
         }
     });
 });
