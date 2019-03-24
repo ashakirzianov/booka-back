@@ -1,7 +1,8 @@
 import {
     BookContent, BookNode, isChapter, isSimple, isAttributed,
-    AttributedParagraph, Paragraph, AttributeName,
+    AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph,
 } from './contracts';
+import { assertNever } from './utils';
 
 export function optimizeBook(book: BookContent): BookContent {
     return {
@@ -20,23 +21,30 @@ function optimizeNode(node: BookNode): BookNode {
             ...node,
             nodes: optimizeNodes(node.nodes),
         };
-    } else {
+    } else if (isParagraph(node)) {
         return optimizeParagraph(node);
+    } else {
+        return assertNever(node);
     }
 }
 
-function optimizeParagraph(p: Paragraph): Paragraph {
+function optimizeParagraph(p: ParagraphNode): BookNode {
+    const optimized = p.spans.map(optimizeSpan);
+    return createParagraph(optimized);
+}
+
+function optimizeSpan(p: Span): Span {
     return isSimple(p)
         ? p
         : optimizeAttributed(p);
 }
 
-function optimizeAttributed(attrP: AttributedParagraph): Paragraph {
+function optimizeAttributed(attrP: AttributedSpan): Span {
     const spans = attrP.spans.reduce((res, curr, idx) => {
-        const optimized = optimizeParagraph(curr);
+        const optimized = optimizeSpan(curr);
         if (res.length > 0) {
             const prev = res[res.length - 1];
-            let toReplace: Paragraph | undefined;
+            let toReplace: Span | undefined;
             if (isSimple(prev)) {
                 if (isSimple(optimized)) {
                     toReplace = prev + optimized;
@@ -59,7 +67,7 @@ function optimizeAttributed(attrP: AttributedParagraph): Paragraph {
             res[0] = optimized;
         }
         return res;
-    }, [] as Paragraph[]);
+    }, [] as Span[]);
 
     const hasAttrs = attrP.attrs && attrP.attrs.length > 0;
     if (spans.length === 1 && !hasAttrs) {

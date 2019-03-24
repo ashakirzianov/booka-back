@@ -1,8 +1,11 @@
-import { translate, string2tree, XmlNodeDocument, headParser, Parser, choice, seq, some, messageToString } from '../xml';
+import {
+    translate, string2tree, XmlNodeDocument, headParser, Parser,
+    choice, seq, some, messageToString,
+} from '../xml';
 import { section } from './traumConverter.section';
 import { filterUndefined } from '../utils';
 import { Section, Epub } from './epubParser';
-import { BookContent, BookNode, Chapter, Paragraph } from '../contracts';
+import { BookContent, BookNode, ChapterNode, ParagraphNode } from '../contracts';
 import { logString } from '../logger';
 
 type Header = {
@@ -13,7 +16,7 @@ type Header = {
 
 type ParagraphElement = {
     element: 'paragraph',
-    paragraph: Paragraph,
+    paragraph: ParagraphNode,
 };
 
 type TitlePage = {
@@ -87,7 +90,7 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
                 level: level,
                 title: h.title,
                 nodes: c,
-            } as Chapter),
+            } as ChapterNode),
         ),
         contentE,
     );

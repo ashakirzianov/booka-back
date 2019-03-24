@@ -1,20 +1,23 @@
 export type AttributeName = 'italic' | 'poem';
-export type SimpleParagraph = string;
-export type AttributedParagraph = {
-    node: 'paragraph',
-    spans: Paragraph[],
+export type SimpleSpan = string;
+export type AttributedSpan = {
+    spans: Span[],
     attrs?: AttributeName[],
 };
-export type Paragraph = SimpleParagraph | AttributedParagraph;
+export type Span = SimpleSpan | AttributedSpan;
 
-export type Chapter = {
+export type ParagraphNode = {
+    node: 'paragraph',
+    spans: Span[],
+};
+export type ChapterNode = {
     node: 'chapter',
     level: number,
     title?: string,
     nodes: BookNode[],
 };
 
-export type BookNode = Chapter | Paragraph;
+export type BookNode = ChapterNode | ParagraphNode;
 
 export type BookMeta = {
     title: string,
@@ -28,25 +31,20 @@ export type BookContent = {
 
 // Helpers:
 
-export function isSimple(bn: BookNode): bn is SimpleParagraph {
+export function isChapter(bn: BookNode): bn is ChapterNode {
+    return bn.node === 'chapter';
+}
+
+export function isParagraph(bn: BookNode): bn is ParagraphNode {
+    return bn.node === 'paragraph';
+}
+
+export function isSimple(bn: Span): bn is SimpleSpan {
     return typeof bn === 'string';
 }
 
-export type CompoundNode = Exclude<BookNode, SimpleParagraph>;
-export function isCompound(bn: BookNode): bn is CompoundNode {
+export function isAttributed(bn: Span): bn is AttributedSpan {
     return typeof bn === 'object';
-}
-
-export function isParagraph(bn: BookNode): bn is Paragraph {
-    return isSimple(bn) || bn.node === 'paragraph';
-}
-
-export function isAttributed(bn: BookNode): bn is AttributedParagraph {
-    return isCompound(bn) && bn.node === 'paragraph';
-}
-
-export function isChapter(bn: BookNode): bn is Chapter {
-    return (bn as any).node === 'chapter';
 }
 
 export function children(node: BookNode) {
@@ -54,23 +52,22 @@ export function children(node: BookNode) {
 }
 
 export function assign(...attributes: AttributeName[]) {
-    return (p: Paragraph): AttributedParagraph => {
+    return (p: Span): AttributedSpan => {
         return {
-            node: 'paragraph',
             spans: [p],
             attrs: attributes,
         };
     };
 }
 
-export function compoundPh(ps: Paragraph[]): Paragraph {
+export function createParagraph(ps: Span[]): ParagraphNode {
     return {
         node: 'paragraph',
         spans: ps,
     };
 }
 
-export function attrs(p: Paragraph) {
+export function attrs(p: Span) {
     const arr = isAttributed(p) && p.attrs
         ? p.attrs
         : [];

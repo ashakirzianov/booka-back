@@ -9,7 +9,7 @@ import {
     projectLast,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
-import { Paragraph, assign, compoundPh } from '../contracts';
+import { Span, assign, createParagraph } from '../contracts';
 
 // ---- Title page
 
@@ -82,10 +82,10 @@ const headerElement = translate(
 
 // ---- Paragraph
 
-const paragraph = declare<XmlNode[], Paragraph>();
+const span = declare<XmlNode[], Span>();
 const plainText = textNode();
 const emphasis = translate(
-    nameChildren('em', paragraph),
+    nameChildren('em', span),
     assign('italic'),
 );
 const footnote = translate(name('a'), () => ''); // TODO: implement links
@@ -94,7 +94,7 @@ const pClasses = [undefined, 'empty-line', 'drop', 'v'];
 const pParagraph = projectLast(and(
     name(['p', 'span']),
     expected(attrs({ class: pClasses })),
-    children(paragraph),
+    children(span),
 ));
 
 const isDecoration = oneOf('poem');
@@ -107,7 +107,7 @@ const divParagraph = translate(
     and(
         name('div'),
         expected(attrs({ class: knownClassAttrs })),
-        children(paragraph),
+        children(span),
     ),
     ([{ attributes }, _, p]) =>
         isDecoration(attributes.class)
@@ -120,14 +120,14 @@ const pOptions = choice(
 );
 
 // TODO: report unexpected spans ?
-paragraph.implementation = translate(
+span.implementation = translate(
     some(pOptions),
-    compoundPh
+    createParagraph
 );
 
-const paragraphElement = translate(paragraph, p => ({
+const paragraphElement = translate(span, s => ({
     element: 'paragraph' as 'paragraph',
-    paragraph: p,
+    paragraph: createParagraph([s]),
 }));
 
 // ---- Normal page
