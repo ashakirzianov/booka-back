@@ -2,9 +2,9 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import { buffer2book } from './epub';
-import { countBooks, insertBook, removeAllBooks } from './db';
-import { logTimeAsync, logString } from './logger';
+import { buffer2book } from '../epub';
+import { countBooks, insertBook, removeAllBooks } from '../db';
+import { logTimeAsync, logString } from '../logger';
 import { optimizeBook } from './optimizeBook';
 
 const epubLocation = 'public/epub/';
