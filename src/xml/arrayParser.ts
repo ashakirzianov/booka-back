@@ -5,7 +5,7 @@ import { Predicate, andPred } from './predicate';
 
 export type ArrayParser<TIn, TOut = TIn> = Parser<TIn[], TOut>;
 
-export function buildHead<TIn>() {
+export function headParser<TIn>() {
     return <TOut>(f: (n: TIn) => TOut | null) => (input: TIn[]) => {
         const head = input[0];
         if (head === undefined) {
@@ -40,7 +40,7 @@ export function skipTo<TI, TO>(parser: ArrayParser<TI, TO>): ArrayParser<TI, TO>
     ));
 }
 
-export const anyItem = buildHead()(x => x);
+export const anyItem = headParser()(x => x);
 
 export function predicate<TI, TO>(pred: Predicate<TI, TO>): ArrayParser<TI, TO> {
     return (input: TI[]) => {

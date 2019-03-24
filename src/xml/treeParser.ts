@@ -3,11 +3,11 @@ import { caseInsensitiveEq, isWhitespaces } from '../utils';
 import {
     Result, success, fail, seq, some, translate,
 } from './parserCombinators';
-import { ArrayParser, buildHead, not } from './arrayParser';
+import { ArrayParser, headParser, not } from './arrayParser';
 
 export type XmlParser<TOut = XmlNode> = ArrayParser<XmlNode, TOut>;
 
-export const headNode = buildHead<XmlNode>();
+export const headNode = headParser<XmlNode>();
 export function nameEq(n1: string, n2: string): boolean {
     return caseInsensitiveEq(n1, n2);
 }
