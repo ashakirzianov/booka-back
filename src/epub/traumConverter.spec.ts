@@ -1,7 +1,7 @@
 import { string2tree, XmlParser } from '../xml';
 import { toTest } from './traumConverter.section';
 import { expectSuccess } from '../testUtils';
-import { Span, ParagraphNode } from '../contracts';
+import { ParagraphNode } from '../contracts';
 
 const {
     normalPage, titlePage, section,

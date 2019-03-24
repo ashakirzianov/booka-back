@@ -93,12 +93,14 @@ const footnote = translate(name('a'), () => ''); // TODO: implement links
 
 const pClasses = [undefined, 'empty-line', 'drop', 'v'];
 const pParagraph = translate(
-    projectLast(and(
+    and(
         name(['p', 'span']),
         expected(attrs({ class: pClasses })),
         children(some(span))
-    )),
-    compoundSpan,
+    ),
+    ([el, _, spans]) => el.name === 'p'
+        ? assign('line')(spans)
+        : compoundSpan(spans),
 );
 
 const isDecoration = oneOf('poem');
