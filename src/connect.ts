@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { buffer2book } from './epub';
 import { countBooks, insertBook, removeAllBooks } from './db';
-import { logTimeAsync, logTime, logString } from './logger';
+import { logTimeAsync, logString } from './logger';
 import { optimizeBook } from './optimizeBook';
 
 const epubLocation = 'public/epub/';
@@ -16,7 +16,7 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
-    await removeAllBooks();
+    // await removeAllBooks();
     const bookCount = await countBooks();
 
     if (bookCount === 0) {
