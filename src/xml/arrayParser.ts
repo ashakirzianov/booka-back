@@ -19,6 +19,12 @@ export function headParser<TIn>() {
     };
 }
 
+export function end<T = any>(): ArrayParser<T, undefined> {
+    return input => input.length === 0
+        ? success(undefined, input)
+        : fail(`Expected end of input, got: '${input}`);
+}
+
 export function not<T>(parser: ArrayParser<T, any>): ArrayParser<T, T> {
     return input => {
         const head = input[0];

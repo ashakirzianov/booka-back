@@ -7,6 +7,7 @@ import {
     nameAttrs,
     nameAttrsChildren,
     projectLast,
+    end,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
 import { Span, assign, createParagraph } from '../contracts';
@@ -150,7 +151,7 @@ const ignore = choice(noteAnchor, br, noteSection, skipOneNode);
 
 const normalContent = some(
     whitespaced(
-        choice(paragraphElement, headerElement, ignore)
+        choice(paragraphElement, headerElement, end(), ignore)
     )
 );
 
