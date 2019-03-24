@@ -39,12 +39,12 @@ export function isParagraph(bn: BookNode): bn is ParagraphNode {
     return bn.node === 'paragraph';
 }
 
-export function isSimple(bn: Span): bn is SimpleSpan {
-    return typeof bn === 'string';
+export function isSimple(span: Span): span is SimpleSpan {
+    return typeof span === 'string';
 }
 
-export function isAttributed(bn: Span): bn is AttributedSpan {
-    return typeof bn === 'object';
+export function isAttributed(span: Span): span is AttributedSpan {
+    return typeof span === 'object';
 }
 
 export function children(node: BookNode) {
@@ -52,12 +52,16 @@ export function children(node: BookNode) {
 }
 
 export function assign(...attributes: AttributeName[]) {
-    return (p: Span[]): AttributedSpan => {
+    return (spans: Span[]): AttributedSpan => {
         return {
-            spans: p,
+            spans: spans,
             attrs: attributes,
         };
     };
+}
+
+export function compoundSpan(spans: Span[]): Span {
+    return { spans };
 }
 
 export function createParagraph(span: Span): ParagraphNode {
@@ -67,9 +71,9 @@ export function createParagraph(span: Span): ParagraphNode {
     };
 }
 
-export function attrs(p: Span) {
-    const arr = isAttributed(p) && p.attrs
-        ? p.attrs
+export function attrs(span: Span) {
+    const arr = isAttributed(span) && span.attrs
+        ? span.attrs
         : [];
 
     return attrObject(arr);
@@ -82,4 +86,12 @@ function attrObject(attributes: AttributeName[]): AttributesObject {
     return attributes
         .reduce((as, a) =>
             ({ ...as, [a]: true }), {} as AttributesObject);
+}
+
+export function contentToString(content: BookContent) {
+    return JSON.stringify(content);
+}
+
+export function nodeToString(bn: BookNode) {
+    return JSON.stringify(bn);
 }

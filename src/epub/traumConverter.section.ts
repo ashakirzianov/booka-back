@@ -10,7 +10,7 @@ import {
     end,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
-import { Span, assign, createParagraph } from '../contracts';
+import { Span, assign, createParagraph, compoundSpan } from '../contracts';
 
 // ---- Title page
 
@@ -92,11 +92,14 @@ const emphasis = translate(
 const footnote = translate(name('a'), () => ''); // TODO: implement links
 
 const pClasses = [undefined, 'empty-line', 'drop', 'v'];
-const pParagraph = projectLast(and(
-    name(['p', 'span']),
-    expected(attrs({ class: pClasses })),
-    children(span),
-));
+const pParagraph = translate(
+    projectLast(and(
+        name(['p', 'span']),
+        expected(attrs({ class: pClasses })),
+        children(some(span))
+    )),
+    compoundSpan,
+);
 
 const isDecoration = oneOf('poem');
 // TODO: handle all of this classes separately
@@ -113,7 +116,7 @@ const divParagraph = translate(
     ([{ attributes }, _, p]) =>
         isDecoration(attributes.class)
             ? assign(attributes.class)(p)
-            : assign()(p)
+            : compoundSpan(p)
 );
 
 const pOptions = choice(
@@ -123,9 +126,11 @@ const pOptions = choice(
 // TODO: report unexpected spans ?
 span.implementation = pOptions;
 
-const paragraphElement = translate(span, s => ({
+const paragraph = translate(span, createParagraph);
+
+const paragraphElement = translate(paragraph, p => ({
     element: 'paragraph' as 'paragraph',
-    paragraph: createParagraph(s),
+    paragraph: p,
 }));
 
 // ---- Normal page
@@ -185,5 +190,5 @@ export const section = choice(
 
 export const toTest = {
     normalPage, titlePage, section,
-    paragraph: pParagraph, separator: headerElement, separatorHeader: headerContent,
+    paragraph, headerElement,
 };
