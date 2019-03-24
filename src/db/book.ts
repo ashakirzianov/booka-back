@@ -1,5 +1,6 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
+import { transliterate } from '../misc';
 
 const schema = {
     author: {
@@ -7,6 +8,11 @@ const schema = {
         index: true,
     },
     title: {
+        type: String,
+        index: true,
+        required: true,
+    },
+    bookId: {
         type: String,
         index: true,
         required: true,
@@ -40,4 +46,32 @@ export async function metas(): Promise<Book[]> {
 
 export async function removeAll() {
     await BookCollection.deleteMany({});
+}
+
+async function isBookExists(bookId: string): Promise<boolean> {
+    const book = await BookCollection.findOne({ bookId });
+    return book !== null;
+}
+
+async function generateBookId(title: string, author?: string): Promise<string> {
+    for (const bookId of bookIdCandidate(title, author)) {
+        if (!await isBookExists(bookId)) {
+            return bookId;
+        }
+    }
+
+    throw new Error('Could not generate book id');
+}
+
+function* bookIdCandidate(title: string, author?: string) {
+    let candidate = transliterate(title);
+    yield candidate;
+    if (author) {
+        candidate = candidate + '-' + author;
+        yield candidate;
+    }
+
+    for (let i = 0; true; i++) {
+        yield candidate + '-' + i.toString();
+    }
 }
