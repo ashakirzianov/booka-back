@@ -29,7 +29,7 @@ const BookSchema = new Schema(schema, { timestamps: true });
 const BookCollection: Model<BookDocument> = model<BookDocument>('Book', BookSchema);
 
 export async function byId(id: string): Promise<Book | null> {
-    return BookCollection.findOne({ _id: id }).exec();
+    return BookCollection.findOne({ bookId: id }).exec();
 }
 
 export async function insert(book: Book) {
@@ -41,7 +41,7 @@ export async function count(): Promise<number> {
 }
 
 export async function metas(): Promise<Book[]> {
-    return BookCollection.find({}, ['title', 'author']).exec();
+    return BookCollection.find({}, ['title', 'author', 'bookId']).exec();
 }
 
 export async function removeAll() {
@@ -53,7 +53,7 @@ async function isBookExists(bookId: string): Promise<boolean> {
     return book !== null;
 }
 
-async function generateBookId(title: string, author?: string): Promise<string> {
+export async function generateBookId(title: string, author?: string): Promise<string> {
     for (const bookId of bookIdCandidate(title, author)) {
         if (!await isBookExists(bookId)) {
             return bookId;

@@ -1,5 +1,6 @@
 import * as Contracts from '../contracts';
 import * as bookDb from './book';
+import { logString } from '../logger';
 
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;
@@ -15,11 +16,15 @@ export async function bookById(id: string): Promise<Contracts.BookContent> {
 }
 
 export async function insertBook(book: Contracts.BookContent) {
+    const bookId = await bookDb.generateBookId(book.meta.title, book.meta.author);
     const bookDocument: bookDb.Book = {
         title: book.meta.title,
         author: book.meta.author,
         raw: JSON.stringify(book),
+        bookId: bookId,
     };
+
+    logString('Insert book for id: ' + bookId);
     bookDb.insert(bookDocument);
 }
 
@@ -27,7 +32,7 @@ export async function library(): Promise<Contracts.Library> {
     const books = await bookDb.metas();
     const result: Contracts.Library = books.reduce((lib, book) => ({
         ...lib,
-        [book._id as string]: {
+        [book.bookId]: {
             author: book.author,
             title: book.title,
         },
