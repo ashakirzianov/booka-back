@@ -30,6 +30,16 @@ function optimizeNode(node: BookNode): BookNode {
 
 function optimizeParagraph(p: ParagraphNode): BookNode {
     const optimized = optimizeSpan(p.span);
+
+    // Handle case of single string attributed with 'line'
+    // (this is same as just a string paragraph)
+    if (isAttributed(optimized)) {
+        if (optimized.spans.length === 1) {
+            if (!optimized.attrs || (optimized.attrs.length === 1 && optimized.attrs[0] === 'line')) {
+                return createParagraph(optimized.spans[0]);
+            }
+        }
+    }
     return createParagraph(optimized);
 }
 
