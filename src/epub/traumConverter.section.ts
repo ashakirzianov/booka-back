@@ -103,6 +103,17 @@ const emphasis = translate(
     nameChildren('em', some(span)),
     assign('italic'),
 );
+
+function extractId(href: string | undefined): string {
+    if (href) {
+        const hashIndex = href.indexOf('#');
+        if (hashIndex >= 0) {
+            return href.substring(hashIndex + 1);
+        }
+    }
+
+    return '';
+}
 const footnote = translate(
     and(
         name('a'),
@@ -112,9 +123,9 @@ const footnote = translate(
     ([el, _, text]) => ({
         span: 'note' as 'note',
         text: text,
-        id: el.attributes.id || '',
+        id: extractId(el.attributes.href),
     })
-); // TODO: implement links
+);
 
 const pClasses = [undefined, 'empty-line', 'drop', 'v'];
 const pParagraph = translate(
@@ -208,7 +219,7 @@ const noteTitle = projectLast(and(
 
 const noteContent = translate(
     and(
-        maybe(noteTitle),
+        expected(whitespaced(noteTitle)),
         some(choice(noteAnchor, paragraph))
     ),
     ([title, nodes]) => ({
