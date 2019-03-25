@@ -48,6 +48,7 @@ export function buildBook(epub: Epub): BookContent {
             author: titlePage && titlePage.author || epub.info.author,
         },
         nodes: content,
+        footnotes: [],
     };
 }
 

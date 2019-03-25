@@ -21,6 +21,7 @@ function defaultEpubConverter(epub: Epub): Promise<BookContent> {
             author: epub.info.author,
         },
         nodes: convertSections(epub.sections),
+        footnotes: [],
     });
 }
 

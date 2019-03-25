@@ -94,20 +94,22 @@ describe('Example parsing', () => {
         const expectedNode: ParagraphNode = {
             node: 'paragraph',
             span: {
+                span: 'attrs',
                 spans: [
                     {
+                        span: 'attrs',
                         spans: ['Italics'],
                         attrs: ['italic'],
                     },
                     ' Normal ',
-                    { spans: ['Italics again'], attrs: ['italic'] },
+                    { span: 'attrs', spans: ['Italics again'], attrs: ['italic'] },
                 ],
                 attrs: ['line'],
             },
         };
         if (expectSuccess(result)) {
-            expect(JSON.stringify(result.value, undefined, 2))
-                .toEqual(JSON.stringify(expectedNode, undefined, 2));
+            expect(result.value)
+                .toEqual(expectedNode);
         }
     });
 });
