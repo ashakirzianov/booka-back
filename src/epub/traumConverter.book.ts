@@ -42,6 +42,11 @@ type Element =
     | IgnoreElement
     ;
 
+type SectionResult = {
+    element: Element,
+    sectionId: string,
+};
+
 export function buildBook(epub: Epub): BookContent {
     const structures = epub.sections
         .map(section2elements)
@@ -64,12 +69,16 @@ export function buildBook(epub: Epub): BookContent {
     };
 }
 
-function section2elements(sec: Section): Element[] {
+function section2elements(sec: Section): SectionResult[] {
     const tree = string2tree(sec.htmlString);
     if (!tree) {
         return []; // TODO: report parsing problems
     }
-    const structures = tree2elements(tree);
+    const structures = tree2elements(tree)
+        .map(e => ({
+            element: e,
+            sectionId: sec.id,
+        }));
     return structures;
 }
 
@@ -85,8 +94,11 @@ function tree2elements(tree: XmlNodeDocument): Element[] {
     return result.success ? result.value : [];
 }
 
-function buildTitle(structures: Element[]): TitleElement | undefined {
-    return structures.find(s => s.element === 'title') as TitleElement;
+function buildTitle(structures: SectionResult[]): TitleElement | undefined {
+    const titleResult = structures.find(s => s.element.element === 'title');
+    return titleResult && titleResult.element.element === 'title'
+        ? titleResult.element
+        : undefined;
 }
 
 const headElement = headParser<Element>();
@@ -129,14 +141,18 @@ const book = translate(
     nodes => filterUndefined(nodes),
 );
 
-function buildContent(structures: Element[]): BookNode[] {
-    const result = book(structures);
+function buildContent(structures: SectionResult[]): BookNode[] {
+    const result = book(structures.map(s => s.element));
     return result.value;
 }
 
-function buildFootnotes(structures: Element[]): Footnote[] {
-    return structures
-        .filter((e): e is FootnoteElement => e.element === 'footnote')
-        .map(e => e.footnote)
-        ;
+function buildFootnotes(structures: SectionResult[]): Footnote[] {
+    return filterUndefined(
+        structures
+            .map(sr =>
+                sr.element.element === 'footnote' ? {
+                    ...sr.element.footnote,
+                    id: sr.sectionId + '#' + sr.element.footnote.id,
+                } : undefined)
+    );
 }
