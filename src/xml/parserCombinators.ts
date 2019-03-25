@@ -1,4 +1,5 @@
 export type Parser<TIn, TOut> = (input: TIn) => Result<TIn, TOut>;
+export type SuccessParser<TIn, TOut> = (input: TIn) => Success<TIn, TOut>;
 export type Success<In, Out> = {
     value: Out,
     next: In,
@@ -138,7 +139,7 @@ export function projectFirst<TI>(parser: Parser<TI, any[]>): Parser<TI, any> {
     return translate(parser, result => result[0]);
 }
 
-export function some<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
+export function some<TI, T>(parser: Parser<TI, T>): SuccessParser<TI, T[]> {
     return input => {
         const results: T[] = [];
         const messages: Message[] = [];
@@ -158,7 +159,7 @@ export function some<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
     };
 }
 
-export function maybe<TIn, TOut>(parser: Parser<TIn, TOut>): Parser<TIn, TOut | undefined> {
+export function maybe<TIn, TOut>(parser: Parser<TIn, TOut>): SuccessParser<TIn, TOut | undefined> {
     return input => {
         const result = parser(input);
         return result.success
@@ -169,17 +170,31 @@ export function maybe<TIn, TOut>(parser: Parser<TIn, TOut>): Parser<TIn, TOut | 
 
 // TODO: implement proper reason reporting
 export function oneOrMore<TI, T>(parser: Parser<TI, T>): Parser<TI, T[]> {
-    return translate(some(parser), nodes => nodes.length > 0 ? nodes : null);
+    return guard(some(parser), nodes => nodes.length > 0);
 }
 
-export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From) => To | null): Parser<TI, To> {
+export function guard<TI, TO>(parser: Parser<TI, TO>, f: (x: TO) => boolean): Parser<TI, TO> {
+    return input => {
+        const result = parser(input);
+        if (result.success) {
+            const guarded = f(result.value);
+            return guarded
+                ? result
+                : fail('guard: failed');
+        } else {
+            return result;
+        }
+    };
+}
+
+export function translate<TI, From, To>(parser: SuccessParser<TI, From>, f: (from: From) => To): SuccessParser<TI, To>;
+export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From) => To | null): Parser<TI, To>;
+export function translate<TI, From, To>(parser: Parser<TI, From>, f: (from: From) => To): Parser<TI, To> {
     return input => {
         const from = parser(input);
         if (from.success) {
             const translated = f(from.value);
-            return translated === null
-                ? fail('translate: result rejected by transform function')
-                : success(translated, from.next, from.message);
+            return success(translated, from.next, from.message);
         } else {
             return from;
         }
@@ -233,7 +248,7 @@ function getMessage<TOut>(result: Result<any, TOut>, mOrF: MessageOrFn<TOut>) {
         : mOrF;
 }
 
-export function expected<TI, TO>(parser: Parser<TI, TO>): Parser<TI, TO | undefined> {
+export function expected<TI, TO>(parser: Parser<TI, TO>): SuccessParser<TI, TO | undefined> {
     return input => {
         const result = parser(input);
         return result.success

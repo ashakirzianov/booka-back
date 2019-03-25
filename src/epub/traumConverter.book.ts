@@ -131,10 +131,7 @@ const book = translate(
 
 function buildContent(structures: Element[]): BookNode[] {
     const result = book(structures);
-    return result.success ?
-        result.value
-        : [] // TODO: report parsing problems
-        ;
+    return result.value;
 }
 
 function buildFootnotes(structures: Element[]): Footnote[] {
