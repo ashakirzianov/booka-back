@@ -48,30 +48,28 @@ const titleContent = translate(whitespaced(
         }
 );
 
-const titlePage = translate(path(['html', 'body', 'div'],
+const titlePage = translate(
     and(
         attrs({ class: undefined }),
         children(titleContent)
-    )),
+    ),
     ([_, ch]) => [ch],
 );
 
 // ---- Ignored pages
 
-const ignoredPage = translate(path(['html', 'body', 'div'],
+const ignorePage = translate(
     attrs({
         id: () => true,
         class: [
             undefined, 'fb2_info', 'about',
             'coverpage', 'titlepage', 'annotation',
         ],
-    })),
-    () => [{
-        element: 'ignore' as 'ignore',
-    }],
+    }),
+    () => [{ element: 'ignore' as 'ignore' }],
 );
 
-// ---- Separator parser
+// ---- Chapter page
 
 const headerContent = and(
     headerTag,
@@ -90,8 +88,6 @@ const headerElement = translate(
         level: 4 - level, // h4 is a chapter level header
     }),
 );
-
-// ---- Paragraph
 
 const span = declare<XmlNode[], Span>();
 const plainText = textNode();
@@ -164,26 +160,27 @@ const paragraphElement = translate(paragraph, p => ({
     paragraph: p,
 }));
 
-// ---- Normal page
+const br = name('br');
 
-const br = translate(name('br'), () => undefined);
+const ignoreElement = translate(
+    choice(br),
+    () => ({ element: 'ignore' as 'ignore' })
+);
 
-const ignore = choice(br, skipOneNode);
-
-const normalContent = some(
+const chapterContent = some(
     whitespaced(
-        choice(headerElement, paragraphElement, end(), ignore)
+        choice(headerElement, paragraphElement, ignoreElement, end())
     )
 );
 
-const normalPage = translate(path(['html', 'body', 'div'],
+const chapterPage = translate(
     and(
         attrs({
             class: s => s ? s.startsWith('section') : false,
             id: () => true,
         }),
-        children(normalContent),
-    )),
+        children(chapterContent),
+    ),
     ([_, c]) => filterUndefined(c),
 );
 
@@ -213,14 +210,14 @@ const noteContent = translate(
     })
 );
 
-const notePage = translate(path(['html', 'body', 'div'],
+const notePage = translate(
     and(
         attrs({
             class: 'section2',
             id: true,
         }),
         children(noteContent),
-    )),
+    ),
     ([div, c]) => ([{
         element: 'footnote' as 'footnote',
         footnote: {
@@ -233,22 +230,24 @@ const notePage = translate(path(['html', 'body', 'div'],
 
 // ---- Section parser
 
+const topDiv = choice(
+    notePage, chapterPage, titlePage, ignorePage,
+);
+const page = path(['html', 'body', 'div'], topDiv);
+
 const unexpectedSection = translate(
     unexpected<XmlNode[]>(ns =>
         `Unexpected section: ${ns.map(nodeToString).join(' ')}`),
     () => [{ element: 'ignore' as 'ignore' }],
 );
 export const section = choice(
-    notePage,
-    normalPage,
-    titlePage,
-    ignoredPage,
+    page,
     unexpectedSection,
 );
 
 // Test exports
 
 export const toTest = {
-    normalPage, titlePage, section,
+    normalPage: chapterPage, titlePage: titlePage, section,
     paragraph, headerElement,
 };
