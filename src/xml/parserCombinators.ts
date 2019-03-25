@@ -110,6 +110,10 @@ export function choice<TI, T1, T2, T3>(p1: Parser<TI, T1>, p2: Parser<TI, T2>, p
 export function choice<TI, T1, T2, T3, T4>(
     p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>, p4: Parser<TI, T4>
 ): Parser<TI, T1 | T2 | T3 | T4>;
+export function choice<TI, T1, T2, T3, T4, T5>(
+    p1: Parser<TI, T1>, p2: Parser<TI, T2>, p3: Parser<TI, T3>,
+    p4: Parser<TI, T4>, p5: Parser<TI, T5>,
+): Parser<TI, T1 | T2 | T3 | T4 | T5>;
 export function choice<TI, TS>(...ps: Array<Parser<TI, TS>>): Parser<TI, TS>;
 export function choice<TI>(...ps: Array<Parser<TI, any>>): Parser<TI, any> {
     return input => {

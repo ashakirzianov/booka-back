@@ -11,7 +11,7 @@ export type FootnoteSpan = {
     text?: string,
     id: FootnoteId,
 };
-export type Span = SimpleSpan | AttributedSpan;
+export type Span = SimpleSpan | AttributedSpan | FootnoteSpan;
 
 export type ParagraphNode = {
     node: 'paragraph',
@@ -29,7 +29,7 @@ export type BookNode = ChapterNode | ParagraphNode;
 export type Footnote = {
     id: FootnoteId,
     title?: string,
-    content: BookNode[],
+    content: ParagraphNode[],
 };
 
 export type BookMeta = {
@@ -57,8 +57,12 @@ export function isSimple(span: Span): span is SimpleSpan {
     return typeof span === 'string';
 }
 
+export function isFootnote(span: Span): span is FootnoteSpan {
+    return typeof span === 'object' && span.span === 'note';
+}
+
 export function isAttributed(span: Span): span is AttributedSpan {
-    return typeof span === 'object';
+    return typeof span === 'object' && span.span === 'attrs';
 }
 
 export function children(node: BookNode) {

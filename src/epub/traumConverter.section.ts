@@ -5,16 +5,31 @@ import {
     nameChildren, name, expected, unexpected,
     attrs,
     nameAttrs,
-    nameAttrsChildren,
     projectLast,
     end,
+    maybe,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
 import { Span, assign, createParagraph, compoundSpan } from '../contracts';
 
+// ---- Common
+
+const headerTag = elementNode(n => {
+    const tag = n.name;
+    if (tag.startsWith('h')) {
+        const levelString = tag.substr(1);
+        const level = Number(levelString);
+        return isNaN(level) ? null : level;
+    } else {
+        return null;
+    }
+});
+
+const h2 = nameChildren('h2', textNode());
+
 // ---- Title page
 
-const titleLine = whitespaced(nameChildren('h2', textNode()));
+const titleLine = whitespaced(h2);
 const titleContent = translate(whitespaced(
     and(
         name('div'),
@@ -58,17 +73,8 @@ const ignoredPage = translate(path(['html', 'body', 'div'],
 
 // ---- Separator parser
 
-function headerToLevel(tag: string): number | null {
-    if (tag.startsWith('h')) {
-        const levelString = tag.substr(1);
-        const level = Number(levelString);
-        return isNaN(level) ? null : level;
-    }
-    return null;
-}
-
 const headerContent = and(
-    elementNode(el => headerToLevel(el.name)),
+    headerTag,
     children(textNode()),
 );
 
@@ -97,7 +103,18 @@ const emphasis = translate(
     nameChildren('em', some(span)),
     assign('italic'),
 );
-const footnote = translate(name('a'), () => ''); // TODO: implement links
+const footnote = translate(
+    and(
+        name('a'),
+        attrs({ href: true, id: () => true }),
+        children(textNode()),
+    ),
+    ([el, _, text]) => ({
+        span: 'note' as 'note',
+        text: text,
+        id: el.attributes.id || '',
+    })
+); // TODO: implement links
 
 const pClasses = [undefined, 'empty-line', 'drop', 'v'];
 const pParagraph = translate(
@@ -149,20 +166,13 @@ const skipOneNode = unexpected<XmlNode[]>(n =>
     `Unexpected node: ${(n[0] && nodeToString(n[0]))}`
 );
 
-const noteAnchor = translate(
-    and(
-        name('a'), attrs({ class: 'note_anchor' })
-    ),
-    () => undefined,
-); // TODO: expect it when implement footnote parsing
-
 const br = translate(name('br'), () => undefined);
 
 const noteSection = translate(
     nameAttrs('div', { class: 'note_section' }),
     () => undefined
 );
-const ignore = choice(noteAnchor, br, noteSection, skipOneNode);
+const ignore = choice(br, noteSection, skipOneNode);
 
 const normalContent = some(
     whitespaced(
@@ -170,16 +180,59 @@ const normalContent = some(
     )
 );
 
-const normalPage = path(['html', 'body', 'div'], translate(
+const normalPage = translate(path(['html', 'body', 'div'],
     and(
         attrs({
             class: s => s ? s.startsWith('section') : false,
             id: () => true,
         }),
         children(normalContent),
-    ),
+    )),
     ([_, c]) => filterUndefined(c),
-),
+);
+
+// Note page
+
+const noteAnchor = translate(
+    and(
+        name('a'), attrs({ class: 'note_anchor' })
+    ),
+    () => undefined,
+);
+
+const noteTitle = projectLast(and(
+    name('div'),
+    attrs({ class: 'note_section' }),
+    children(whitespaced(h2)),
+));
+
+const noteContent = translate(
+    and(
+        maybe(noteTitle),
+        some(choice(noteAnchor, paragraph))
+    ),
+    ([title, nodes]) => ({
+        title,
+        nodes: filterUndefined(nodes),
+    })
+);
+
+const notePage = translate(path(['html', 'body', 'div'],
+    and(
+        attrs({
+            class: 'section2',
+            id: true,
+        }),
+        children(noteContent),
+    )),
+    ([div, c]) => ([{
+        element: 'footnote' as 'footnote',
+        footnote: {
+            id: div.attributes.id || '',
+            title: c.title,
+            content: c.nodes,
+        },
+    }]),
 );
 
 // ---- Section parser
@@ -190,6 +243,7 @@ const unexpectedSection = translate(
     () => [{ element: 'ignore' as 'ignore' }],
 );
 export const section = choice(
+    notePage,
     normalPage,
     titlePage,
     ignoredPage,
