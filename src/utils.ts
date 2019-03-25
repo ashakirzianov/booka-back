@@ -6,6 +6,15 @@ export function caseInsensitiveEq(left: string, right: string) {
     return left.localeCompare(right, undefined, { sensitivity: 'base' }) === 0;
 }
 
+export type TypeGuard<T, U extends T> = (x: T) => x is U;
+export function typeGuard<T, U extends T>(f: (x: T) => boolean): TypeGuard<T, U> {
+    return f as TypeGuard<T, U>;
+}
+
+export function filterType<T, U extends T>(arr: T[], tg: TypeGuard<T, U>): U[] {
+    return arr.filter(tg);
+}
+
 export function filterUndefined<T>(arr: Array<T | undefined>): T[] {
     return arr.filter(e => e !== undefined) as T[];
 }

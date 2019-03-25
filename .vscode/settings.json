@@ -21,6 +21,7 @@
         "backend",
         "coverpage",
         "epub",
+        "pphs",
         "preds",
         "promisify",
         "rgrove",

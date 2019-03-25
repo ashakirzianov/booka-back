@@ -1,14 +1,23 @@
 import {
     BookContent, BookNode, isChapter, isSimple, isAttributed,
-    AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph,
+    AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph, isFootnote,
 } from '../contracts';
 import { assertNever } from '../utils';
+import { logString } from '../logger';
 
 export function optimizeBook(book: BookContent): BookContent {
-    return {
+    const optimized = {
         ...book,
         nodes: optimizeNodes(book.nodes),
     };
+
+    const before = JSON.stringify(book).length;
+    const after = JSON.stringify(optimized).length;
+    const won = Math.floor((before - after) / before * 100);
+    const length = Math.floor(after / 1000);
+    logString(`Optimized by ${won}%, length: ${length}kCh`);
+
+    return optimized;
 }
 
 function optimizeNodes(nodes: BookNode[]) {
@@ -44,7 +53,7 @@ function optimizeParagraph(p: ParagraphNode): BookNode {
 }
 
 function optimizeSpan(p: Span): Span {
-    return isSimple(p)
+    return isSimple(p) || isFootnote(p)
         ? p
         : optimizeAttributed(p);
 }
@@ -59,7 +68,7 @@ function optimizeAttributed(attrP: AttributedSpan): Span {
                 if (isSimple(optimized)) {
                     toReplace = prev + optimized;
                 }
-            } else {
+            } else if (isAttributed(prev)) {
                 if (isAttributed(optimized) && sameAttrs(prev.attrs, optimized.attrs)) {
                     toReplace = {
                         ...prev,

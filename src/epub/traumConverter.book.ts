@@ -3,12 +3,12 @@ import {
     choice, seq, some, messageToString,
 } from '../xml';
 import { section } from './traumConverter.section';
-import { filterUndefined } from '../utils';
+import { filterUndefined, equalsToOneOf } from '../utils';
 import { Section, Epub } from './epubParser';
-import { BookContent, BookNode, ChapterNode, ParagraphNode } from '../contracts';
+import { BookContent, BookNode, ChapterNode, ParagraphNode, Footnote } from '../contracts';
 import { logString } from '../logger';
 
-type Header = {
+type HeaderElement = {
     element: 'header',
     title: string,
     level: number,
@@ -19,17 +19,28 @@ type ParagraphElement = {
     paragraph: ParagraphNode,
 };
 
-type TitlePage = {
+type TitleElement = {
     element: 'title',
     author?: string,
     title?: string,
 };
 
-type Ignore = {
+type FootnoteElement = {
+    element: 'footnote',
+    footnote: Footnote,
+};
+
+type IgnoreElement = {
     element: 'ignore',
 };
 
-type Element = Header | ParagraphElement | TitlePage | Ignore;
+type Element =
+    | HeaderElement
+    | ParagraphElement
+    | TitleElement
+    | FootnoteElement
+    | IgnoreElement
+    ;
 
 export function buildBook(epub: Epub): BookContent {
     const structures = epub.sections
@@ -37,17 +48,19 @@ export function buildBook(epub: Epub): BookContent {
         .reduce((acc, arr) => acc.concat(arr), [])
         ;
 
-    const titlePage = findTitlePage(structures);
+    const title = buildTitle(structures);
     const content = buildContent(structures);
+    const footnotes = buildFootnotes(structures);
 
     // TODO: report when no title page
     return {
         meta: {
 
-            title: titlePage && titlePage.title || epub.info.title,
-            author: titlePage && titlePage.author || epub.info.author,
+            title: title && title.title || epub.info.title,
+            author: title && title.author || epub.info.author,
         },
         nodes: content,
+        footnotes: footnotes,
     };
 }
 
@@ -72,8 +85,9 @@ function tree2elements(tree: XmlNodeDocument): Element[] {
     return result.success ? result.value : [];
 }
 
-function findTitlePage(structures: Element[]): TitlePage | undefined {
-    return structures.find(s => s.element === 'title') as TitlePage;
+function buildTitle(structures: Element[]): TitleElement | undefined {
+    const titleResult = structures.find(s => s.element === 'title');
+    return titleResult as TitleElement;
 }
 
 const headElement = headParser<Element>();
@@ -110,17 +124,20 @@ const h2 = chapterParser(2, h3);
 const h1 = chapterParser(3, h2);
 
 const bookContent = h1;
-const skipOne = headElement(n => undefined); // TODO: report warnings
-const ignore = headElement(n => n.element === 'ignore' ? undefined : null);
+const skipOne = headElement(n => undefined);
 const book = translate(
-    some(choice(bookContent, ignore, skipOne)),
+    some(choice(bookContent, skipOne)),
     nodes => filterUndefined(nodes),
 );
 
 function buildContent(structures: Element[]): BookNode[] {
     const result = book(structures);
-    return result.success ?
-        result.value
-        : [] // TODO: report parsing problems
+    return result.value;
+}
+
+function buildFootnotes(structures: Element[]): Footnote[] {
+    return structures
+        .filter((e): e is FootnoteElement => e.element === 'footnote')
+        .map(e => e.footnote)
         ;
 }
