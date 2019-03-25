@@ -3,11 +3,7 @@ import {
     oneOrMore, textNode, path, and, elementNode, children,
     choice, nodeToString, XmlNode, declare,
     nameChildren, name, expected, unexpected,
-    attrs,
-    nameAttrs,
-    projectLast,
-    end,
-    maybe,
+    attrs, projectLast, end, seq,
 } from '../xml';
 import { filterUndefined, oneOf } from '../utils';
 import { Span, assign, createParagraph, compoundSpan } from '../contracts';
@@ -27,6 +23,10 @@ const headerTag = elementNode(n => {
 
 const h2 = nameChildren('h2', textNode());
 
+const skipOneNode = unexpected<XmlNode[]>(n =>
+    `Unexpected node: ${(n[0] && nodeToString(n[0]))}`
+);
+
 // ---- Title page
 
 const titleLine = whitespaced(h2);
@@ -36,7 +36,7 @@ const titleContent = translate(whitespaced(
         attrs({ class: 'title2' }),
         children(oneOrMore(titleLine))
     )),
-    ([_, __, lines]) => lines.length > 1 ? // TODO: report extra lines // TODO: move this logic up
+    ([_, __, lines]) => lines.length > 1 ? // TODO: report extra lines
         {
             element: 'title' as 'title',
             author: lines[0],
@@ -78,14 +78,10 @@ const headerContent = and(
     children(textNode()),
 );
 
-const knownHeaderClasses = [
-    'note_section', // TODO: remove after footnote support
-    'title1', 'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
-];
 const headerElement = translate(
     projectLast(and(
         name('div'),
-        expected(attrs({ class: knownHeaderClasses })),
+        expected(attrs({ class: c => c === undefined || c.startsWith('title') })),
         children(whitespaced(headerContent)),
     )),
     ([level, title]) => ({
@@ -140,10 +136,8 @@ const pParagraph = translate(
 );
 
 const isDecoration = oneOf('poem');
-// TODO: handle all of this classes separately
 const knownClassAttrs = [
-    'poem', 'stanza', 'note_section', undefined,
-    'title2', 'title3', 'title4', 'title5', 'title6', 'title7',
+    'poem', 'stanza', undefined,
 ];
 const divParagraph = translate(
     and(
@@ -161,7 +155,6 @@ const pOptions = choice(
     plainText, emphasis, footnote, pParagraph, divParagraph,
 );
 
-// TODO: report unexpected spans ?
 span.implementation = pOptions;
 
 const paragraph = translate(span, createParagraph);
@@ -173,17 +166,9 @@ const paragraphElement = translate(paragraph, p => ({
 
 // ---- Normal page
 
-const skipOneNode = unexpected<XmlNode[]>(n =>
-    `Unexpected node: ${(n[0] && nodeToString(n[0]))}`
-);
-
 const br = translate(name('br'), () => undefined);
 
-const noteSection = translate(
-    nameAttrs('div', { class: 'note_section' }),
-    () => undefined
-);
-const ignore = choice(br, noteSection, skipOneNode);
+const ignore = choice(br, skipOneNode);
 
 const normalContent = some(
     whitespaced(
@@ -218,7 +203,7 @@ const noteTitle = projectLast(and(
 ));
 
 const noteContent = translate(
-    and(
+    seq(
         expected(whitespaced(noteTitle)),
         some(choice(noteAnchor, paragraph))
     ),
