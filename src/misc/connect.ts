@@ -29,16 +29,8 @@ async function seed() {
 
     const promises = files.map(async (file) => {
         const epubFile = await readFile(epubLocation + file);
-        const book = await logTimeAsync(() => buffer2book(epubFile), `Book: ${file}`);
-        const optimized = optimizeBook(book);
-
-        const before = JSON.stringify(book).length;
-        const after = JSON.stringify(optimized).length;
-        const won = Math.floor((before - after) / before * 100);
-        const length = Math.floor(after / 1000);
-        logString(`Optimized by ${won}%, length: ${length}kCh`);
-
-        insertBook(optimized);
+        const book = await logTimeAsync(() => buffer2book(epubFile), `Parse: ${file}`);
+        await insertBook(book);
     });
 
     await Promise.all(promises);

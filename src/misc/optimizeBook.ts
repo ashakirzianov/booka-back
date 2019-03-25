@@ -3,12 +3,21 @@ import {
     AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph, isFootnote,
 } from '../contracts';
 import { assertNever } from '../utils';
+import { logString } from '../logger';
 
 export function optimizeBook(book: BookContent): BookContent {
-    return {
+    const optimized = {
         ...book,
         nodes: optimizeNodes(book.nodes),
     };
+
+    const before = JSON.stringify(book).length;
+    const after = JSON.stringify(optimized).length;
+    const won = Math.floor((before - after) / before * 100);
+    const length = Math.floor(after / 1000);
+    logString(`Optimized by ${won}%, length: ${length}kCh`);
+
+    return optimized;
 }
 
 function optimizeNodes(nodes: BookNode[]) {
