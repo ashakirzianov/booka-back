@@ -9,7 +9,6 @@
     "build": "npm run build-ts & npm run lint",
     "debug": "tsc -w & nodemon dist/index.js",
     "serve": "node dist/index.js",
-    "postinstall": "npm run build",
     "start": "npm run serve",
     "test": "jest"
   },
