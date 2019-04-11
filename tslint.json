@@ -12,12 +12,13 @@
             true,
             {
                 "multiline": {
-                    "objects": "always",
                     "arrays": "always",
-                    "functions": "ignore",
-                    "typeLiterals": "always"
-                },
-                "esSpecCompliant": true
+                    "objects": "always",
+                    "imports": "always",
+                    "exports": "always",
+                    "typeLiterals": "always",
+                    "functions": "ignore"
+                }
             }
         ],
         "interface-over-type-literal": false,
