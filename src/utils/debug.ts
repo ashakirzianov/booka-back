@@ -2,6 +2,12 @@ export function isDebug() {
     return process.env.NODE_ENV === 'development';
 }
 
+export async function debugAsync(f: () => Promise<void>) {
+    if (isDebug()) {
+        await f();
+    }
+}
+
 export function debug(f: () => void) {
     if (isDebug()) {
         f();
