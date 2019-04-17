@@ -42,3 +42,7 @@ export function oneOf<T extends string | undefined>(...opts: T[]) {
         return equalsToOneOf(x, ...opts);
     };
 }
+
+export function flatten<T>(arrArr: T[][]): T[] {
+    return arrArr.reduce((acc, arr) => acc.concat(arr));
+}

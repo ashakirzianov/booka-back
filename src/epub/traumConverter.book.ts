@@ -3,8 +3,8 @@ import {
     choice, seq, some, messageToString,
 } from '../xml';
 import { section } from './traumConverter.section';
-import { filterUndefined, equalsToOneOf } from '../utils';
-import { Section, Epub } from './epubParser';
+import { filterUndefined, flatten, log } from '../utils';
+import { EPub, getChapter } from './epubParser';
 import { BookContent, BookNode, ChapterNode, ParagraphNode, Footnote } from '../contracts';
 import { logString } from '../logger';
 
@@ -42,30 +42,39 @@ type Element =
     | IgnoreElement
     ;
 
-export function buildBook(epub: Epub): BookContent {
-    const structures = epub.sections
-        .map(section2elements)
-        .reduce((acc, arr) => acc.concat(arr), [])
-        ;
+export async function buildBook(epub: EPub): Promise<BookContent> {
+    const ids = filterUndefined(epub.flow.map(e => e.id));
+    const sections = ids.map(async id => {
+        const chapter = await getChapter(epub, id);
+        return section2elements({
+            id: id,
+            content: chapter,
+        });
+    });
+    const elements = flatten(await Promise.all(sections));
 
-    const title = buildTitle(structures);
-    const content = buildContent(structures);
-    const footnotes = buildFootnotes(structures);
+    const title = buildTitle(elements);
+    const content = buildContent(elements);
+    const footnotes = buildFootnotes(elements);
 
     // TODO: report when no title page
     return {
         meta: {
 
-            title: title && title.title || epub.info.title,
-            author: title && title.author || epub.info.author,
+            title: title && title.title || epub.metadata.title || 'no title',
+            author: title && title.author || epub.metadata.creator,
         },
         nodes: content,
         footnotes: footnotes,
     };
 }
 
+type Section = {
+    id: string,
+    content: string,
+};
 function section2elements(sec: Section): Element[] {
-    const tree = string2tree(sec.htmlString);
+    const tree = string2tree(sec.content);
     if (!tree) {
         return []; // TODO: report parsing problems
     }

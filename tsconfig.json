@@ -13,6 +13,7 @@
         "strict": true,
         "suppressImplicitAnyIndexErrors": false,
         "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true,
         "experimentalDecorators": true
     },
     "exclude": [

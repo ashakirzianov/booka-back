@@ -1,33 +1,32 @@
 import * as C from '../contracts';
-import { Epub, epubParser } from './epubParser';
-import { converter as defaultConverter } from './defaultConverter';
+import { EPub, epubParser } from './epubParser';
 import { converter as traumConverter } from './traumConverter';
 
 export type EpubConverter = {
-    canHandleEpub: (epub: Epub) => boolean,
-    convertEpub: (epub: Epub) => Promise<C.BookContent>,
+    canHandleEpub: (epub: EPub) => boolean,
+    convertEpub: (epub: EPub) => Promise<C.BookContent>,
 };
 
 const convertersRegistry = [
     traumConverter,
 ];
 
-export function buffer2book(buffer: Buffer): Promise<C.BookContent> {
-    const book = epubParser(buffer)
-        .then(epub2book);
+export async function path2book(path: string): Promise<C.BookContent> {
+    const epub = await epubParser(path);
+    const book = epub2book(epub);
 
     return book;
 }
 
-function epub2book(epub: Epub): Promise<C.BookContent> {
+function epub2book(epub: EPub): Promise<C.BookContent> {
     const converter = resolveEpubConverter(epub);
     const book = converter(epub);
 
     return book;
 }
 
-function resolveEpubConverter(epub: Epub): (epub: Epub) => Promise<C.BookContent> {
-    const converter = convertersRegistry.find(c => c.canHandleEpub(epub)) || traumConverter || defaultConverter;
+function resolveEpubConverter(epub: EPub): (epub: EPub) => Promise<C.BookContent> {
+    const converter = convertersRegistry.find(c => c.canHandleEpub(epub)) || traumConverter;
 
     return converter.convertEpub;
 }
