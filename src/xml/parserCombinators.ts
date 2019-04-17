@@ -232,6 +232,28 @@ export function translateAndWarn<TI, From, To>(parser: Parser<TI, From>, f: Warn
     };
 }
 
+export function reparse<T, U, V>(parser: Parser<T, U>, reparser: Parser<U, V>): Parser<T, V> {
+    return input => {
+        const result = parser(input);
+
+        if (result.success) {
+            const reresult = reparser(result.value);
+            // TODO: add message from result
+            if (reresult.success) {
+                return success(
+                    reresult.value,
+                    result.next,
+                    compoundMessage([result.message, reresult.message]),
+                );
+            } else {
+                return reresult;
+            }
+        } else {
+            return result;
+        }
+    };
+}
+
 export type DeclaredParser<TIn, TOut> = {
     (input: TIn): Result<TIn, TOut>,
     implementation: (input: TIn) => Result<TIn, TOut>,
