@@ -126,7 +126,7 @@ const pParagraph = translate(
         expected(attrs({ class: pClasses })),
         children(some(span))
     ),
-    ([el, _, spans]) => el.name === 'p'
+    ([el, _, spans]) => el.name === 'p' && el.attributes.class === 'v'
         ? assign('line')(spans)
         : compoundSpan(spans),
 );

@@ -1,4 +1,4 @@
-import { expectSuccess } from '../testUtils';
+import { expectSuccess } from '../utils';
 import { path } from './treeParser';
 import { name } from './elementParser';
 import { xmlElement } from './xmlNode';

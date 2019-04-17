@@ -1,4 +1,4 @@
-import { expectSuccess } from '../testUtils';
+import { expectSuccess } from '../utils';
 import { and } from './parserCombinators';
 import { skipTo, ArrayParser, headParser } from './arrayParser';
 

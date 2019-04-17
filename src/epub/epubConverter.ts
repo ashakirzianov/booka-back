@@ -10,7 +10,6 @@ export type EpubConverter = {
 
 const convertersRegistry = [
     traumConverter,
-    defaultConverter,
 ];
 
 export function buffer2book(buffer: Buffer): Promise<C.BookContent> {
@@ -28,7 +27,7 @@ function epub2book(epub: Epub): Promise<C.BookContent> {
 }
 
 function resolveEpubConverter(epub: Epub): (epub: Epub) => Promise<C.BookContent> {
-    const converter = convertersRegistry.find(c => c.canHandleEpub(epub)) || defaultConverter;
+    const converter = convertersRegistry.find(c => c.canHandleEpub(epub)) || traumConverter || defaultConverter;
 
     return converter.convertEpub;
 }

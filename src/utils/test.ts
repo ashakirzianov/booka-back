@@ -1,4 +1,4 @@
-import { Success, Result } from './xml/parserCombinators';
+import { Success, Result } from '../xml';
 
 // Returning Success<In, Out> is not perfect, but afaik there's no proper way of guarding Success type here
 export function expectSuccess<In, Out>(result: Result<In, Out>): result is Success<In, Out> {

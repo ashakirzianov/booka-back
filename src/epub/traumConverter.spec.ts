@@ -1,6 +1,6 @@
 import { string2tree, XmlParser } from '../xml';
 import { toTest } from './traumConverter.section';
-import { expectSuccess } from '../testUtils';
+import { expectSuccess } from '../utils';
 import { ParagraphNode } from '../contracts';
 
 const {
