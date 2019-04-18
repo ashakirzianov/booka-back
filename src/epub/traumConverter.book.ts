@@ -1,6 +1,7 @@
 import {
     translate, headParser, Parser,
-    choice, seq, some, messageToString, XmlNode, hasChildren,
+    choice, seq, some, messageToString,
+    XmlNodeWithChildren,
 } from '../xml';
 import { section } from './traumConverter.section';
 import { ParsedEpub, EpubSection, EpubCollection } from './epubParser';
@@ -68,10 +69,7 @@ async function* sections2elements(secs: EpubCollection<EpubSection>) {
     }
 }
 
-function tree2elements(tree: XmlNode): Element[] {
-    if (!hasChildren(tree)) {
-        return [];
-    }
+function tree2elements(tree: XmlNodeWithChildren): Element[] {
     const result = section(tree.children);
 
     // TODO: implement better logging strategy
