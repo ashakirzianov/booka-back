@@ -233,7 +233,7 @@ const notePage = translate(
 const topDiv = choice(
     notePage, chapterPage, titlePage, ignorePage,
 );
-const page = path(['html', 'body', 'div'], topDiv);
+const page = topDiv; // path(['html', 'body', 'div'], topDiv);
 
 const unexpectedSection = translate(
     unexpected<XmlNode[]>(ns =>

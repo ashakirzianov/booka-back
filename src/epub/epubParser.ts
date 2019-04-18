@@ -8,6 +8,7 @@ export type EpubSection = {
     id: string,
     title: string,
     content: XmlNodeWithChildren,
+    level: number,
 };
 
 export type EpubMetadata = {

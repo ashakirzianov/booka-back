@@ -36,8 +36,3 @@ function logDebug(msg: string) {
     // tslint:disable-next-line:no-console
     console.log(msg);
 }
-
-export const log = configValue({
-    debug: logDebug,
-    production: noOp,
-});

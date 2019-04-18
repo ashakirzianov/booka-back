@@ -1,6 +1,5 @@
 import * as C from '../contracts';
-import { ParsedEpub } from './epubParser';
-import { convertEpub } from './traumConverter';
+import { convertEpub } from './converter';
 import { epub2Parser } from './epub2';
 
 export async function path2book(path: string): Promise<C.BookContent> {

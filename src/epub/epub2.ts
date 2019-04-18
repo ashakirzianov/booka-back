@@ -1,5 +1,5 @@
 import { EPub } from 'epub2';
-import { EpubParser, ParsedEpub } from './epubParser';
+import { EpubParser, ParsedEpub, EpubSection } from './epubParser';
 import { string2tree } from '../xml';
 
 export const epub2Parser: EpubParser = {
@@ -15,16 +15,18 @@ export const epub2Parser: EpubParser = {
             sections: async function*() {
                 for (const el of epub.flow) {
                     // TODO: report undefined title/href/id ?
-                    if (el.id && el.title && el.href) {
+                    if (el.id && el.href) {
                         const chapter = await epub.chapterForId(el.id);
                         const node = string2tree(chapter);
                         if (node) {
-                            yield {
+                            const section: EpubSection = {
                                 id: el.id,
                                 fileName: el.href, // TODO: check
-                                title: el.title,
-                                content: node,
+                                title: el.title || 'no-title', // TODO: report
+                                content: node.children[0] as any, // TODO: implement 'parsePartialXml' ?
+                                level: el.level || 0,
                             };
+                            yield section;
                         }
                     }
                 }
@@ -49,6 +51,6 @@ class FixedEpub extends EPub {
     }
 
     chapterForId(id: string): Promise<string> {
-        return this.getChapterRawAsync(id);
+        return this.getChapterAsync(id);
     }
 }
