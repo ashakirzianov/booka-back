@@ -46,3 +46,14 @@ export function oneOf<T extends string | undefined>(...opts: T[]) {
 export function flatten<T>(arrArr: T[][]): T[] {
     return arrArr.reduce((acc, arr) => acc.concat(arr));
 }
+
+export async function toArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
+    const result: T[] = [];
+    let next = await asyncIter.next();
+    while (!next.done) {
+        result.push(next.value);
+        next = await asyncIter.next();
+    }
+
+    return result;
+}

@@ -1,6 +1,6 @@
 import { BookContent } from '../contracts';
-import { EPub } from './epubParser';
 import { EpubConverter } from './epubConverter';
+import { ParsedEpub } from './epubParser';
 import { buildBook } from './traumConverter.book';
 
 export const converter: EpubConverter = {
@@ -8,10 +8,10 @@ export const converter: EpubConverter = {
     convertEpub: convertEpub,
 };
 
-function canHandleEpub(epub: EPub): boolean {
+function canHandleEpub(epub: ParsedEpub): boolean {
     return true;
 }
 
-function convertEpub(epub: EPub): Promise<BookContent> {
+function convertEpub(epub: ParsedEpub): Promise<BookContent> {
     return buildBook(epub);
 }

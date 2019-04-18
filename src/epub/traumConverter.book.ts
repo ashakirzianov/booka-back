@@ -1,10 +1,10 @@
 import {
-    translate, string2tree, XmlNodeDocument, headParser, Parser,
-    choice, seq, some, messageToString,
+    translate, headParser, Parser,
+    choice, seq, some, messageToString, XmlNode, hasChildren,
 } from '../xml';
 import { section } from './traumConverter.section';
-import { filterUndefined, flatten, log } from '../utils';
-import { EPub, getChapter } from './epubParser';
+import { ParsedEpub, EpubSection, EpubCollection } from './epubParser';
+import { filterUndefined, toArray } from '../utils';
 import { BookContent, BookNode, ChapterNode, ParagraphNode, Footnote } from '../contracts';
 import { logString } from '../logger';
 
@@ -42,16 +42,8 @@ type Element =
     | IgnoreElement
     ;
 
-export async function buildBook(epub: EPub): Promise<BookContent> {
-    const ids = filterUndefined(epub.flow.map(e => e.id));
-    const sections = ids.map(async id => {
-        const chapter = await getChapter(epub, id);
-        return section2elements({
-            id: id,
-            content: chapter,
-        });
-    });
-    const elements = flatten(await Promise.all(sections));
+export async function buildBook(epub: ParsedEpub): Promise<BookContent> {
+    const elements = await toArray(sections2elements(epub.sections()));
 
     const title = buildTitle(elements);
     const content = buildContent(elements);
@@ -61,28 +53,25 @@ export async function buildBook(epub: EPub): Promise<BookContent> {
     return {
         meta: {
 
-            title: title && title.title || epub.metadata.title || 'no title',
-            author: title && title.author || epub.metadata.creator,
+            title: title && title.title || epub.metadata.title,
+            author: title && title.author || epub.metadata.author,
         },
         nodes: content,
         footnotes: footnotes,
     };
 }
 
-type Section = {
-    id: string,
-    content: string,
-};
-function section2elements(sec: Section): Element[] {
-    const tree = string2tree(sec.content);
-    if (!tree) {
-        return []; // TODO: report parsing problems
+async function* sections2elements(secs: EpubCollection<EpubSection>) {
+    for await (const sec of secs) {
+        const els = tree2elements(sec.content);
+        yield* els;
     }
-    const structures = tree2elements(tree);
-    return structures;
 }
 
-function tree2elements(tree: XmlNodeDocument): Element[] {
+function tree2elements(tree: XmlNode): Element[] {
+    if (!hasChildren(tree)) {
+        return [];
+    }
     const result = section(tree.children);
 
     // TODO: implement better logging strategy

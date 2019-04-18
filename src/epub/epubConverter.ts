@@ -1,10 +1,11 @@
 import * as C from '../contracts';
-import { EPub, epubParser } from './epubParser';
+import { ParsedEpub } from './epubParser';
 import { converter as traumConverter } from './traumConverter';
+import { epub2Parser } from './epub2';
 
 export type EpubConverter = {
-    canHandleEpub: (epub: EPub) => boolean,
-    convertEpub: (epub: EPub) => Promise<C.BookContent>,
+    canHandleEpub: (epub: ParsedEpub) => boolean,
+    convertEpub: (epub: ParsedEpub) => Promise<C.BookContent>,
 };
 
 const convertersRegistry = [
@@ -12,20 +13,20 @@ const convertersRegistry = [
 ];
 
 export async function path2book(path: string): Promise<C.BookContent> {
-    const epub = await epubParser(path);
+    const epub = await epub2Parser.parseFile(path);
     const book = epub2book(epub);
 
     return book;
 }
 
-function epub2book(epub: EPub): Promise<C.BookContent> {
+function epub2book(epub: ParsedEpub): Promise<C.BookContent> {
     const converter = resolveEpubConverter(epub);
     const book = converter(epub);
 
     return book;
 }
 
-function resolveEpubConverter(epub: EPub): (epub: EPub) => Promise<C.BookContent> {
+function resolveEpubConverter(epub: ParsedEpub): (epub: ParsedEpub) => Promise<C.BookContent> {
     const converter = convertersRegistry.find(c => c.canHandleEpub(epub)) || traumConverter;
 
     return converter.convertEpub;

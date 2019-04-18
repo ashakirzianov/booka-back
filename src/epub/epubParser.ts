@@ -1,31 +1,26 @@
-import { EPub } from 'epub2';
+import { XmlNode } from '../xml';
 
-export { EPub } from 'epub2';
+type Image = any; // TODO: actual image type
+export type EpubCollection<T> = AsyncIterableIterator<T>;
 
-class FixedEpub extends EPub {
-    static libPromise = Promise;
+export type EpubSection = {
+    fileName: string,
+    id: string,
+    title: string,
+    content: XmlNode,
+};
 
-    // This is workaround for epub2 bug. Remove it once fixed
-    walkNavMap(branch: any, path: any, idList: any, level: number, pe?: any, parentNcx?: any, ncxIdx?: any) {
-        if (Array.isArray(branch)) {
-            branch.forEach(b => {
-                if (b.navLabel && b.navLabel.text === '') {
-                    b.navLabel.text = ' ';
-                }
-            });
-        }
-        return super.walkNavMap(branch, path, idList, level, pe, parentNcx, ncxIdx);
-    }
+export type EpubMetadata = {
+    title: string,
+    author?: string,
+};
 
-    chapterForId(id: string): Promise<string> {
-        return this.getChapterRawAsync(id);
-    }
-}
+export type ParsedEpub = {
+    metadata: EpubMetadata,
+    imageResolver(id: string): Image | undefined,
+    sections(): EpubCollection<EpubSection>,
+};
 
-export async function epubParser(path: string): Promise<EPub> {
-    return FixedEpub.createAsync(path);
-}
-
-export async function getChapter(epub: EPub, id: string): Promise<string> {
-    return epub.getChapterRawAsync(id);
-}
+export type EpubParser = {
+    parseFile: (filePath: string) => Promise<ParsedEpub>,
+};
