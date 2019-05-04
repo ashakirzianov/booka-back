@@ -108,17 +108,17 @@ function buildBlocks(node: XmlNode): Block[] {
     const spans = buildSpans(node.children);
     if (spans.some(s => isSimple(s))) {
         return [{
-            b: 'pph',
+            b: 'pph' as const,
             p: {
-                node: 'paragraph',
+                node: 'paragraph' as const,
                 span: compoundSpan(spans),
             },
         }];
     } else {
         return spans.map(s => ({
-            b: 'pph',
+            b: 'pph' as const,
             p: {
-                node: 'paragraph',
+                node: 'paragraph' as const,
                 span: s,
             },
         }));
