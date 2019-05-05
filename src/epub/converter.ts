@@ -142,6 +142,9 @@ function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
                     // TODO: check attributes
                     // TODO: extract semantics
                     return compoundSpan(buildSpans(node.children, ds));
+                case 'img':
+                    // TODO: support images
+                    return undefined;
                 default:
                     ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
                     return undefined;
