@@ -1,7 +1,7 @@
 import {
     some, whitespaced, translate,
     oneOrMore, textNode, path, and, elementNode, children,
-    choice, nodeToString, XmlNode, declare,
+    choice, xmlNode2String, XmlNode, declare,
     nameChildren, name, expected, unexpected,
     attrs, projectLast, end, seq,
 } from '../xml';
@@ -24,7 +24,7 @@ const headerTag = elementNode(n => {
 const h2 = nameChildren('h2', textNode());
 
 const skipOneNode = unexpected<XmlNode[]>(n =>
-    `Unexpected node: ${(n[0] && nodeToString(n[0]))}`
+    `Unexpected node: ${(n[0] && xmlNode2String(n[0]))}`
 );
 
 // ---- Title page
@@ -237,7 +237,7 @@ const page = topDiv; // path(['html', 'body', 'div'], topDiv);
 
 const unexpectedSection = translate(
     unexpected<XmlNode[]>(ns =>
-        `Unexpected section: ${ns.map(nodeToString).join(' ')}`),
+        `Unexpected section: ${ns.map(xmlNode2String).join(' ')}`),
     () => [{ element: 'ignore' as 'ignore' }],
 );
 export const section = choice(

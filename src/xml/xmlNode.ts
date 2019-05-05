@@ -73,7 +73,7 @@ export function attributesToString(attr: XmlAttributes): string {
     return result;
 }
 
-export function nodeToString(n: XmlNode): string {
+export function xmlNode2String(n: XmlNode): string {
     switch (n.type) {
         case 'element':
         case 'document':
@@ -85,7 +85,7 @@ export function nodeToString(n: XmlNode): string {
                 : '';
             const attrsStr = attrs.length > 0 ? ' ' + attrs : '';
             const chs = n.children
-                .map(nodeToString)
+                .map(xmlNode2String)
                 .reduce((all, cur) => all + cur, '');
             return chs.length > 0
                 ? `<${name}${attrsStr}>${chs}</${name}>`

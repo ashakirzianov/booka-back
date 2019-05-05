@@ -7,7 +7,7 @@ import {
     projectFirst, and, expected, projectLast, translate,
 } from './parserCombinators';
 import { headNode, children, XmlParser } from './treeParser';
-import { XmlNodeElement, isElement, nodeToString, XmlNode } from './xmlNode';
+import { XmlNodeElement, isElement, xmlNode2String, XmlNode } from './xmlNode';
 import { predicate } from './arrayParser';
 
 export const elementNode = <T>(f: (e: XmlNodeElement) => T | null) =>
@@ -17,7 +17,7 @@ function fromPredicate(pred: ElementPredicate) {
     return tagged(
         predicate(andPred(elemPred(), pred)),
         nodes =>
-            `On node: ${nodes[0] && nodeToString(nodes[0])}`
+            `On node: ${nodes[0] && xmlNode2String(nodes[0])}`
     );
 }
 export const name = (n: ConstraintValue<string>) =>
@@ -42,7 +42,7 @@ function elemPred(): Predicate<XmlNode, XmlNodeElement> {
         if (isElement(nd)) {
             return predSucc(nd);
         } else {
-            return predFail(`Expected xml element, got: ${nodeToString(nd)}`);
+            return predFail(`Expected xml element, got: ${xmlNode2String(nd)}`);
         }
     };
 }
