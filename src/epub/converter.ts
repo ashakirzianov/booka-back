@@ -1,10 +1,10 @@
 import { ParsedEpub, EpubSection, EpubCollection } from './epubParser';
 import {
-    BookContent, ParagraphNode, Span, assign, compoundSpan, BookNode, ChapterNode, isSimple,
+    BookContent, ParagraphNode, Span, assign,
+    compoundSpan, BookNode, ChapterNode, isSimple,
 } from '../contracts';
-import { isElement, XmlNodeElement, XmlNode } from '../xml';
-import { filterUndefined, toArray, flatten, flattenAsyncIterator, mapAsyncIterator } from '../utils';
-import { log } from '../logger';
+import { isElement, XmlNodeElement, XmlNode, xmlNode2String } from '../xml';
+import { filterUndefined, toArray, flatten, flattenAsyncIterator, mapAsyncIterator, Diagnostics, Diagnosed, assignDiagnostics } from '../utils';
 
 type ParagraphBlock = {
     b: 'pph',
@@ -27,12 +27,13 @@ type Block =
     | IgnoreBlock
     ;
 
-export async function convertEpub(epub: ParsedEpub): Promise<BookContent> {
-    const blocks = flattenAsyncIterator(mapAsyncIterator(epub.sections(), section2blocks));
+export async function convertEpub(epub: ParsedEpub): Promise<Diagnosed<BookContent>> {
+    const ds = new Diagnostics();
+    const blocks = flattenAsyncIterator(mapAsyncIterator(epub.sections(), s => section2blocks(s, ds)));
     const nodesIterator = generateNodes(blocks, -1);
     const nodes = await toArray(nodesIterator);
 
-    return {
+    const book = {
         meta: {
             title: epub.metadata.title,
             author: epub.metadata.author,
@@ -40,6 +41,8 @@ export async function convertEpub(epub: ParsedEpub): Promise<BookContent> {
         nodes: nodes,
         footnotes: [],
     };
+
+    return assignDiagnostics(book, ds);
 }
 
 async function* generateNodes(blocks: AsyncIterator<Block>, level: number): AsyncIterableIterator<BookNode> {
@@ -76,7 +79,7 @@ async function* generateNodes(blocks: AsyncIterator<Block>, level: number): Asyn
     yield* nodes;
 }
 
-async function* section2blocks(section: EpubSection): EpubCollection<Block> {
+async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubCollection<Block> {
     yield {
         b: 'title',
         title: section.title,
@@ -84,22 +87,22 @@ async function* section2blocks(section: EpubSection): EpubCollection<Block> {
     };
 
     if (isElement(section.content)) {
-        yield* element2blocks(section.content);
+        yield* element2blocks(section.content, ds);
     }
 }
 
-function element2blocks(element: XmlNodeElement) {
+function element2blocks(element: XmlNodeElement, ds: Diagnostics) {
     return flatten(element
         .children
-        .map(buildBlocks)
+        .map(n => buildBlocks(n, ds))
     );
 }
 
-function buildBlocks(node: XmlNode): Block[] {
+function buildBlocks(node: XmlNode, ds: Diagnostics): Block[] {
     if (!isElement(node)) {
         return [{ b: 'ignore' }];
     }
-    const spans = buildSpans(node.children);
+    const spans = buildSpans(node.children, ds);
     if (spans.some(s => isSimple(s))) {
         return [{
             b: 'pph' as const,
@@ -119,30 +122,30 @@ function buildBlocks(node: XmlNode): Block[] {
     }
 }
 
-function buildSpans(nodes: XmlNode[]): Span[] {
-    return filterUndefined(nodes.map(buildSpan));
+function buildSpans(nodes: XmlNode[], ds: Diagnostics): Span[] {
+    return filterUndefined(nodes.map(n => buildSpan(n, ds)));
 }
 
-function buildSpan(node: XmlNode): Span | undefined {
+function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
     switch (node.type) {
         case 'text':
             return node.text;
         case 'element':
             switch (node.name) {
                 case 'em':
-                    return assign('italic')(buildSpans(node.children));
+                    return assign('italic')(buildSpans(node.children, ds));
                 case 'p':
                 case 'div':
                 case 'span':
                     // TODO: check attributes
                     // TODO: extract semantics
-                    return compoundSpan(buildSpans(node.children));
+                    return compoundSpan(buildSpans(node.children, ds));
                 default:
-                    // TODO: report ?
+                    ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
                     return undefined;
             }
         default:
-            // TODO: report ?
+            ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
             return undefined;
     }
 }

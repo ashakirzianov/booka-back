@@ -1,39 +1,25 @@
-const symbolDiagnostics = Symbol();
+export class Diagnostics {
+    private messages: string[] = [];
+    public warn(message: string) {
+        this.messages.push(message);
+    }
 
-export type SingleDiagnostics = string;
-export type CompoundDiagnostics = {
-    diagnostics: Diagnostics[],
-};
-export type Diagnostics = SingleDiagnostics | CompoundDiagnostics;
-export type WithDiagnostics<T> = {
-    [symbolDiagnostics]: Diagnostics,
+    public toString() {
+        return `{\n${this.messages.join(',\n')}\n}`;
+    }
+
+    public isEmpty() {
+        return this.messages.length === 0;
+    }
+}
+
+export type Diagnosed<T> = {
     value: T,
+    diagnostics: Diagnostics,
 };
-export type Diagnosed<T> = T | WithDiagnostics<T>;
 
-export function diagnose<T>(value: T, ds: Diagnostics): Diagnosed<T> {
+export function assignDiagnostics<T>(value: T, diagnostics: Diagnostics): Diagnosed<T> {
     return {
-        [symbolDiagnostics]: ds,
-        value,
+        value, diagnostics,
     };
-}
-
-export function diagnostics<T>(obj: Diagnosed<T>): Diagnostics | undefined {
-    if (isWithDiagnostics(obj)) {
-        return obj[symbolDiagnostics];
-    } else {
-        return undefined;
-    }
-}
-
-export function stringifyDiagnostics(ds: Diagnostics): string {
-    if (typeof ds === 'string') {
-        return ds;
-    } else {
-        return `{ ${ds.diagnostics.join('\n')} }`;
-    }
-}
-
-function isWithDiagnostics<T>(obj: Diagnosed<T>): obj is WithDiagnostics<T> {
-    return obj[symbolDiagnostics] !== undefined;
 }

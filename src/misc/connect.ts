@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { path2book } from '../epub';
 import { countBooks, insertBook, removeAllBooks } from '../db';
-import { logTimeAsync, logString } from '../logger';
+import { logTimeAsync, logString, log } from '../logger';
 import { debugAsync } from '../utils';
 
 const epubLocation = 'public/epub/';
@@ -30,7 +30,10 @@ async function seed() {
         try {
             const fullPath = epubLocation + path;
             const book = await logTimeAsync(() => path2book(fullPath), `Parse: ${path}`);
-            await insertBook(book);
+            if (!book.diagnostics.isEmpty()) {
+                log(book.diagnostics.toString());
+            }
+            await insertBook(book.value);
         } catch (e) {
             logString(`While parsing '${path}' error: ${e}`);
         }
