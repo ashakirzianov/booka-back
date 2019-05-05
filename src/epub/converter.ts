@@ -134,6 +134,8 @@ function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
             switch (node.name) {
                 case 'em':
                     return assign('italic')(buildSpans(node.children, ds));
+                case 'strong':
+                    return assign('bold')(buildSpans(node.children, ds));
                 case 'p':
                 case 'div':
                 case 'span':

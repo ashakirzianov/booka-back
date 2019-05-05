@@ -5,7 +5,7 @@ export class Diagnostics {
     }
 
     public toString() {
-        return `{\n${this.messages.join(',\n')}\n}`;
+        return `${this.messages.join('\n')}`;
     }
 
     public isEmpty() {

@@ -1,4 +1,4 @@
-export type AttributeName = 'italic' | 'poem' | 'line';
+export type AttributeName = 'italic' | 'bold' | 'poem' | 'line';
 export type SimpleSpan = string;
 export type AttributedSpan = {
     span: 'attrs',
