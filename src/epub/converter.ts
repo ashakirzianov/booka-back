@@ -3,7 +3,7 @@ import {
     BookContent, ParagraphNode, Span, assign, compoundSpan, BookNode, ChapterNode, isSimple,
 } from '../contracts';
 import { isElement, XmlNodeElement, XmlNode } from '../xml';
-import { filterUndefined, toArray, flatten } from '../utils';
+import { filterUndefined, toArray, flatten, flattenAsyncIterator, mapAsyncIterator } from '../utils';
 import { log } from '../logger';
 
 type ParagraphBlock = {
@@ -28,7 +28,7 @@ type Block =
     ;
 
 export async function convertEpub(epub: ParsedEpub): Promise<BookContent> {
-    const blocks = sections2blocks(epub.sections());
+    const blocks = flattenAsyncIterator(mapAsyncIterator(epub.sections(), section2blocks));
     const nodesIterator = generateNodes(blocks, -1);
     const nodes = await toArray(nodesIterator);
 
@@ -74,12 +74,6 @@ async function* generateNodes(blocks: AsyncIterator<Block>, level: number): Asyn
         next = await blocks.next();
     }
     yield* nodes;
-}
-
-async function* sections2blocks(sections: EpubCollection<EpubSection>) {
-    for await (const sec of sections) {
-        yield* section2blocks(sec);
-    }
 }
 
 async function* section2blocks(section: EpubSection): EpubCollection<Block> {

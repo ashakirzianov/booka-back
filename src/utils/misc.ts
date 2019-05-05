@@ -47,6 +47,29 @@ export function flatten<T>(arrArr: T[][]): T[] {
     return arrArr.reduce((acc, arr) => acc.concat(arr));
 }
 
+// TODO: check why TypeScript type inference doesn't work properly
+// if we use AsyncIterator<AsyncIterator<T>>
+export async function* flattenAsyncIterator<T>(iterIter: AsyncIterableIterator<AsyncIterableIterator<T>>): AsyncIterableIterator<T> {
+    let nextCollection = await iterIter.next();
+    while (!nextCollection.done) {
+        let nextItem = await nextCollection.value.next();
+        while (!nextItem.done) {
+            yield nextItem.value;
+            nextItem = await nextCollection.value.next();
+        }
+        nextCollection = await iterIter.next();
+    }
+}
+
+export async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) => U): AsyncIterableIterator<U> {
+    let next = await iter.next();
+    while (!next.done) {
+        const value = f(next.value);
+        yield value;
+        next = await iter.next();
+    }
+}
+
 export async function toArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
     const result: T[] = [];
     let next = await asyncIter.next();
