@@ -5,7 +5,7 @@ import {
     nameChildren, name, expected, unexpected,
     attrs, projectLast, end, seq,
 } from '../xml';
-import { filterUndefined, oneOf } from '../utils';
+import { filterUndefined, oneOf, compose } from '../utils';
 import { Span, assign, createParagraph, compoundSpan } from '../contracts';
 
 // ---- Common
@@ -93,7 +93,7 @@ const span = declare<XmlNode[], Span>();
 const plainText = textNode();
 const emphasis = translate(
     nameChildren('em', some(span)),
-    assign('italic'),
+    compose(compoundSpan, assign('italic')),
 );
 
 function extractId(href: string | undefined): string {
@@ -127,7 +127,7 @@ const pParagraph = translate(
         children(some(span))
     ),
     ([el, _, spans]) => el.name === 'p' && el.attributes.class === 'v'
-        ? assign('line')(spans)
+        ? assign('line')(compoundSpan(spans))
         : compoundSpan(spans),
 );
 
@@ -143,7 +143,7 @@ const divParagraph = translate(
     ),
     ([{ attributes }, _, p]) =>
         isDecoration(attributes.class)
-            ? assign(attributes.class)(p)
+            ? assign(attributes.class)(compoundSpan(p))
             : compoundSpan(p)
 );
 

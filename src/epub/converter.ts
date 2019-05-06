@@ -142,9 +142,11 @@ function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
 function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | undefined {
     switch (element.name) {
         case 'em':
-            return assign('italic')(buildSpans(element.children, ds));
+            const emSpan = compoundSpan(buildSpans(element.children, ds));
+            return assign('italic')(emSpan);
         case 'strong':
-            return assign('bold')(buildSpans(element.children, ds));
+            const strongSpan = compoundSpan(buildSpans(element.children, ds));
+            return assign('bold')(strongSpan);
         case 'p':
         case 'div':
         case 'span':

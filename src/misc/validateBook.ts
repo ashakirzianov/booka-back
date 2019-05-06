@@ -1,6 +1,6 @@
 import {
     BookContent, BookNode, isChapter, Footnote, isParagraph,
-    ParagraphNode, isSimple, isAttributed, isFootnote, Span,
+    ParagraphNode, isSimple, isAttributed, isFootnote, Span, isCompound, compoundSpan,
 } from '../contracts';
 import { assertNever, filterUndefined } from '../utils';
 import { logString } from '../logger';
@@ -45,10 +45,15 @@ function validateSpan(span: Span, env: ValidationEnv): Span | undefined {
     if (isSimple(span)) {
         return span;
     } else if (isAttributed(span)) {
+        const validated = validateSpan(span.content, env);
+        return validated !== undefined
+            ? { ...span, content: validated }
+            : undefined;
+    } else if (isCompound(span)) {
         const validated = filterUndefined(span.spans.map(s =>
             validateSpan(s, env)));
         return validated.length > 0
-            ? { ...span, spans: validated }
+            ? compoundSpan(validated)
             : undefined;
     } else if (isFootnote(span)) {
         const footnote = env.footnotes.find(f => f.id === span.id);

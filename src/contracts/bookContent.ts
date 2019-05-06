@@ -2,8 +2,12 @@ export type AttributeName = 'italic' | 'bold' | 'poem' | 'line';
 export type SimpleSpan = string;
 export type AttributedSpan = {
     span: 'attrs',
-    spans: Span[],
+    content: Span,
     attrs?: AttributeName[],
+};
+export type CompoundSpan = {
+    span: 'compound',
+    spans: Span[],
 };
 export type FootnoteId = string;
 export type FootnoteSpan = {
@@ -11,7 +15,10 @@ export type FootnoteSpan = {
     text?: string,
     id: FootnoteId,
 };
-export type Span = SimpleSpan | AttributedSpan | FootnoteSpan;
+export type Span =
+    | SimpleSpan | CompoundSpan
+    | FootnoteSpan | AttributedSpan
+    ;
 
 export type ParagraphNode = {
     node: 'paragraph',
@@ -65,22 +72,26 @@ export function isAttributed(span: Span): span is AttributedSpan {
     return typeof span === 'object' && span.span === 'attrs';
 }
 
+export function isCompound(span: Span): span is CompoundSpan {
+    return typeof span === 'object' && span.span === 'compound';
+}
+
 export function children(node: BookNode) {
     return isChapter(node) ? node.nodes : [];
 }
 
 export function assign(...attributes: AttributeName[]) {
-    return (spans: Span[]): AttributedSpan => {
+    return (span: Span): AttributedSpan => {
         return {
             span: 'attrs',
-            spans: spans,
+            content: span,
             attrs: attributes,
         };
     };
 }
 
 export function compoundSpan(spans: Span[]): Span {
-    return { spans, span: 'attrs' };
+    return { span: 'compound', spans };
 }
 
 export function createParagraph(span: Span): ParagraphNode {
