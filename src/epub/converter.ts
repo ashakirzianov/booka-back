@@ -131,26 +131,31 @@ function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
         case 'text':
             return node.text;
         case 'element':
-            switch (node.name) {
-                case 'em':
-                    return assign('italic')(buildSpans(node.children, ds));
-                case 'strong':
-                    return assign('bold')(buildSpans(node.children, ds));
-                case 'p':
-                case 'div':
-                case 'span':
-                    // TODO: check attributes
-                    // TODO: extract semantics
-                    return compoundSpan(buildSpans(node.children, ds));
-                case 'img':
-                    // TODO: support images
-                    return undefined;
-                default:
-                    ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
-                    return undefined;
-            }
+            const span = buildElementSpan(node, ds);
+            return span;
         default:
             ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
+            return undefined;
+    }
+}
+
+function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | undefined {
+    switch (element.name) {
+        case 'em':
+            return assign('italic')(buildSpans(element.children, ds));
+        case 'strong':
+            return assign('bold')(buildSpans(element.children, ds));
+        case 'p':
+        case 'div':
+        case 'span':
+            // TODO: check attributes
+            // TODO: extract semantics
+            return compoundSpan(buildSpans(element.children, ds));
+        case 'img':
+            // TODO: support images
+            return undefined;
+        default:
+            ds.warn(`Unexpected element: '${xmlNode2String(element)}'`);
             return undefined;
     }
 }

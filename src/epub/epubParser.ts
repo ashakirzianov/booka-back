@@ -1,4 +1,4 @@
-import { XmlNodeWithChildren } from '../xml';
+import { XmlNode } from '../xml';
 
 type Image = any; // TODO: actual image type
 export type EpubCollection<T> = AsyncIterableIterator<T>;
@@ -7,7 +7,7 @@ export type EpubSection = {
     fileName: string,
     id: string,
     title: string,
-    content: XmlNodeWithChildren,
+    content: XmlNode,
     level: number,
 };
 

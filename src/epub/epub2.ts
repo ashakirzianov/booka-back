@@ -1,6 +1,6 @@
 import { EPub } from 'epub2';
 import { EpubParser, ParsedEpub, EpubSection } from './epubParser';
-import { string2tree } from '../xml';
+import { parsePartialXml } from '../xml';
 
 export const epub2Parser: EpubParser = {
     async parseFile(filePath): Promise<ParsedEpub> {
@@ -17,13 +17,13 @@ export const epub2Parser: EpubParser = {
                     // TODO: report undefined title/href/id ?
                     if (el.id && el.href) {
                         const chapter = await epub.chapterForId(el.id);
-                        const node = string2tree(chapter);
+                        const node = parsePartialXml(chapter);
                         if (node) {
                             const section: EpubSection = {
                                 id: el.id,
                                 fileName: el.href, // TODO: check
                                 title: el.title || 'no-title', // TODO: report
-                                content: node.children[0] as any, // TODO: implement 'parsePartialXml' ?
+                                content: node, // TODO: implement 'parsePartialXml' ?
                                 level: el.level || 0,
                             };
                             yield section;
