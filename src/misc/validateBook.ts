@@ -61,7 +61,11 @@ function validateSpan(span: Span, env: ValidationEnv): Span | undefined {
             logString(`Couldn't find footnote for id: ${span.id}`);
             return undefined;
         } else {
-            return span;
+            const validated = validateSpan(span.content, env);
+            return validated && {
+                ...span,
+                content: validated,
+            };
         }
     } else {
         return assertNever(span);

@@ -229,14 +229,10 @@ function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | unde
         case 'a':
             diagnoseUnexpectedAttributes(element, ds, ['class', 'href']);
             if (element.attributes.href) {
-                // TODO: build actual span
-                const first = element.children[0];
-                const text = isTextNode(first)
-                    ? first.text
-                    : '*';
+                const footnoteContent = compoundSpan(buildSpans(element.children, ds));
                 return {
                     span: 'note',
-                    text,
+                    content: footnoteContent,
                     id: element.attributes.href,
                 };
             }

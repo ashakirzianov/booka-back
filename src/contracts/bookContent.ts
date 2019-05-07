@@ -12,7 +12,7 @@ export type CompoundSpan = {
 export type FootnoteId = string;
 export type FootnoteSpan = {
     span: 'note',
-    text?: string,
+    content: Span,
     id: FootnoteId,
 };
 export type Span =

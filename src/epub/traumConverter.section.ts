@@ -114,7 +114,7 @@ const footnote = translate(
     ),
     ([el, _, text]) => ({
         span: 'note' as 'note',
-        text: text,
+        content: text,
         id: extractId(el.attributes.href),
     })
 );

@@ -52,19 +52,25 @@ function optimizeParagraph(p: ParagraphNode): BookNode {
     return createParagraph(optimized);
 }
 
-function optimizeSpan(p: Span): Span {
-    if (isSimple(p) || isFootnote(p)) {
-        return p;
-    } else if (isAttributed(p)) {
-        const optimizedContent = optimizeSpan(p.content);
+function optimizeSpan(span: Span): Span {
+    if (isSimple(span) || isFootnote(span)) {
+        return span;
+    } else if (isAttributed(span)) {
+        const optimizedContent = optimizeSpan(span.content);
         return {
-            ...p,
+            ...span,
             content: optimizedContent,
         };
-    } else if (isCompound(p)) {
-        return optimizeCompound(p);
+    } else if (isFootnote(span)) {
+        const content = optimizeSpan(span.content);
+        return {
+            ...span,
+            content,
+        };
+    } else if (isCompound(span)) {
+        return optimizeCompound(span);
     } else {
-        return assertNever(p);
+        return assertNever(span);
     }
 }
 
