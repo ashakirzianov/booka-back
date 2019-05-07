@@ -241,8 +241,13 @@ function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | unde
                 };
             }
         case 'img':
+        case 'image':
             // TODO: support images
-            diagnoseUnexpectedAttributes(element, ds, ['src', 'class', 'alt']);
+            diagnoseUnexpectedAttributes(element, ds, [
+                'src', 'class', 'alt',
+                'height', 'width',
+                'xlink:href', 'xmlns:xlink', // TODO: check what is that
+            ]);
             return undefined;
         default:
             ds.warn(`Unexpected element: '${xmlNode2String(element)}'`);

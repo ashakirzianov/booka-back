@@ -32,6 +32,8 @@
         "titlepage",
         "traum",
         "whitespaced",
+        "xmlns",
+        "xlink",
         "zipfile"
     ],
 }
