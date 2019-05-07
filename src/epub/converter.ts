@@ -2,12 +2,12 @@ import { EpubBook, EpubSection, EpubCollection } from './epubParser';
 import {
     BookContent, Span, assign,
     compoundSpan, BookNode, ChapterNode, isCompound,
-    Footnote,
-    traverseSpans,
-    isFootnote,
-    nodeToString,
+    Footnote, isFootnote,
 } from '../contracts';
-import { isElement, XmlNodeElement, XmlNode, xmlNode2String, isDocument, isTextNode } from '../xml';
+import {
+    isElement, XmlNodeElement, XmlNode, xmlNode2String,
+    isDocument,
+} from '../xml';
 import {
     filterUndefined, toAsyncArray, toArray, flatten,
     flattenAsyncIterator, mapAsyncIterator, toAsyncIterator,
@@ -255,6 +255,15 @@ function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, 
     for (const [attr, value] of Object.entries(element.attributes)) {
         if (!expected.some(e => e === attr)) {
             ds.warn(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
+        }
+    }
+}
+
+function* traverseSpans(span: Span): IterableIterator<Span> {
+    yield span;
+    if (isCompound(span)) {
+        for (const ch of span.spans) {
+            yield* traverseSpans(ch);
         }
     }
 }
