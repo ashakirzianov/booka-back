@@ -16,12 +16,12 @@ export type EpubMetadata = {
     author?: string,
 };
 
-export type ParsedEpub = {
+export type EpubBook = {
     metadata: EpubMetadata,
     imageResolver(id: string): Image | undefined,
     sections(): EpubCollection<EpubSection>,
 };
 
 export type EpubParser = {
-    parseFile: (filePath: string) => Promise<ParsedEpub>,
+    parseFile: (filePath: string) => Promise<EpubBook>,
 };

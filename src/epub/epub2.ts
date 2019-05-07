@@ -1,10 +1,10 @@
 import { EPub, SYMBOL_RAW_DATA } from 'epub2';
-import { EpubParser, ParsedEpub, EpubSection } from './epubParser';
+import { EpubParser, EpubBook, EpubSection } from './epubParser';
 import { parsePartialXml, string2tree } from '../xml';
 import { last } from '../utils';
 
 export const epub2Parser: EpubParser = {
-    async parseFile(filePath): Promise<ParsedEpub> {
+    async parseFile(filePath): Promise<EpubBook> {
         const epub = await FixedEpub.createAsync(filePath) as FixedEpub;
 
         return {
@@ -13,7 +13,7 @@ export const epub2Parser: EpubParser = {
                 author: epub.metadata.creator,
             },
             imageResolver: () => undefined,
-            sections: async function*() {
+            sections: async function* () {
                 for (const el of epub.flow) {
                     if (el.id && el.href) {
                         // TODO: find better solution

@@ -1,4 +1,4 @@
-import { ParsedEpub, EpubSection, EpubCollection } from './epubParser';
+import { EpubBook, EpubSection, EpubCollection } from './epubParser';
 import {
     BookContent, Span, assign,
     compoundSpan, BookNode, ChapterNode, isCompound,
@@ -41,7 +41,7 @@ type Block =
     | IgnoreBlock
     ;
 
-export async function convertEpub(epub: ParsedEpub): Promise<Diagnosed<BookContent>> {
+export async function convertEpub(epub: EpubBook): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
     const blocks = await toAsyncArray(
         flattenAsyncIterator(
