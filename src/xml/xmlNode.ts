@@ -23,6 +23,10 @@ export function hasChildren(node: XmlNode): node is XmlNodeWithChildren {
     return (node.type === 'document' || node.type === 'element') && node.children !== undefined;
 }
 
+export function isTextNode(node: XmlNode): node is XmlNodeText {
+    return node.type === 'text';
+}
+
 export function isElement(node: XmlNode): node is XmlNodeElement {
     return node.type === 'element';
 }

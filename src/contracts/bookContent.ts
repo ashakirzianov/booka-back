@@ -125,3 +125,21 @@ export function contentToString(content: BookContent) {
 export function nodeToString(bn: BookNode) {
     return JSON.stringify(bn);
 }
+
+export function* traverseBookNode(bn: BookNode): IterableIterator<BookNode> {
+    yield bn;
+    if (isChapter(bn)) {
+        for (const node of bn.nodes) {
+            yield* traverseBookNode(node);
+        }
+    }
+}
+
+export function* traverseSpans(span: Span): IterableIterator<Span> {
+    yield span;
+    if (isCompound(span)) {
+        for (const ch of span.spans) {
+            yield* traverseSpans(ch);
+        }
+    }
+}

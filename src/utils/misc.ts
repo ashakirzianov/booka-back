@@ -70,7 +70,11 @@ export async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) 
     }
 }
 
-export async function toArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
+export async function* toAsyncIterator<T>(arr: T[]): AsyncIterableIterator<T> {
+    yield* arr;
+}
+
+export async function toAsyncArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
     const result: T[] = [];
     let next = await asyncIter.next();
     while (!next.done) {
@@ -81,6 +85,21 @@ export async function toArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
     return result;
 }
 
+export function toArray<T>(iter: Iterator<T>): T[] {
+    const result: T[] = [];
+    let next = iter.next();
+    while (!next.done) {
+        result.push(next.value);
+        next = iter.next();
+    }
+
+    return result;
+}
+
 export function compose<T, U, V>(f: (x: T) => U, g: (x: U) => V): (x: T) => V {
     return x => g(f(x));
+}
+
+export function last<T>(arr: T[]): T {
+    return arr[arr.length - 1];
 }

@@ -1,14 +1,22 @@
 import { ParsedEpub, EpubSection, EpubCollection } from './epubParser';
 import {
-    BookContent, ParagraphNode, Span, assign,
-    compoundSpan, BookNode, ChapterNode, isSimple,
+    BookContent, Span, assign,
+    compoundSpan, BookNode, ChapterNode, isCompound,
+    Footnote,
+    traverseSpans,
+    isFootnote,
 } from '../contracts';
-import { isElement, XmlNodeElement, XmlNode, xmlNode2String } from '../xml';
-import { filterUndefined, toArray, flatten, flattenAsyncIterator, mapAsyncIterator, Diagnostics, Diagnosed, assignDiagnostics } from '../utils';
+import { isElement, XmlNodeElement, XmlNode, xmlNode2String, isDocument, isTextNode } from '../xml';
+import {
+    filterUndefined, toAsyncArray, toArray, flatten,
+    flattenAsyncIterator, mapAsyncIterator, toAsyncIterator,
+    Diagnostics, Diagnosed, assignDiagnostics,
+} from '../utils';
 
-type ParagraphBlock = {
-    b: 'pph',
-    p: ParagraphNode,
+type SpanBlock = {
+    b: 'span',
+    span: Span,
+    footnoteId: string | undefined,
 };
 
 type TitleBlock = {
@@ -17,21 +25,32 @@ type TitleBlock = {
     level: number,
 };
 
+type FootnoteBlock = {
+    b: 'footnote',
+    footnoteId: string,
+};
+
 type IgnoreBlock = {
     b: 'ignore',
 };
 
 type Block =
-    | ParagraphBlock
+    | SpanBlock
     | TitleBlock
+    | FootnoteBlock
     | IgnoreBlock
     ;
 
 export async function convertEpub(epub: ParsedEpub): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
-    const blocks = flattenAsyncIterator(mapAsyncIterator(epub.sections(), s => section2blocks(s, ds)));
-    const nodesIterator = generateNodes(blocks, -1);
-    const nodes = await toArray(nodesIterator);
+    const blocks = await toAsyncArray(
+        flattenAsyncIterator(
+            mapAsyncIterator(epub.sections(), s => section2blocks(s, ds))
+        )
+    );
+    const footnoteIds = collectFootnoteIds(blocks);
+    const nodes = await toAsyncArray(generateNodes(blocks, footnoteIds));
+    const footnotes = await toAsyncArray(generateFootnotes(blocks, footnoteIds));
 
     const book = {
         meta: {
@@ -39,23 +58,63 @@ export async function convertEpub(epub: ParsedEpub): Promise<Diagnosed<BookConte
             author: epub.metadata.author,
         },
         nodes: nodes,
-        footnotes: [],
+        footnotes: footnotes,
     };
 
     return assignDiagnostics(book, ds);
 }
 
-async function* generateNodes(blocks: AsyncIterator<Block>, level: number): AsyncIterableIterator<BookNode> {
+function collectFootnoteIds(blocks: Block[]): string[] {
+    const spans = flatten(
+        blocks
+            .filter((b): b is SpanBlock => b.b === 'span')
+            .map(b => toArray(traverseSpans(b.span)))
+    );
+
+    const ids = spans
+        .filter(isFootnote)
+        .map(f => f.id)
+        ;
+
+    return ids;
+}
+
+async function* generateFootnotes(blocks: Block[], footnoteIds: string[]): AsyncIterableIterator<Footnote> {
+    for (const block of blocks) {
+        if (block.b === 'span' && block.footnoteId && footnoteIds.some(fid => fid === block.footnoteId)) {
+            yield {
+                id: block.footnoteId,
+                title: undefined, // TODO: build title
+                content: [{
+                    node: 'paragraph' as const,
+                    span: block.span,
+                }],
+            };
+        }
+    }
+}
+
+async function* generateNodes(blocks: Block[], footnoteIds: string[]): AsyncIterableIterator<BookNode> {
+    const nodesIter = generateNodesImpl(toAsyncIterator(blocks), footnoteIds, -1);
+    yield* nodesIter;
+}
+
+async function* generateNodesImpl(blocks: AsyncIterator<Block>, footnoteIds: string[], level: number): AsyncIterableIterator<BookNode> {
     let next = await blocks.next();
     const nodes: BookNode[] = [];
     while (!next.done) {
         const value = next.value;
         switch (value.b) {
-            case 'pph':
-                nodes.push(value.p);
+            case 'span':
+                if (!footnoteIds.some(fid => fid === value.footnoteId)) {
+                    nodes.push({
+                        node: 'paragraph',
+                        span: value.span,
+                    });
+                }
                 break;
             case 'title':
-                const children = await toArray(generateNodes(blocks, value.level));
+                const children = await toAsyncArray(generateNodesImpl(blocks, footnoteIds, value.level));
                 const chapter: ChapterNode = {
                     node: 'chapter',
                     title: value.title,
@@ -69,6 +128,7 @@ async function* generateNodes(blocks: AsyncIterator<Block>, level: number): Asyn
                     yield chapter;
                 }
                 break;
+            case 'footnote':
             case 'ignore':
                 break;
             default:
@@ -79,6 +139,23 @@ async function* generateNodes(blocks: AsyncIterator<Block>, level: number): Asyn
     yield* nodes;
 }
 
+function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
+    if (!isDocument(node)) {
+        return undefined;
+    }
+
+    const html = node.children.find(ch => isElement(ch) && ch.name === 'html');
+    if (!html || !isElement(html)) {
+        return undefined;
+    }
+
+    const body = html.children.find(ch => isElement(ch) && ch.name === 'body');
+
+    return body && isElement(body)
+        ? body
+        : undefined;
+}
+
 async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubCollection<Block> {
     yield {
         b: 'title',
@@ -86,39 +163,33 @@ async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubColle
         level: section.level,
     };
 
-    if (isElement(section.content)) {
-        yield* element2blocks(section.content, ds);
+    const body = getBodyElement(section.content);
+    if (!body) {
+        return;
     }
-}
 
-function element2blocks(element: XmlNodeElement, ds: Diagnostics) {
-    return flatten(element
-        .children
-        .map(n => buildBlocks(n, ds))
-    );
-}
+    for (const element of body.children) {
+        if (!isElement(element)) {
+            continue;
+        }
 
-function buildBlocks(node: XmlNode, ds: Diagnostics): Block[] {
-    if (!isElement(node)) {
-        return [{ b: 'ignore' }];
-    }
-    const spans = buildSpans(node.children, ds);
-    if (spans.some(s => isSimple(s))) {
-        return [{
-            b: 'pph' as const,
-            p: {
-                node: 'paragraph' as const,
-                span: compoundSpan(spans),
-            },
-        }];
-    } else {
-        return spans.map(s => ({
-            b: 'pph' as const,
-            p: {
-                node: 'paragraph' as const,
+        const footnoteId = element.attributes.id !== undefined
+            ? `${section.fileName}#${element.attributes.id}`
+            : undefined;
+        const spans = buildSpans(element.children, ds);
+        if (spans.every(s => isCompound(s))) {
+            yield* spans.map(s => ({
+                b: 'span' as const,
                 span: s,
-            },
-        }));
+                footnoteId,
+            }));
+        } else {
+            yield {
+                b: 'span' as const,
+                span: compoundSpan(spans),
+                footnoteId,
+            };
+        }
     }
 }
 
@@ -153,6 +224,19 @@ function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | unde
             // TODO: check attributes
             // TODO: extract semantics
             return compoundSpan(buildSpans(element.children, ds));
+        case 'a':
+            if (element.attributes.href) {
+                // TODO: build actual span
+                const first = element.children[0];
+                const text = isTextNode(first)
+                    ? first.text
+                    : '*';
+                return {
+                    span: 'note',
+                    text,
+                    id: element.attributes.href,
+                };
+            }
         case 'img':
             // TODO: support images
             return undefined;

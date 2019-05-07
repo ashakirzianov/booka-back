@@ -1,6 +1,7 @@
-import { EPub } from 'epub2';
+import { EPub, SYMBOL_RAW_DATA } from 'epub2';
 import { EpubParser, ParsedEpub, EpubSection } from './epubParser';
-import { parsePartialXml } from '../xml';
+import { parsePartialXml, string2tree } from '../xml';
+import { last } from '../utils';
 
 export const epub2Parser: EpubParser = {
     async parseFile(filePath): Promise<ParsedEpub> {
@@ -14,16 +15,17 @@ export const epub2Parser: EpubParser = {
             imageResolver: () => undefined,
             sections: async function*() {
                 for (const el of epub.flow) {
-                    // TODO: report undefined title/href/id ?
                     if (el.id && el.href) {
+                        // TODO: find better solution
+                        const href = last(el.href.split('/'));
                         const chapter = await epub.chapterForId(el.id);
-                        const node = parsePartialXml(chapter);
+                        const node = string2tree(chapter);
                         if (node) {
                             const section: EpubSection = {
                                 id: el.id,
-                                fileName: el.href, // TODO: check
+                                fileName: href, // TODO: check
                                 title: el.title || 'no-title', // TODO: report
-                                content: node, // TODO: implement 'parsePartialXml' ?
+                                content: node,
                                 level: el.level || 0,
                             };
                             yield section;
@@ -51,6 +53,6 @@ class FixedEpub extends EPub {
     }
 
     chapterForId(id: string): Promise<string> {
-        return this.getChapterAsync(id);
+        return this.getChapterRawAsync(id);
     }
 }

@@ -5,7 +5,7 @@ import {
 } from '../xml';
 import { section } from './traumConverter.section';
 import { ParsedEpub, EpubSection, EpubCollection } from './epubParser';
-import { filterUndefined, toArray } from '../utils';
+import { filterUndefined, toAsyncArray } from '../utils';
 import { BookContent, BookNode, ChapterNode, ParagraphNode, Footnote } from '../contracts';
 import { logString } from '../logger';
 
@@ -44,7 +44,7 @@ type Element =
     ;
 
 export async function convertEpub(epub: ParsedEpub): Promise<BookContent> {
-    const elements = await toArray(sections2elements(epub.sections()));
+    const elements = await toAsyncArray(sections2elements(epub.sections()));
 
     const title = buildTitle(elements);
     const content = buildContent(elements);
