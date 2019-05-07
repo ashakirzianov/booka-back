@@ -5,6 +5,7 @@ import {
     Footnote,
     traverseSpans,
     isFootnote,
+    nodeToString,
 } from '../contracts';
 import { isElement, XmlNodeElement, XmlNode, xmlNode2String, isDocument, isTextNode } from '../xml';
 import {
@@ -213,18 +214,20 @@ function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
 function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | undefined {
     switch (element.name) {
         case 'em':
+            diagnoseUnexpectedAttributes(element, ds);
             const emSpan = compoundSpan(buildSpans(element.children, ds));
             return assign('italic')(emSpan);
         case 'strong':
+            diagnoseUnexpectedAttributes(element, ds);
             const strongSpan = compoundSpan(buildSpans(element.children, ds));
             return assign('bold')(strongSpan);
         case 'p':
         case 'div':
         case 'span':
-            // TODO: check attributes
-            // TODO: extract semantics
+            diagnoseUnexpectedAttributes(element, ds, ['class', 'id']);
             return compoundSpan(buildSpans(element.children, ds));
         case 'a':
+            diagnoseUnexpectedAttributes(element, ds, ['class', 'href']);
             if (element.attributes.href) {
                 // TODO: build actual span
                 const first = element.children[0];
@@ -239,9 +242,18 @@ function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | unde
             }
         case 'img':
             // TODO: support images
+            diagnoseUnexpectedAttributes(element, ds, ['src', 'class', 'alt']);
             return undefined;
         default:
             ds.warn(`Unexpected element: '${xmlNode2String(element)}'`);
             return undefined;
+    }
+}
+
+function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, expected: string[] = []) {
+    for (const [attr, value] of Object.entries(element.attributes)) {
+        if (!expected.some(e => e === attr)) {
+            ds.warn(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
+        }
     }
 }
