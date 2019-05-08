@@ -17,7 +17,7 @@ import {
 type SpanBlock = {
     b: 'span',
     span: Span,
-    footnoteId: string | undefined,
+    id: string | undefined,
 };
 
 type TitleBlock = {
@@ -82,15 +82,16 @@ function collectFootnoteIds(blocks: Block[]): string[] {
 
 async function* generateFootnotes(blocks: Block[], footnoteIds: string[]): AsyncIterableIterator<Footnote> {
     for (const block of blocks) {
-        if (block.b === 'span' && block.footnoteId && footnoteIds.some(fid => fid === block.footnoteId)) {
-            yield {
-                id: block.footnoteId,
+        if (block.b === 'span' && block.id && footnoteIds.some(fid => fid === block.id)) {
+            const footnote = {
+                id: block.id,
                 title: undefined, // TODO: build title
                 content: [{
                     node: 'paragraph' as const,
                     span: block.span,
                 }],
             };
+            yield footnote;
         }
     }
 }
@@ -107,7 +108,7 @@ async function* generateNodesImpl(blocks: AsyncIterator<Block>, footnoteIds: str
         const value = next.value;
         switch (value.b) {
             case 'span':
-                if (!footnoteIds.some(fid => fid === value.footnoteId)) {
+                if (!footnoteIds.some(fid => fid === value.id)) {
                     nodes.push({
                         node: 'paragraph',
                         span: value.span,
@@ -174,36 +175,36 @@ async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubColle
             continue;
         }
 
-        const footnoteId = element.attributes.id !== undefined
+        const id = element.attributes.id !== undefined
             ? `${section.fileName}#${element.attributes.id}`
             : undefined;
-        const spans = buildSpans(element.children, ds);
+        const spans = nodes2spans(element.children, ds);
         if (spans.every(s => isCompound(s))) {
             yield* spans.map(s => ({
                 b: 'span' as const,
                 span: s,
-                footnoteId,
+                id,
             }));
         } else {
             yield {
                 b: 'span' as const,
                 span: compoundSpan(spans),
-                footnoteId,
+                id,
             };
         }
     }
 }
 
-function buildSpans(nodes: XmlNode[], ds: Diagnostics): Span[] {
-    return filterUndefined(nodes.map(n => buildSpan(n, ds)));
+function nodes2spans(nodes: XmlNode[], ds: Diagnostics): Span[] {
+    return filterUndefined(nodes.map(n => node2span(n, ds)));
 }
 
-function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
+function node2span(node: XmlNode, ds: Diagnostics): Span | undefined {
     switch (node.type) {
         case 'text':
             return node.text;
         case 'element':
-            const span = buildElementSpan(node, ds);
+            const span = element2span(node, ds);
             return span;
         default:
             ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
@@ -211,25 +212,25 @@ function buildSpan(node: XmlNode, ds: Diagnostics): Span | undefined {
     }
 }
 
-function buildElementSpan(element: XmlNodeElement, ds: Diagnostics): Span | undefined {
+function element2span(element: XmlNodeElement, ds: Diagnostics): Span | undefined {
     switch (element.name) {
         case 'em':
             diagnoseUnexpectedAttributes(element, ds);
-            const emSpan = compoundSpan(buildSpans(element.children, ds));
+            const emSpan = compoundSpan(nodes2spans(element.children, ds));
             return assign('italic')(emSpan);
         case 'strong':
             diagnoseUnexpectedAttributes(element, ds);
-            const strongSpan = compoundSpan(buildSpans(element.children, ds));
+            const strongSpan = compoundSpan(nodes2spans(element.children, ds));
             return assign('bold')(strongSpan);
         case 'p':
         case 'div':
         case 'span':
             diagnoseUnexpectedAttributes(element, ds, ['class', 'id']);
-            return compoundSpan(buildSpans(element.children, ds));
+            return compoundSpan(nodes2spans(element.children, ds));
         case 'a':
             diagnoseUnexpectedAttributes(element, ds, ['class', 'href']);
             if (element.attributes.href) {
-                const footnoteContent = compoundSpan(buildSpans(element.children, ds));
+                const footnoteContent = compoundSpan(nodes2spans(element.children, ds));
                 return {
                     span: 'note',
                     content: footnoteContent,
