@@ -6,7 +6,7 @@ import {
 import { section } from './traumConverter.section';
 import { EpubBook, EpubSection, EpubCollection } from './epubParser';
 import { filterUndefined, toAsyncArray } from '../utils';
-import { BookContent, BookNode, ChapterNode, ParagraphNode, Footnote } from '../contracts';
+import { BookContent, BookNode, ChapterNode, ParagraphNode } from '../contracts';
 import { logString } from '../logger';
 
 type HeaderElement = {
@@ -26,11 +26,6 @@ type TitleElement = {
     title?: string,
 };
 
-type FootnoteElement = {
-    element: 'footnote',
-    footnote: Footnote,
-};
-
 type IgnoreElement = {
     element: 'ignore',
 };
@@ -39,7 +34,6 @@ type Element =
     | HeaderElement
     | ParagraphElement
     | TitleElement
-    | FootnoteElement
     | IgnoreElement
     ;
 
@@ -48,7 +42,6 @@ export async function convertEpub(epub: EpubBook): Promise<BookContent> {
 
     const title = buildTitle(elements);
     const content = buildContent(elements);
-    const footnotes = buildFootnotes(elements);
 
     // TODO: report when no title page
     return {
@@ -58,7 +51,6 @@ export async function convertEpub(epub: EpubBook): Promise<BookContent> {
             author: title && title.author || epub.metadata.author,
         },
         nodes: content,
-        footnotes: footnotes,
     };
 }
 
@@ -129,11 +121,4 @@ const book = translate(
 function buildContent(structures: Element[]): BookNode[] {
     const result = book(structures);
     return result.value;
-}
-
-function buildFootnotes(structures: Element[]): Footnote[] {
-    return structures
-        .filter((e): e is FootnoteElement => e.element === 'footnote')
-        .map(e => e.footnote)
-        ;
 }

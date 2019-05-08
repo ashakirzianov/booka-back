@@ -115,6 +115,7 @@ const footnote = translate(
     ([el, _, text]) => ({
         span: 'note' as 'note',
         content: text,
+        footnote: undefined as any,
         id: extractId(el.attributes.href),
     })
 );
@@ -210,28 +211,10 @@ const noteContent = translate(
     })
 );
 
-const notePage = translate(
-    and(
-        attrs({
-            class: 'section2',
-            id: true,
-        }),
-        children(noteContent),
-    ),
-    ([div, c]) => ([{
-        element: 'footnote' as 'footnote',
-        footnote: {
-            id: div.attributes.id || '',
-            title: c.title,
-            content: c.nodes,
-        },
-    }]),
-);
-
 // ---- Section parser
 
 const topDiv = choice(
-    notePage, chapterPage, titlePage, ignorePage,
+    chapterPage, titlePage, ignorePage,
 );
 const page = topDiv; // path(['html', 'body', 'div'], topDiv);
 

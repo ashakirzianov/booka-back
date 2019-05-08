@@ -13,6 +13,7 @@ export type FootnoteId = string;
 export type FootnoteSpan = {
     span: 'note',
     content: Span,
+    footnote: Span,
     id: FootnoteId,
 };
 export type Span =
@@ -33,12 +34,6 @@ export type ChapterNode = {
 
 export type BookNode = ChapterNode | ParagraphNode;
 
-export type Footnote = {
-    id: FootnoteId,
-    title?: string,
-    content: ParagraphNode[],
-};
-
 export type BookMeta = {
     title: string,
     author?: string,
@@ -47,7 +42,6 @@ export type BookMeta = {
 export type BookContent = {
     meta: BookMeta,
     nodes: BookNode[],
-    footnotes: Footnote[],
 };
 
 // Helpers:

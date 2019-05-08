@@ -44,7 +44,7 @@ export function oneOf<T extends string | undefined>(...opts: T[]) {
 }
 
 export function flatten<T>(arrArr: T[][]): T[] {
-    return arrArr.reduce((acc, arr) => acc.concat(arr));
+    return arrArr.reduce((acc, arr) => acc.concat(arr), []);
 }
 
 // TODO: check why TypeScript type inference doesn't work properly
@@ -71,6 +71,10 @@ export async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) 
 }
 
 export async function* toAsyncIterator<T>(arr: T[]): AsyncIterableIterator<T> {
+    yield* arr;
+}
+
+export function* toIterator<T>(arr: T[]): IterableIterator<T> {
     yield* arr;
 }
 
