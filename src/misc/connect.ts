@@ -2,9 +2,9 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import { buffer2book } from '../epub';
+import { path2book } from '../epub';
 import { countBooks, insertBook, removeAllBooks } from '../db';
-import { logTimeAsync } from '../logger';
+import { logTimeAsync, logString, log } from '../logger';
 import { debugAsync } from '../utils';
 
 const epubLocation = 'public/epub/';
@@ -26,10 +26,17 @@ export async function connectDb() {
 async function seed() {
     const files = await readdir(epubLocation);
 
-    const promises = files.map(async (file) => {
-        const epubFile = await readFile(epubLocation + file);
-        const book = await logTimeAsync(() => buffer2book(epubFile), `Parse: ${file}`);
-        await insertBook(book);
+    const promises = files.map(async (path, idx) => {
+        try {
+            const fullPath = epubLocation + path;
+            const book = await logTimeAsync(() => path2book(fullPath), `Parse: ${path}`);
+            if (!book.diagnostics.isEmpty()) {
+                log(book.diagnostics.toString());
+            }
+            await insertBook(book.value);
+        } catch (e) {
+            logString(`While parsing '${path}' error: ${e}`);
+        }
     });
 
     await Promise.all(promises);

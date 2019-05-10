@@ -24,10 +24,16 @@
         "pphs",
         "preds",
         "promisify",
+        "reparse",
+        "reparser",
+        "reresult",
         "rgrove",
         "slugify",
         "titlepage",
         "traum",
-        "whitespaced"
+        "whitespaced",
+        "xmlns",
+        "xlink",
+        "zipfile"
     ],
 }

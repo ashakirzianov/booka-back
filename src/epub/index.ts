@@ -1,1 +1,1 @@
-export { buffer2book } from './epubConverter';
+export { path2book } from './epubConverter';

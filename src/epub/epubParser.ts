@@ -1,6 +1,27 @@
-import epubParser from '@gxl/epub-parser';
+import { XmlNode } from '../xml';
 
-type PromiseType<T> = T extends Promise<infer U> ? U : any;
-export type Epub = PromiseType<ReturnType<typeof epubParser>>;
-export type Section = Epub['sections'][0];
-export { epubParser };
+type Image = any; // TODO: actual image type
+export type EpubCollection<T> = AsyncIterableIterator<T>;
+
+export type EpubSection = {
+    fileName: string,
+    id: string,
+    title: string,
+    content: XmlNode,
+    level: number,
+};
+
+export type EpubMetadata = {
+    title: string,
+    author?: string,
+};
+
+export type EpubBook = {
+    metadata: EpubMetadata,
+    imageResolver(id: string): Image | undefined,
+    sections(): EpubCollection<EpubSection>,
+};
+
+export type EpubParser = {
+    parseFile: (filePath: string) => Promise<EpubBook>,
+};

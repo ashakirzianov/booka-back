@@ -1,6 +1,6 @@
 import {
     BookContent, BookNode, isChapter, isSimple, isAttributed,
-    AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph, isFootnote,
+    AttributedSpan, Span, AttributeName, ParagraphNode, paragraphNode, isParagraph, isFootnote, isCompound, CompoundSpan, compoundSpan,
 } from '../contracts';
 import { assertNever } from '../utils';
 import { logString } from '../logger';
@@ -42,24 +42,40 @@ function optimizeParagraph(p: ParagraphNode): BookNode {
 
     // Handle case of single string attributed with 'line'
     // (this is same as just a string paragraph)
-    if (isAttributed(optimized)) {
-        if (optimized.spans.length === 1) {
-            if (!optimized.attrs || (optimized.attrs.length === 1 && optimized.attrs[0] === 'line')) {
-                return createParagraph(optimized.spans[0]);
-            }
-        }
+    // if (isAttributed(optimized)) {
+    //     if (optimized.content.length === 1) {
+    //         if (!optimized.attrs || (optimized.attrs.length === 1 && optimized.attrs[0] === 'line')) {
+    //             return createParagraph(optimized.content[0]);
+    //         }
+    //     }
+    // }
+    return paragraphNode(optimized);
+}
+
+function optimizeSpan(span: Span): Span {
+    if (isSimple(span) || isFootnote(span)) {
+        return span;
+    } else if (isAttributed(span)) {
+        const optimizedContent = optimizeSpan(span.content);
+        return {
+            ...span,
+            content: optimizedContent,
+        };
+    } else if (isFootnote(span)) {
+        const content = optimizeSpan(span.content);
+        return {
+            ...span,
+            content,
+        };
+    } else if (isCompound(span)) {
+        return optimizeCompound(span);
+    } else {
+        return assertNever(span);
     }
-    return createParagraph(optimized);
 }
 
-function optimizeSpan(p: Span): Span {
-    return isSimple(p) || isFootnote(p)
-        ? p
-        : optimizeAttributed(p);
-}
-
-function optimizeAttributed(attrP: AttributedSpan): Span {
-    const spans = attrP.spans.reduce((res, curr, idx) => {
+function optimizeCompound(compound: CompoundSpan): Span {
+    const spans = compound.spans.reduce((res, curr, idx) => {
         const optimized = optimizeSpan(curr);
         if (res.length > 0) {
             const prev = res[res.length - 1];
@@ -70,11 +86,10 @@ function optimizeAttributed(attrP: AttributedSpan): Span {
                 }
             } else if (isAttributed(prev)) {
                 if (isAttributed(optimized) && sameAttrs(prev.attrs, optimized.attrs)) {
-                    toReplace = {
-                        ...prev,
-                        spans: prev.spans.concat(optimized.spans),
-                    };
+                    toReplace = compoundSpan([prev.content, optimized.content]);
                 }
+            } else if (isCompound(prev) && isCompound(optimized)) {
+                toReplace = compoundSpan([prev, optimized]);
             }
 
             if (toReplace === undefined) {
@@ -88,14 +103,10 @@ function optimizeAttributed(attrP: AttributedSpan): Span {
         return res;
     }, [] as Span[]);
 
-    const hasAttrs = attrP.attrs && attrP.attrs.length > 0;
-    if (spans.length === 1 && !hasAttrs) {
+    if (spans.length === 1) {
         return spans[0];
     } else {
-        return {
-            ...attrP,
-            spans: spans,
-        };
+        return compoundSpan(spans);
     }
 }
 

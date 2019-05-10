@@ -1,5 +1,6 @@
 import * as parseXmlLib from '@rgrove/parse-xml';
 import { assertNever, isWhitespaces } from '../utils';
+import { log } from '../logger';
 
 export type XmlAttributes = { [key: string]: string | undefined };
 export type XmlNodeBase<T extends string> = { type: T, parent: XmlNodeWithChildren };
@@ -22,6 +23,10 @@ export function hasChildren(node: XmlNode): node is XmlNodeWithChildren {
     return (node.type === 'document' || node.type === 'element') && node.children !== undefined;
 }
 
+export function isTextNode(node: XmlNode): node is XmlNodeText {
+    return node.type === 'text';
+}
+
 export function isElement(node: XmlNode): node is XmlNodeElement {
     return node.type === 'element';
 }
@@ -34,12 +39,20 @@ export function isDocument(node: XmlNode): node is XmlNodeDocument {
     return node.type === 'document';
 }
 
-export function string2tree(xml: string): XmlNodeDocument | undefined {
+export function string2tree(xml: string): XmlNodeWithChildren | undefined {
     try {
-        return parseXmlLib(xml, { preserveComments: true });
+        return parseXmlLib(xml, { preserveComments: false });
     } catch (e) {
         return undefined; // TODO: report parsing errors
     }
+}
+
+export function parsePartialXml(xml: string) {
+    const documentString = `<?xml version="1.0" encoding="UTF-8"?>${xml}`;
+    const document = string2tree(documentString);
+    return document
+        ? document.children[0]
+        : undefined;
 }
 
 export function xmlText(text: string, parent?: XmlNodeWithChildren): XmlNodeText {
@@ -73,7 +86,7 @@ export function attributesToString(attr: XmlAttributes): string {
     return result;
 }
 
-export function nodeToString(n: XmlNode): string {
+export function xmlNode2String(n: XmlNode): string {
     switch (n.type) {
         case 'element':
         case 'document':
@@ -85,7 +98,7 @@ export function nodeToString(n: XmlNode): string {
                 : '';
             const attrsStr = attrs.length > 0 ? ' ' + attrs : '';
             const chs = n.children
-                .map(nodeToString)
+                .map(xmlNode2String)
                 .reduce((all, cur) => all + cur, '');
             return chs.length > 0
                 ? `<${name}${attrsStr}>${chs}</${name}>`

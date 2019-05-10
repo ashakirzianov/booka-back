@@ -1,3 +1,8 @@
+export function log(obj: any) {
+    // tslint:disable-next-line:no-console
+    console.log(obj);
+}
+
 export function logString(str: string) {
     // tslint:disable-next-line:no-console
     console.log(str);

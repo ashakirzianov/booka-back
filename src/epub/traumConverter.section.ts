@@ -1,12 +1,12 @@
 import {
     some, whitespaced, translate,
     oneOrMore, textNode, path, and, elementNode, children,
-    choice, nodeToString, XmlNode, declare,
+    choice, xmlNode2String, XmlNode, declare,
     nameChildren, name, expected, unexpected,
     attrs, projectLast, end, seq,
 } from '../xml';
-import { filterUndefined, oneOf } from '../utils';
-import { Span, assign, createParagraph, compoundSpan } from '../contracts';
+import { filterUndefined, oneOf, compose } from '../utils';
+import { Span, assign, paragraphNode, compoundSpan } from '../contracts';
 
 // ---- Common
 
@@ -24,7 +24,7 @@ const headerTag = elementNode(n => {
 const h2 = nameChildren('h2', textNode());
 
 const skipOneNode = unexpected<XmlNode[]>(n =>
-    `Unexpected node: ${(n[0] && nodeToString(n[0]))}`
+    `Unexpected node: ${(n[0] && xmlNode2String(n[0]))}`
 );
 
 // ---- Title page
@@ -93,7 +93,7 @@ const span = declare<XmlNode[], Span>();
 const plainText = textNode();
 const emphasis = translate(
     nameChildren('em', some(span)),
-    assign('italic'),
+    compose(compoundSpan, assign('italic')),
 );
 
 function extractId(href: string | undefined): string {
@@ -114,7 +114,8 @@ const footnote = translate(
     ),
     ([el, _, text]) => ({
         span: 'note' as 'note',
-        text: text,
+        content: text,
+        footnote: undefined as any,
         id: extractId(el.attributes.href),
     })
 );
@@ -127,7 +128,7 @@ const pParagraph = translate(
         children(some(span))
     ),
     ([el, _, spans]) => el.name === 'p' && el.attributes.class === 'v'
-        ? assign('line')(spans)
+        ? assign('line')(compoundSpan(spans))
         : compoundSpan(spans),
 );
 
@@ -143,7 +144,7 @@ const divParagraph = translate(
     ),
     ([{ attributes }, _, p]) =>
         isDecoration(attributes.class)
-            ? assign(attributes.class)(p)
+            ? assign(attributes.class)(compoundSpan(p))
             : compoundSpan(p)
 );
 
@@ -153,7 +154,7 @@ const pOptions = choice(
 
 span.implementation = pOptions;
 
-const paragraph = translate(span, createParagraph);
+const paragraph = translate(span, paragraphNode);
 
 const paragraphElement = translate(paragraph, p => ({
     element: 'paragraph' as 'paragraph',
@@ -210,34 +211,16 @@ const noteContent = translate(
     })
 );
 
-const notePage = translate(
-    and(
-        attrs({
-            class: 'section2',
-            id: true,
-        }),
-        children(noteContent),
-    ),
-    ([div, c]) => ([{
-        element: 'footnote' as 'footnote',
-        footnote: {
-            id: div.attributes.id || '',
-            title: c.title,
-            content: c.nodes,
-        },
-    }]),
-);
-
 // ---- Section parser
 
 const topDiv = choice(
-    notePage, chapterPage, titlePage, ignorePage,
+    chapterPage, titlePage, ignorePage,
 );
-const page = path(['html', 'body', 'div'], topDiv);
+const page = topDiv; // path(['html', 'body', 'div'], topDiv);
 
 const unexpectedSection = translate(
     unexpected<XmlNode[]>(ns =>
-        `Unexpected section: ${ns.map(nodeToString).join(' ')}`),
+        `Unexpected section: ${ns.map(xmlNode2String).join(' ')}`),
     () => [{ element: 'ignore' as 'ignore' }],
 );
 export const section = choice(
