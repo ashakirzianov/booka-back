@@ -76,18 +76,21 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
             // TODO: check expected attributes
             switch (node.name) {
                 case 'em':
+                    diagnoseUnexpectedAttributes(node, ds);
                     return {
                         block: 'attrs',
                         attr: 'italic',
                         content: buildContainerBlock(node.children, filePath, ds),
                     };
                 case 'strong':
+                    diagnoseUnexpectedAttributes(node, ds);
                     return {
                         block: 'attrs',
                         attr: 'bold',
                         content: buildContainerBlock(node.children, filePath, ds),
                     };
                 case 'a':
+                    diagnoseUnexpectedAttributes(node, ds, ['href', 'class']);
                     if (node.attributes.href !== undefined) {
                         return {
                             block: 'footnote',

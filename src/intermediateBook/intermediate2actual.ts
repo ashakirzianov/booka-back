@@ -7,6 +7,7 @@ import {
     flatten, Diagnostics, filterUndefined,
     assertNever, toIterator, toArray,
 } from '../utils';
+import { deepStrictEqual } from 'assert';
 
 export function intermediate2actual(intermediate: IntermediateBook, ds: Diagnostics): BookNode[] {
     const footnoteIds = flatten(intermediate.map(collectFootnoteIds));
@@ -100,6 +101,7 @@ function* generateNodesImpl(blocks: Iterator<Block>, env: Env, level: number): I
             case 'ignore':
                 break;
             default:
+                env.ds.warn(`Unexpected block: '${block2string(block)}'`);
                 assertNever(block); // TODO: report ?
                 break;
         }
@@ -127,9 +129,12 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
             return block.text;
         case 'attrs':
             const attrSpan = spanFromBlock(block.content, env);
-            return attrSpan !== undefined
-                ? assign(block.attr)(attrSpan)
-                : undefined; // TODO: report ?
+            if (attrSpan !== undefined) {
+                return assign(block.attr)(attrSpan);
+            } else {
+                env.ds.warn(`Couldn't build span: '${block.content}'`);
+                return undefined;
+            }
         case 'footnote':
             const footnoteContainer = env.footnotes.find(f => f.id === block.id);
             if (footnoteContainer) {
