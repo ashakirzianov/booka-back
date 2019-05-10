@@ -10,7 +10,7 @@ export const AsyncIter = {
     flatten: flattenAsyncIterator,
 };
 
-export async function* flattenAsyncIterator<T>(iterIter: AsyncIterableIterator<AsyncIterableIterator<T>>): AsyncIterableIterator<T> {
+async function* flattenAsyncIterator<T>(iterIter: AsyncIterableIterator<AsyncIterableIterator<T>>): AsyncIterableIterator<T> {
     let nextCollection = await iterIter.next();
     while (!nextCollection.done) {
         let nextItem = await nextCollection.value.next();
@@ -22,7 +22,7 @@ export async function* flattenAsyncIterator<T>(iterIter: AsyncIterableIterator<A
     }
 }
 
-export async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) => U): AsyncIterableIterator<U> {
+async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) => U): AsyncIterableIterator<U> {
     let next = await iter.next();
     while (!next.done) {
         const value = f(next.value);
@@ -31,7 +31,7 @@ export async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) 
     }
 }
 
-export async function* filterAsyncIter<T>(iter: AsyncIterType<T>, f: (x: T) => boolean): AsyncIterType<T> {
+async function* filterAsyncIter<T>(iter: AsyncIterType<T>, f: (x: T) => boolean): AsyncIterType<T> {
     for await (const i of iter) {
         if (f(i)) {
             yield i;
@@ -39,11 +39,11 @@ export async function* filterAsyncIter<T>(iter: AsyncIterType<T>, f: (x: T) => b
     }
 }
 
-export async function* toAsyncIterator<T>(arr: T[]): AsyncIterableIterator<T> {
+async function* toAsyncIterator<T>(arr: T[]): AsyncIterableIterator<T> {
     yield* arr;
 }
 
-export async function toAsyncArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
+async function toAsyncArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
     const result: T[] = [];
     let next = await asyncIter.next();
     while (!next.done) {

@@ -5,16 +5,15 @@ import {
     xmlNode2String, isDocument,
 } from '../xml';
 import {
-    toAsyncArray, flattenAsyncIterator, mapAsyncIterator,
-    Diagnostics, Diagnosed, assignDiagnostics,
+    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter,
 } from '../utils';
 import { Block, ContainerBlock, intermediate2actual } from '../intermediateBook';
 
 export async function convertEpub(epub: EpubBook): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
-    const intermediate = await toAsyncArray(
-        flattenAsyncIterator(
-            mapAsyncIterator(epub.sections(), s => section2blocks(s, ds))
+    const intermediate = await AsyncIter.toArray(
+        AsyncIter.flatten(
+            AsyncIter.map(epub.sections(), s => section2blocks(s, ds))
         )
     );
     const nodes = intermediate2actual(intermediate, ds);
