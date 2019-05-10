@@ -1,18 +1,18 @@
-import { IntermediateBook, Block, ContainerBlock } from './model';
+import { IntermediateBook, Block, ContainerBlock, TitleBlock } from './model';
 import {
     BookNode, compoundSpan, Span,
     assign, ChapterNode,
 } from '../contracts';
 import {
     flatten, Diagnostics, filterUndefined,
-    assertNever, toIterator, toArray,
+    assertNever,
+    Iter,
 } from '../utils';
-import { deepStrictEqual } from 'assert';
 
 export function intermediate2actual(intermediate: IntermediateBook, ds: Diagnostics): BookNode[] {
     const footnoteIds = flatten(intermediate.map(collectFootnoteIds));
     const { rest, footnotes } = separateFootnoteContainers(intermediate, footnoteIds);
-    const nodes = toArray(generateNodes(rest, { ds, footnotes }));
+    const nodes = Iter.toArray(generateNodes(rest, { ds, footnotes }));
 
     return nodes;
 }
@@ -57,11 +57,13 @@ type Env = {
 };
 
 function* generateNodes(blocks: Block[], env: Env): IterableIterator<BookNode> {
-    const nodesIter = generateNodesImpl(toIterator(blocks), env, -1);
+    const iter = Iter.toIterator(blocks);
+    const afterPromoteTitles = promoteTitles(iter);
+    const nodesIter = buildNodesStructure(afterPromoteTitles, env, -1);
     yield* nodesIter;
 }
 
-function* generateNodesImpl(blocks: Iterator<Block>, env: Env, level: number): IterableIterator<BookNode> {
+function* buildNodesStructure(blocks: Iterator<Block>, env: Env, level: number): IterableIterator<BookNode> {
     let next = blocks.next();
     const nodes: BookNode[] = [];
     while (!next.done) {
@@ -77,14 +79,14 @@ function* generateNodesImpl(blocks: Iterator<Block>, env: Env, level: number): I
                         span: span,
                     });
                 } else {
-                    env.ds.warn(`Couldn't build span from block: ${block2string(block)}`);
+                    env.ds.warn(`----Couldn't build span from block: ${block2string(block)}`);
                 }
                 break;
             case 'container':
                 yield* buildNodesFromContainer(block, env);
                 break;
             case 'title':
-                const children = toArray(generateNodesImpl(blocks, env, block.level));
+                const children = Iter.toArray(buildNodesStructure(blocks, env, block.level));
                 const chapter: ChapterNode = {
                     node: 'chapter',
                     title: block.title,
@@ -110,16 +112,49 @@ function* generateNodesImpl(blocks: Iterator<Block>, env: Env, level: number): I
     yield* nodes;
 }
 
-function buildNodesFromContainer(container: ContainerBlock, env: Env): BookNode[] {
-    if (container.content.every(c => c.block === 'container')) {
-        return flatten(container.content.map(c => buildNodesFromContainer(c as ContainerBlock, env)));
-    } else {
-        const spans = filterUndefined(container.content
-            .map(c => spanFromBlock(c, env)));
-        return [{
+function* promoteTitles(blocks: IterableIterator<Block>): IterableIterator<Block> {
+    for (const block of blocks) {
+        if (block.block === 'container') {
+            const titles = block.content.filter(
+                (b): b is TitleBlock => b.block === 'title');
+            const notTitles = block.content.filter(
+                b => b.block !== 'title');
+            if (notTitles.length !== 0) {
+                yield {
+                    ...block,
+                    content: notTitles,
+                };
+            }
+            yield* titles;
+        } else {
+            yield block;
+        }
+    }
+}
+
+function* buildNodesFromContainer(container: ContainerBlock, env: Env): IterableIterator<BookNode> {
+    const spans: Span[] = [];
+    for (const b of container.content) {
+        switch (b.block) {
+            case 'container':
+                yield* buildNodesFromContainer(b, env);
+                break;
+            case 'ignore':
+                break;
+            default:
+                const span = spanFromBlock(b, env);
+                if (span !== undefined) {
+                    spans.push(span);
+                }
+                break;
+        }
+    }
+
+    if (spans.length !== 0) {
+        yield {
             node: 'paragraph',
             span: compoundSpan(spans),
-        }];
+        };
     }
 }
 
@@ -155,6 +190,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     footnote,
                 };
             } else {
+                // TODO: put warning back
                 // env.ds.warn(`Could not resolve footnote reference: ${block.id}`);
                 return undefined;
             }
