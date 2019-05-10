@@ -47,59 +47,6 @@ export function flatten<T>(arrArr: T[][]): T[] {
     return arrArr.reduce((acc, arr) => acc.concat(arr), []);
 }
 
-// TODO: check why TypeScript type inference doesn't work properly
-// if we use AsyncIterator<AsyncIterator<T>>
-export async function* flattenAsyncIterator<T>(iterIter: AsyncIterableIterator<AsyncIterableIterator<T>>): AsyncIterableIterator<T> {
-    let nextCollection = await iterIter.next();
-    while (!nextCollection.done) {
-        let nextItem = await nextCollection.value.next();
-        while (!nextItem.done) {
-            yield nextItem.value;
-            nextItem = await nextCollection.value.next();
-        }
-        nextCollection = await iterIter.next();
-    }
-}
-
-export async function* mapAsyncIterator<T, U>(iter: AsyncIterator<T>, f: (x: T) => U): AsyncIterableIterator<U> {
-    let next = await iter.next();
-    while (!next.done) {
-        const value = f(next.value);
-        yield value;
-        next = await iter.next();
-    }
-}
-
-export async function* toAsyncIterator<T>(arr: T[]): AsyncIterableIterator<T> {
-    yield* arr;
-}
-
-export function* toIterator<T>(arr: T[]): IterableIterator<T> {
-    yield* arr;
-}
-
-export async function toAsyncArray<T>(asyncIter: AsyncIterator<T>): Promise<T[]> {
-    const result: T[] = [];
-    let next = await asyncIter.next();
-    while (!next.done) {
-        result.push(next.value);
-        next = await asyncIter.next();
-    }
-
-    return result;
-}
-
-export function toArray<T>(iter: Iterator<T>): T[] {
-    const result: T[] = [];
-    let next = iter.next();
-    while (!next.done) {
-        result.push(next.value);
-        next = iter.next();
-    }
-
-    return result;
-}
-
 export function compose<T, U, V>(f: (x: T) => U, g: (x: U) => V): (x: T) => V {
     return x => g(f(x));
 }
