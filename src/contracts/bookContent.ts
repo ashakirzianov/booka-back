@@ -88,7 +88,7 @@ export function compoundSpan(spans: Span[]): Span {
     return { span: 'compound', spans };
 }
 
-export function createParagraph(span: Span): ParagraphNode {
+export function paragraphNode(span: Span): ParagraphNode {
     return {
         node: 'paragraph',
         span,

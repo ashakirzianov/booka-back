@@ -155,7 +155,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     footnote,
                 };
             } else {
-                env.ds.warn(`Could not resolve footnote reference: ${block.id}`);
+                // env.ds.warn(`Could not resolve footnote reference: ${block.id}`);
                 return undefined;
             }
         case 'container':

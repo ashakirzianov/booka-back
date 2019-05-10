@@ -6,7 +6,7 @@ import {
     attrs, projectLast, end, seq,
 } from '../xml';
 import { filterUndefined, oneOf, compose } from '../utils';
-import { Span, assign, createParagraph, compoundSpan } from '../contracts';
+import { Span, assign, paragraphNode, compoundSpan } from '../contracts';
 
 // ---- Common
 
@@ -154,7 +154,7 @@ const pOptions = choice(
 
 span.implementation = pOptions;
 
-const paragraph = translate(span, createParagraph);
+const paragraph = translate(span, paragraphNode);
 
 const paragraphElement = translate(paragraph, p => ({
     element: 'paragraph' as 'paragraph',

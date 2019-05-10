@@ -90,7 +90,11 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                         content: buildContainerBlock(node.children, filePath, ds),
                     };
                 case 'a':
-                    diagnoseUnexpectedAttributes(node, ds, ['href', 'class']);
+                    diagnoseUnexpectedAttributes(node, ds, [
+                        'href',
+                        'class', 'id',
+                        'title',
+                    ]);
                     if (node.attributes.href !== undefined) {
                         return {
                             block: 'footnote',
@@ -118,6 +122,22 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                         'height', 'width', 'viewBox',
                         'xmlns', 'xlink:href', 'xmlns:xlink', // TODO: check what is that
                     ]);
+                    return { block: 'ignore' };
+                case 'h1': case 'h2': case 'h3':
+                case 'h4': case 'h5': case 'h6':
+                    // TODO: implement title parsing
+                    diagnoseUnexpectedAttributes(node, ds, ['class']);
+                    return { block: 'ignore' };
+                case 'sup': case 'sub':
+                    // TODO: implement superscript & subscript parsing
+                    diagnoseUnexpectedAttributes(node, ds);
+                    return { block: 'ignore' };
+                case 'ul': case 'li':
+                    diagnoseUnexpectedAttributes(node, ds);
+                    // TODO: handle lists
+                    return { block: 'ignore' };
+                case 'br':
+                    diagnoseUnexpectedAttributes(node, ds);
                     return { block: 'ignore' };
                 default:
                     ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);

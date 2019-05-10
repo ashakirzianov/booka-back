@@ -1,6 +1,6 @@
 import {
     BookContent, BookNode, isChapter, isSimple, isAttributed,
-    AttributedSpan, Span, AttributeName, ParagraphNode, createParagraph, isParagraph, isFootnote, isCompound, CompoundSpan, compoundSpan,
+    AttributedSpan, Span, AttributeName, ParagraphNode, paragraphNode, isParagraph, isFootnote, isCompound, CompoundSpan, compoundSpan,
 } from '../contracts';
 import { assertNever } from '../utils';
 import { logString } from '../logger';
@@ -49,7 +49,7 @@ function optimizeParagraph(p: ParagraphNode): BookNode {
     //         }
     //     }
     // }
-    return createParagraph(optimized);
+    return paragraphNode(optimized);
 }
 
 function optimizeSpan(span: Span): Span {
