@@ -123,13 +123,13 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                     diagnoseUnexpectedAttributes(node, ds, ['class']);
                     const level = parseInt(node.name[1], 10);
                     const title = extractTitle(node.children, ds);
-                    return title === undefined
-                        ? { block: 'ignore' }
-                        : {
+                    return title
+                        ? {
                             block: 'title',
                             title: title,
                             level: level,
-                        };
+                        }
+                        : { block: 'ignore' };
                 case 'sup': case 'sub':
                     // TODO: implement superscript & subscript parsing
                     diagnoseUnexpectedAttributes(node, ds);
@@ -162,16 +162,33 @@ function buildContainerBlock(nodes: XmlNode[], filePath: string, ds: Diagnostics
     };
 }
 
-function extractTitle(nodes: XmlNode[], ds: Diagnostics): string | undefined {
-    if (nodes.length === 1) {
-        const child = nodes[0];
-        if (isTextNode(child)) {
-            return child.text;
+function extractTitle(nodes: XmlNode[], ds: Diagnostics): string {
+    let title = '';
+    for (const node of nodes) {
+        switch (node.type) {
+            case 'text':
+                title += node.text;
+                break;
+            case 'element':
+                switch (node.name) {
+                    case 'em': case 'strong':
+                        title += extractTitle(node.children, ds);
+                        break;
+                    default:
+                        ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                        break;
+                }
+                break;
+            default:
+                ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                break;
         }
     }
 
-    ds.warn(`Could not extract title from nodes: '${nodes.map(xmlNode2String)}'`);
-    return undefined;
+    if (!title) {
+        ds.warn(`Couldn't extract title from nodes: '${nodes.map(xmlNode2String)}'`);
+    }
+    return title;
 }
 
 function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, expected: string[] = []) {
