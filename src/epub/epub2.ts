@@ -1,43 +1,44 @@
 import { EPub } from 'epub2';
 import { EpubParser, EpubBook, EpubSection, EpubSource, EpubSourceResolver, resolveEpubSource } from './epubParser';
-import { string2tree } from '../xml';
+import { XmlNodeDocument } from '../xml';
 import { last } from '../utils';
 
-export const epub2Parser: EpubParser = {
-    async parseFile(filePath): Promise<EpubBook> {
-        const epub = await FixedEpub.createAsync(filePath) as FixedEpub;
+export function createEpubParser(xmlParser: (text: string) => (XmlNodeDocument | undefined)): EpubParser {
+    return {
+        async parseFile(filePath): Promise<EpubBook> {
+            const epub = await FixedEpub.createAsync(filePath) as FixedEpub;
 
-        const source = identifySource(epub);
-        console.log(`Name: ${epub.metadata.title}, source: ${source}`);
+            const source = identifySource(epub);
 
-        return {
-            source,
-            metadata: {
-                title: epub.metadata.title,
-                author: epub.metadata.creator,
-            },
-            imageResolver: () => undefined,
-            sections: async function*() {
-                for (const el of epub.flow) {
-                    if (el.id && el.href) {
-                        // TODO: find better solution
-                        const href = last(el.href.split('/'));
-                        const chapter = await epub.chapterForId(el.id);
-                        const node = string2tree(chapter);
-                        if (node) {
-                            const section: EpubSection = {
-                                id: el.id,
-                                fileName: href,
-                                content: node,
-                            };
-                            yield section;
+            return {
+                source,
+                metadata: {
+                    title: epub.metadata.title,
+                    author: epub.metadata.creator,
+                },
+                imageResolver: () => undefined,
+                sections: async function*() {
+                    for (const el of epub.flow) {
+                        if (el.id && el.href) {
+                            // TODO: find better solution
+                            const href = last(el.href.split('/'));
+                            const chapter = await epub.chapterForId(el.id);
+                            const node = xmlParser(chapter);
+                            if (node) {
+                                const section: EpubSection = {
+                                    id: el.id,
+                                    fileName: href,
+                                    content: node,
+                                };
+                                yield section;
+                            }
                         }
                     }
-                }
-            },
-        };
-    },
-};
+                },
+            };
+        },
+    };
+}
 
 class FixedEpub extends EPub {
     static libPromise = Promise;

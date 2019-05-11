@@ -39,7 +39,7 @@ export function isDocument(node: XmlNode): node is XmlNodeDocument {
     return node.type === 'document';
 }
 
-export function string2tree(xml: string): XmlNodeWithChildren | undefined {
+export function string2tree(xml: string): XmlNodeDocument | undefined {
     try {
         return parseXmlLib(xml, { preserveComments: false });
     } catch (e) {
