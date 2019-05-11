@@ -8,12 +8,22 @@ import {
     Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces,
 } from '../utils';
 import { Block, ContainerBlock, intermediate2actual } from '../intermediateBook';
+import { EpubConverterParameters, EpubConverter, EpubConverterHooks, EpubConverterHook } from './epubConverter';
 
-export async function convertEpub(epub: EpubBook): Promise<Diagnosed<BookContent>> {
+export function createConverter(params: EpubConverterParameters): EpubConverter {
+    return {
+        convertEpub: epub => convertEpub(epub, params),
+    };
+}
+
+async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
+    const hooks: EpubConverterHooks = params.hooks[epub.source] || {
+        nodeLevel: [],
+    };
     const intermediate = await AsyncIter.toArray(
         AsyncIter.flatten(
-            AsyncIter.map(epub.sections(), s => section2blocks(s, ds))
+            AsyncIter.map(epub.sections(), s => section2blocks(s, { ds, hooks }))
         )
     );
     const nodes = intermediate2actual(intermediate, ds);
@@ -47,16 +57,37 @@ function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
         : undefined;
 }
 
-async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubCollection<Block> {
+type Env = {
+    ds: Diagnostics,
+    hooks: EpubConverterHooks,
+};
+
+async function* section2blocks(section: EpubSection, env: Env): EpubCollection<Block> {
     const body = getBodyElement(section.content);
     if (!body) {
         return;
     }
 
     for (const node of body.children) {
-        const result = buildBlock(node, section.fileName, ds);
-        yield result;
+        const hooked = applyNodeHooks(node, env.hooks.nodeLevel);
+        if (hooked) {
+            yield* hooked;
+        } else {
+            const result = buildBlock(node, section.fileName, env.ds);
+            yield result;
+        }
     }
+}
+
+function applyNodeHooks(node: XmlNode, hooks: EpubConverterHook[]): Block[] | undefined {
+    for (const hook of hooks) {
+        const hooked = hook(node);
+        if (hooked) {
+            return hooked;
+        }
+    }
+
+    return undefined;
 }
 
 function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
