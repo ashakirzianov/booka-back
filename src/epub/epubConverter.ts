@@ -9,26 +9,26 @@ export type EpubConverter = {
 };
 
 export type EpubConverterParameters = {
-    hooks: {
-        [key in EpubSource]?: EpubConverterHooks;
-    },
+    hooks: EpubConverterHooksTable,
+};
+
+export type EpubConverterHooksTable = {
+    [key in EpubSource]: EpubConverterHooks;
 };
 
 export type EpubConverterHooks = {
     nodeLevel: EpubConverterHook[],
 };
 
-export type EpubConverterHook = (node: XmlNode) => Block[];
+export type EpubConverterHook = (node: XmlNode) => (Block | undefined);
 
-export function element2block(hook: (el: XmlNodeElement) => (Block | undefined)) {
+export function element2block(hook: (el: XmlNodeElement) => (Block | undefined)): EpubConverterHook {
     return node => {
         if (!isElement(node)) {
             return undefined;
         }
 
         const result = hook(node);
-        return result
-            ? [result]
-            : undefined;
+        return result;
     };
 }

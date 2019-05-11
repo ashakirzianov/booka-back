@@ -9,7 +9,6 @@ export function createEpubParser(xmlParser: (text: string) => (XmlNodeDocument |
             const epub = await FixedEpub.createAsync(filePath) as FixedEpub;
 
             const source = identifySource(epub);
-
             return {
                 source,
                 metadata: {
@@ -82,9 +81,9 @@ const sourceResolver: EpubSourceResolver<EPub> = {
 
         return fb2epub !== undefined;
     },
-    FictionBookEditor: epub => {
+    fictionBookEditor: epub => {
         const marker = epub.metadata['FB2.document-info.program-used'];
-        return marker !== undefined;
+        return marker !== undefined && marker.startsWith('FictionBook Editor');
     },
 };
 

@@ -14,7 +14,7 @@ export type EpubMetadata = {
     author?: string,
 };
 
-export type EpubSource = 'fb2epub' | 'FictionBookEditor' | 'unknown';
+export type EpubSource = 'fb2epub' | 'fictionBookEditor' | 'unknown';
 export type EpubSourceResolver<EpubType> = {
     [key in Exclude<EpubSource, 'unknown'>]: (epub: EpubType) => boolean;
 };

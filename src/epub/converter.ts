@@ -18,9 +18,7 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
 
 async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
-    const hooks: EpubConverterHooks = params.hooks[epub.source] || {
-        nodeLevel: [],
-    };
+    const hooks = params.hooks[epub.source];
     const intermediate = await AsyncIter.toArray(
         AsyncIter.flatten(
             AsyncIter.map(epub.sections(), s => section2blocks(s, { ds, hooks }))
@@ -69,17 +67,12 @@ async function* section2blocks(section: EpubSection, env: Env): EpubCollection<B
     }
 
     for (const node of body.children) {
-        const hooked = applyNodeHooks(node, env.hooks.nodeLevel);
-        if (hooked) {
-            yield* hooked;
-        } else {
-            const result = buildBlock(node, section.fileName, env.ds);
-            yield result;
-        }
+        const result = buildBlock(node, section.fileName, env);
+        yield result;
     }
 }
 
-function applyNodeHooks(node: XmlNode, hooks: EpubConverterHook[]): Block[] | undefined {
+function applyNodeHooks(node: XmlNode, hooks: EpubConverterHook[]): Block | undefined {
     for (const hook of hooks) {
         const hooked = hook(node);
         if (hooked) {
@@ -90,7 +83,12 @@ function applyNodeHooks(node: XmlNode, hooks: EpubConverterHook[]): Block[] | un
     return undefined;
 }
 
-function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
+function buildBlock(node: XmlNode, filePath: string, env: Env): Block {
+    const hooked = applyNodeHooks(node, env.hooks.nodeLevel);
+    if (hooked) {
+        return hooked;
+    }
+
     switch (node.type) {
         case 'text':
             // TODO: rethink ?
@@ -103,21 +101,21 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
         case 'element':
             switch (node.name) {
                 case 'em':
-                    diagnoseUnexpectedAttributes(node, ds);
+                    diagnoseUnexpectedAttributes(node, env.ds);
                     return {
                         block: 'attrs',
                         attr: 'italic',
-                        content: buildContainerBlock(node.children, filePath, ds),
+                        content: buildContainerBlock(node.children, filePath, env),
                     };
                 case 'strong':
-                    diagnoseUnexpectedAttributes(node, ds);
+                    diagnoseUnexpectedAttributes(node, env.ds);
                     return {
                         block: 'attrs',
                         attr: 'bold',
-                        content: buildContainerBlock(node.children, filePath, ds),
+                        content: buildContainerBlock(node.children, filePath, env),
                     };
                 case 'a':
-                    diagnoseUnexpectedAttributes(node, ds, [
+                    diagnoseUnexpectedAttributes(node, env.ds, [
                         'href',
                         'class', 'id',
                         'title',
@@ -126,25 +124,25 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                         return {
                             block: 'footnote',
                             id: node.attributes.href,
-                            content: buildContainerBlock(node.children, filePath, ds),
+                            content: buildContainerBlock(node.children, filePath, env),
                         };
                     } else {
-                        ds.warn(`Link should have ref: '${xmlNode2String(node)}'`);
+                        env.ds.warn(`Link should have ref: '${xmlNode2String(node)}'`);
                         return { block: 'ignore' };
                     }
                 case 'p':
                 case 'span':
                 case 'div':
-                    diagnoseUnexpectedAttributes(node, ds, ['class', 'id']);
+                    diagnoseUnexpectedAttributes(node, env.ds, ['class', 'id']);
                     return {
-                        ...buildContainerBlock(node.children, filePath, ds),
+                        ...buildContainerBlock(node.children, filePath, env),
                         id: node.attributes.id && `${filePath}#${node.attributes.id}`,
                     };
                 case 'img':
                 case 'image':
                 case 'svg':
                     // TODO: support images
-                    diagnoseUnexpectedAttributes(node, ds, [
+                    diagnoseUnexpectedAttributes(node, env.ds, [
                         'src', 'class', 'alt',
                         'height', 'width', 'viewBox',
                         'xmlns', 'xlink:href', 'xmlns:xlink', // TODO: check what is that
@@ -152,9 +150,9 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                     return { block: 'ignore' };
                 case 'h1': case 'h2': case 'h3':
                 case 'h4': case 'h5': case 'h6':
-                    diagnoseUnexpectedAttributes(node, ds, ['class']);
+                    diagnoseUnexpectedAttributes(node, env.ds, ['class']);
                     const level = parseInt(node.name[1], 10);
-                    const title = extractTitle(node.children, ds);
+                    const title = extractTitle(node.children, env.ds);
                     return title
                         ? {
                             block: 'title',
@@ -164,28 +162,28 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                         : { block: 'ignore' };
                 case 'sup': case 'sub':
                     // TODO: implement superscript & subscript parsing
-                    diagnoseUnexpectedAttributes(node, ds);
+                    diagnoseUnexpectedAttributes(node, env.ds);
                     return { block: 'ignore' };
                 case 'ul': case 'li':
-                    diagnoseUnexpectedAttributes(node, ds);
+                    diagnoseUnexpectedAttributes(node, env.ds);
                     // TODO: handle lists
                     return { block: 'ignore' };
                 case 'br':
-                    diagnoseUnexpectedAttributes(node, ds);
+                    diagnoseUnexpectedAttributes(node, env.ds);
                     return { block: 'ignore' };
                 default:
-                    ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
+                    env.ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
                     return { block: 'ignore' };
             }
         default:
-            ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
+            env.ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
             return { block: 'ignore' };
     }
 }
 
-function buildContainerBlock(nodes: XmlNode[], filePath: string, ds: Diagnostics): ContainerBlock {
+function buildContainerBlock(nodes: XmlNode[], filePath: string, env: Env): ContainerBlock {
     const content = nodes
-        .map(ch => buildBlock(ch, filePath, ds));
+        .map(ch => buildBlock(ch, filePath, env));
 
     return {
         block: 'container',
