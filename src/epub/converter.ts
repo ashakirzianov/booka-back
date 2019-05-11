@@ -2,10 +2,10 @@ import { EpubBook, EpubSection, EpubCollection } from './epubParser';
 import { BookContent } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
-    xmlNode2String, isDocument,
+    xmlNode2String, isDocument, isTextNode,
 } from '../xml';
 import {
-    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter,
+    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces,
 } from '../utils';
 import { Block, ContainerBlock, intermediate2actual } from '../intermediateBook';
 
@@ -47,12 +47,6 @@ function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
 }
 
 async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubCollection<Block> {
-    yield {
-        block: 'title',
-        title: section.title,
-        level: section.level,
-    };
-
     const body = getBodyElement(section.content);
     if (!body) {
         return;
@@ -67,12 +61,14 @@ async function* section2blocks(section: EpubSection, ds: Diagnostics): EpubColle
 function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
     switch (node.type) {
         case 'text':
-            return {
-                block: 'text',
-                text: node.text,
-            };
+            // TODO: rethink ?
+            return isWhitespaces(node.text)
+                ? { block: 'ignore' }
+                : {
+                    block: 'text',
+                    text: node.text,
+                };
         case 'element':
-            // TODO: check expected attributes
             switch (node.name) {
                 case 'em':
                     diagnoseUnexpectedAttributes(node, ds);
@@ -110,7 +106,7 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                     diagnoseUnexpectedAttributes(node, ds, ['class', 'id']);
                     return {
                         ...buildContainerBlock(node.children, filePath, ds),
-                        id: `${filePath}#${node.attributes.id}`,
+                        id: node.attributes.id && `${filePath}#${node.attributes.id}`,
                     };
                 case 'img':
                 case 'image':
@@ -124,9 +120,16 @@ function buildBlock(node: XmlNode, filePath: string, ds: Diagnostics): Block {
                     return { block: 'ignore' };
                 case 'h1': case 'h2': case 'h3':
                 case 'h4': case 'h5': case 'h6':
-                    // TODO: implement title parsing
                     diagnoseUnexpectedAttributes(node, ds, ['class']);
-                    return { block: 'ignore' };
+                    const level = parseInt(node.name[1], 10);
+                    const title = extractTitle(node.children, ds);
+                    return title === undefined
+                        ? { block: 'ignore' }
+                        : {
+                            block: 'title',
+                            title: title,
+                            level: level,
+                        };
                 case 'sup': case 'sub':
                     // TODO: implement superscript & subscript parsing
                     diagnoseUnexpectedAttributes(node, ds);
@@ -157,6 +160,18 @@ function buildContainerBlock(nodes: XmlNode[], filePath: string, ds: Diagnostics
         id: undefined,
         content,
     };
+}
+
+function extractTitle(nodes: XmlNode[], ds: Diagnostics): string | undefined {
+    if (nodes.length === 1) {
+        const child = nodes[0];
+        if (isTextNode(child)) {
+            return child.text;
+        }
+    }
+
+    ds.warn(`Could not extract title from nodes: '${nodes.map(xmlNode2String)}'`);
+    return undefined;
 }
 
 function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, expected: string[] = []) {

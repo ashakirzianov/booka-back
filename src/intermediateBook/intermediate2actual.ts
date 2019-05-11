@@ -10,11 +10,16 @@ import {
 } from '../utils';
 
 export function intermediate2actual(intermediate: IntermediateBook, ds: Diagnostics): BookNode[] {
-    const footnoteIds = flatten(intermediate.map(collectFootnoteIds));
-    const { rest, footnotes } = separateFootnoteContainers(intermediate, footnoteIds);
-    const nodes = Iter.toArray(generateNodes(rest, { ds, footnotes }));
+    const { rest, footnotes } = separateFootnoteContainers(intermediate);
+    const preprocessed = preprocess(rest);
+    const nodes = generateNodes(preprocessed, { ds, footnotes });
 
     return nodes;
+}
+
+function separateFootnoteContainers(blocks: Block[]) {
+    const footnoteIds = flatten(blocks.map(collectFootnoteIds));
+    return separateFootnoteContainersImpl(blocks, footnoteIds);
 }
 
 function collectFootnoteIds(block: Block): string[] {
@@ -23,12 +28,15 @@ function collectFootnoteIds(block: Block): string[] {
             return [block.id];
         case 'container':
             return flatten(block.content.map(collectFootnoteIds));
+        // TODO: put back
+        // case 'attrs':
+        //     return collectFootnoteIds(block.content);
         default:
             return [];
     }
 }
 
-function separateFootnoteContainers(blocks: Block[], footnoteIds: string[]) {
+function separateFootnoteContainersImpl(blocks: Block[], footnoteIds: string[]) {
     const rest: Block[] = [];
     const footnotes: ContainerBlock[] = [];
     for (const block of blocks) {
@@ -36,7 +44,7 @@ function separateFootnoteContainers(blocks: Block[], footnoteIds: string[]) {
             if (footnoteIds.some(fid => fid === block.id)) {
                 footnotes.push(block);
             } else {
-                const inside = separateFootnoteContainers(block.content, footnoteIds);
+                const inside = separateFootnoteContainersImpl(block.content, footnoteIds);
                 rest.push({
                     ...block,
                     content: inside.rest,
@@ -51,16 +59,50 @@ function separateFootnoteContainers(blocks: Block[], footnoteIds: string[]) {
     return { rest, footnotes };
 }
 
+function preprocess(blocks: Block[]): Block[] {
+    const result: Block[] = [];
+    for (const block of blocks) {
+        switch (block.block) {
+            case 'container':
+                const preprocessed = {
+                    ...block,
+                    content: preprocess(block.content),
+                };
+                if (shouldBeFlatten(preprocessed)) {
+                    result.push(...preprocessed.content);
+                } else {
+                    if (preprocessed.content.some(b => b.block === 'title')) {
+                        // console.log(content);
+                        console.log(block2string(block));
+                        console.log('-----');
+                        console.log(JSON.stringify(preprocessed.content, undefined, 4));
+                    }
+                    result.push(preprocessed);
+                }
+                break;
+            case 'ignore':
+                break;
+            default:
+                result.push(block);
+                break;
+        }
+    }
+
+    return result;
+}
+
+function shouldBeFlatten(container: ContainerBlock): boolean {
+    return !container.content.some(b => b.block === 'text' || b.block === 'attrs');
+}
+
 type Env = {
     ds: Diagnostics,
     footnotes: ContainerBlock[],
 };
 
-function* generateNodes(blocks: Block[], env: Env): IterableIterator<BookNode> {
-    const iter = Iter.toIterator(blocks);
-    const afterPromoteTitles = promoteTitles(iter);
-    const nodesIter = buildNodesStructure(afterPromoteTitles, env, -1);
-    yield* nodesIter;
+function generateNodes(blocks: Block[], env: Env): BookNode[] {
+    const nodesIter = buildNodesStructure(Iter.toIterator(blocks), env, -1);
+    return Iter.toArray(nodesIter);
 }
 
 function* buildNodesStructure(blocks: Iterator<Block>, env: Env, level: number): IterableIterator<BookNode> {
@@ -78,12 +120,15 @@ function* buildNodesStructure(blocks: Iterator<Block>, env: Env, level: number):
                         node: 'paragraph',
                         span: span,
                     });
-                } else {
-                    env.ds.warn(`----Couldn't build span from block: ${block2string(block)}`);
                 }
                 break;
             case 'container':
-                yield* buildNodesFromContainer(block, env);
+                const spans = filterUndefined(block.content
+                    .map(c => spanFromBlock(c, env)));
+                yield {
+                    node: 'paragraph',
+                    span: compoundSpan(spans),
+                };
                 break;
             case 'title':
                 const children = Iter.toArray(buildNodesStructure(blocks, env, block.level));
@@ -110,52 +155,6 @@ function* buildNodesStructure(blocks: Iterator<Block>, env: Env, level: number):
         next = blocks.next();
     }
     yield* nodes;
-}
-
-function* promoteTitles(blocks: IterableIterator<Block>): IterableIterator<Block> {
-    for (const block of blocks) {
-        if (block.block === 'container') {
-            const titles = block.content.filter(
-                (b): b is TitleBlock => b.block === 'title');
-            const notTitles = block.content.filter(
-                b => b.block !== 'title');
-            if (notTitles.length !== 0) {
-                yield {
-                    ...block,
-                    content: notTitles,
-                };
-            }
-            yield* titles;
-        } else {
-            yield block;
-        }
-    }
-}
-
-function* buildNodesFromContainer(container: ContainerBlock, env: Env): IterableIterator<BookNode> {
-    const spans: Span[] = [];
-    for (const b of container.content) {
-        switch (b.block) {
-            case 'container':
-                yield* buildNodesFromContainer(b, env);
-                break;
-            case 'ignore':
-                break;
-            default:
-                const span = spanFromBlock(b, env);
-                if (span !== undefined) {
-                    spans.push(span);
-                }
-                break;
-        }
-    }
-
-    if (spans.length !== 0) {
-        yield {
-            node: 'paragraph',
-            span: compoundSpan(spans),
-        };
-    }
 }
 
 function spanFromBlock(block: Block, env: Env): Span | undefined {
@@ -200,7 +199,8 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
         case 'ignore':
             return undefined;
         case 'title':
-            env.ds.warn(`Unexpected title: ${block2string(block)}`);
+            // TODO: turn back warns
+            // env.ds.warn(`Unexpected title: ${block2string(block)}`);
             return undefined;
         default:
             env.ds.warn(`Unexpected block: ${block2string(block)}`);
@@ -210,5 +210,5 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
 }
 
 function block2string(block: Block): string {
-    return JSON.stringify(block);
+    return JSON.stringify(block, undefined, 4);
 }
