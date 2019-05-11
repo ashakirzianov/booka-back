@@ -28,9 +28,8 @@ function collectFootnoteIds(block: Block): string[] {
             return [block.id];
         case 'container':
             return flatten(block.content.map(collectFootnoteIds));
-        // TODO: put back
-        // case 'attrs':
-        //     return collectFootnoteIds(block.content);
+        case 'attrs':
+            return collectFootnoteIds(block.content);
         default:
             return [];
     }
