@@ -46,8 +46,7 @@ export async function convertEpub(epub: EpubBook): Promise<BookContent> {
     // TODO: report when no title page
     return {
         meta: {
-
-            title: title && title.title || epub.metadata.title,
+            title: title && title.title || epub.metadata.title || 'no-title',
             author: title && title.author || epub.metadata.author,
         },
         nodes: content,

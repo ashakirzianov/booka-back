@@ -18,9 +18,10 @@ export async function convertEpub(epub: EpubBook): Promise<Diagnosed<BookContent
     );
     const nodes = intermediate2actual(intermediate, ds);
 
+    // TODO: report missing title
     const book: BookContent = {
         meta: {
-            title: epub.metadata.title,
+            title: epub.metadata.title || 'no-title',
             author: epub.metadata.author,
         },
         nodes: nodes,
