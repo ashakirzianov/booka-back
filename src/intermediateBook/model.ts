@@ -14,7 +14,7 @@ export type FootnoteRefBlock = {
 };
 export type TitleBlock = {
     block: 'title',
-    title: string,
+    title: string[],
     level: number,
 };
 export type ContainerBlock = {

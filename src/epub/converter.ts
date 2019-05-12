@@ -1,5 +1,5 @@
 import { EpubBook, EpubSection, EpubCollection } from './epubParser';
-import { BookContent } from '../contracts';
+import { BookContent, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
     xmlNode2String, isDocument, isTextNode,
@@ -153,13 +153,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block {
                     diagnoseUnexpectedAttributes(node, env.ds, ['class']);
                     const level = parseInt(node.name[1], 10);
                     const title = extractTitle(node.children, env.ds);
-                    return title
-                        ? {
-                            block: 'title',
-                            title: title,
-                            level: level,
-                        }
-                        : { block: 'ignore' };
+                    return {
+                        block: 'title',
+                        title: title,
+                        level: level,
+                    };
                 case 'sup': case 'sub':
                     // TODO: implement superscript & subscript parsing
                     diagnoseUnexpectedAttributes(node, env.ds);
@@ -192,17 +190,21 @@ function buildContainerBlock(nodes: XmlNode[], filePath: string, env: Env): Cont
     };
 }
 
-function extractTitle(nodes: XmlNode[], ds: Diagnostics): string {
-    let title = '';
+function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
+    const lines: string[] = [];
     for (const node of nodes) {
         switch (node.type) {
             case 'text':
-                title += node.text;
+                // TODO: rethink this
+                if (!isWhitespaces(node.text)) {
+                    lines.push(node.text);
+                }
                 break;
             case 'element':
                 switch (node.name) {
                     case 'em': case 'strong':
-                        title += extractTitle(node.children, ds);
+                        const fromElement = extractTitle(node.children, ds);
+                        lines.push(fromElement.join(''));
                         break;
                     default:
                         ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
@@ -215,10 +217,10 @@ function extractTitle(nodes: XmlNode[], ds: Diagnostics): string {
         }
     }
 
-    if (!title) {
+    if (lines.length === 0) {
         ds.warn(`Couldn't extract title from nodes: '${nodes.map(xmlNode2String)}'`);
     }
-    return title;
+    return lines;
 }
 
 function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, expected: string[] = []) {

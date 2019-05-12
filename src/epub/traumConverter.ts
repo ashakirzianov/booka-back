@@ -89,7 +89,7 @@ function chapterParser<T extends BookNode>(level: number, contentE: Parser<Eleme
             ([h, c]) => ({
                 node: 'chapter' as 'chapter',
                 level: level,
-                title: h.title,
+                title: [h.title],
                 nodes: c,
             } as ChapterNode),
         ),

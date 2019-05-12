@@ -1,5 +1,6 @@
 import { EpubConverterHooks, element2block } from './epubConverter';
 import { isTextNode, isElement, XmlNodeWithChildren } from '../xml';
+import { isWhitespaces } from 'src/utils';
 
 const titleElement = element2block(el => {
     // TODO: use parser combinators to define this ?
@@ -15,9 +16,7 @@ const titleElement = element2block(el => {
         const level = parseInt(levelStr, 10);
         // TODO: add diagnostics here ?
         if (!isNaN(level)) {
-            const lines = extractTextLines(el);
-            // TODO: support multiline titles here
-            const title = lines.join('');
+            const title = extractTextLines(el);
             if (title) {
                 return {
                     block: 'title',
@@ -43,8 +42,9 @@ function extractTextLines(node: XmlNodeWithChildren): string[] {
         if (isElement(ch)) {
             result.push(...extractTextLines(ch));
         } else if (isTextNode(ch)) {
-            const text = ch.text === '\n' ? ' ' : ch.text;
-            result.push(text);
+            if (!ch.text.startsWith('\n')) {
+                result.push(ch.text);
+            }
         }
     }
 

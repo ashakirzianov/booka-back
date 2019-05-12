@@ -25,10 +25,12 @@ export type ParagraphNode = {
     node: 'paragraph',
     span: Span,
 };
+
+export type ChapterTitle = string[];
 export type ChapterNode = {
     node: 'chapter',
     level: number,
-    title?: string,
+    title: ChapterTitle,
     nodes: BookNode[],
 };
 
