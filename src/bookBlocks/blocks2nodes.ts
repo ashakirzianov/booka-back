@@ -1,4 +1,4 @@
-import { IntermediateBook, Block, ContainerBlock, TitleBlock } from './model';
+import { Block, ContainerBlock, TitleBlock } from './block';
 import {
     BookNode, compoundSpan, Span,
     assign, ChapterNode,
@@ -9,8 +9,8 @@ import {
     Iter,
 } from '../utils';
 
-export function intermediate2actual(intermediate: IntermediateBook, ds: Diagnostics): BookNode[] {
-    const { rest, footnotes } = separateFootnoteContainers(intermediate);
+export function blocks2nodes(blocks: Block[], ds: Diagnostics): BookNode[] {
+    const { rest, footnotes } = separateFootnoteContainers(blocks);
     const preprocessed = preprocess(rest);
     const nodes = generateNodes(preprocessed, { ds, footnotes });
 
@@ -70,12 +70,6 @@ function preprocess(blocks: Block[]): Block[] {
                 if (shouldBeFlatten(preprocessed)) {
                     result.push(...preprocessed.content);
                 } else {
-                    if (preprocessed.content.some(b => b.block === 'title')) {
-                        // console.log(content);
-                        console.log(block2string(block));
-                        console.log('-----');
-                        console.log(JSON.stringify(preprocessed.content, undefined, 4));
-                    }
                     result.push(preprocessed);
                 }
                 break;

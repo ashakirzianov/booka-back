@@ -33,4 +33,3 @@ export type Block =
     | ContainerBlock
     | IgnoreBlock
     ;
-export type IntermediateBook = Block[];

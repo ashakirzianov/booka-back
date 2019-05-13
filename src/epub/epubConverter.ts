@@ -1,7 +1,7 @@
 import { Diagnosed } from '../utils';
 import { XmlNode, XmlNodeElement, isElement } from '../xml';
 import { EpubBook, EpubSource } from './epubParser';
-import { Block } from '../intermediateBook';
+import { Block } from '../bookBlocks';
 import { BookContent } from '../contracts';
 
 export type EpubConverter = {

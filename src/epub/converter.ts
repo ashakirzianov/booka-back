@@ -7,7 +7,7 @@ import {
 import {
     Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces,
 } from '../utils';
-import { Block, ContainerBlock, intermediate2actual } from '../intermediateBook';
+import { Block, ContainerBlock, blocks2nodes } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterHooks, EpubConverterHook } from './epubConverter';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
@@ -24,7 +24,7 @@ async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Pro
             AsyncIter.map(epub.sections(), s => section2blocks(s, { ds, hooks }))
         )
     );
-    const nodes = intermediate2actual(intermediate, ds);
+    const nodes = blocks2nodes(intermediate, ds);
 
     // TODO: report missing title
     const book: BookContent = {
