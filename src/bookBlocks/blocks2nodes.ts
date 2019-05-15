@@ -12,7 +12,9 @@ import {
 export function blocks2nodes(blocks: Block[], ds: Diagnostics): BookNode[] {
     const { rest, footnotes } = separateFootnoteContainers(blocks);
     const preprocessed = preprocess(rest);
-    const nodes = generateNodes(preprocessed, { ds, footnotes });
+    const { nodes, next } = buildChapters(preprocessed, undefined, { ds, footnotes });
+
+    // TODO: assert that 'next' is empty
 
     return nodes;
 }
@@ -93,61 +95,67 @@ type Env = {
     footnotes: ContainerBlock[],
 };
 
-function generateNodes(blocks: Block[], env: Env): BookNode[] {
-    const nodesIter = buildNodesStructure(Iter.toIterator(blocks), env, -1);
-    return Iter.toArray(nodesIter);
+function buildChapters(blocks: Block[], level: number | undefined, env: Env): { nodes: BookNode[], next: Block[] } {
+    if (blocks.length === 0) {
+        return { nodes: [], next: [] };
+    }
+    const block = blocks[0];
+    if (block.block === 'title') {
+        if (level === undefined || level > block.level) {
+            const content = buildChapters(blocks.slice(1), block.level, env);
+            const chapter: ChapterNode = {
+                node: 'chapter',
+                nodes: content.nodes,
+                title: block.title,
+                level: block.level,
+            };
+            const after = buildChapters(content.next, level, env);
+            return {
+                nodes: [chapter as BookNode].concat(after.nodes),
+                next: after.next,
+            };
+        } else {
+            return {
+                nodes: [],
+                next: blocks,
+            };
+        }
+    } else {
+        const node = nodeFromBlock(block, env);
+        const after = buildChapters(blocks.slice(1), level, env);
+        return {
+            nodes: node ? [node].concat(after.nodes) : after.nodes,
+            next: after.next,
+        };
+    }
 }
 
-function* buildNodesStructure(blocks: Iterator<Block>, env: Env, level: number): IterableIterator<BookNode> {
-    let next = blocks.next();
-    const nodes: BookNode[] = [];
-    while (!next.done) {
-        const block = next.value;
-        switch (block.block) {
-            case 'text':
-            case 'attrs':
-            case 'footnote':
-                const span = spanFromBlock(block, env);
-                if (span) {
-                    nodes.push({
-                        node: 'paragraph',
-                        span: span,
-                    });
-                }
-                break;
-            case 'container':
-                const spans = filterUndefined(block.content
-                    .map(c => spanFromBlock(c, env)));
-                yield {
+function nodeFromBlock(block: Block, env: Env): BookNode | undefined {
+    switch (block.block) {
+        case 'text':
+        case 'attrs':
+        case 'footnote':
+            const span = spanFromBlock(block, env);
+            if (span) {
+                return {
                     node: 'paragraph',
-                    span: compoundSpan(spans),
+                    span: span,
                 };
-                break;
-            case 'title':
-                const children = Iter.toArray(buildNodesStructure(blocks, env, block.level));
-                const chapter: ChapterNode = {
-                    node: 'chapter',
-                    title: block.title,
-                    level: block.level,
-                    nodes: children,
-                };
-                if (level > block.level) {
-                    nodes.push(chapter);
-                } else {
-                    yield* nodes;
-                    yield chapter;
-                }
-                break;
-            case 'ignore':
-                break;
-            default:
-                env.ds.warn(`Unexpected block: '${block2string(block)}'`);
-                assertNever(block); // TODO: report ?
-                break;
-        }
-        next = blocks.next();
+            } else {
+                // TODO: report problems ?
+                return undefined;
+            }
+        case 'container':
+            const spans = filterUndefined(block.content
+                .map(c => spanFromBlock(c, env)));
+            return {
+                node: 'paragraph',
+                span: compoundSpan(spans),
+            };
+        default:
+            env.ds.warn(`Unexpected block: '${block2string(block)}'`);
+            return undefined;
     }
-    yield* nodes;
 }
 
 function spanFromBlock(block: Block, env: Env): Span | undefined {
