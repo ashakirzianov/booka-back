@@ -3,10 +3,12 @@ import { fictionBookEditorHooks } from './hooks.fictionBookEditor';
 
 export const converterHooks: EpubConverterHooksTable = {
     fb2epub: {
-        nodeLevel: [],
+        node: [],
+        section: [],
     },
     fictionBookEditor: fictionBookEditorHooks,
     unknown: {
-        nodeLevel: [],
+        node: [],
+        section: [],
     },
 };

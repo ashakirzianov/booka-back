@@ -30,9 +30,10 @@ const titleElement = element2block(el => {
 });
 
 export const fictionBookEditorHooks: EpubConverterHooks = {
-    nodeLevel: [
+    node: [
         titleElement,
     ],
+    section: [],
 };
 
 function extractTextLines(node: XmlNodeWithChildren): string[] {

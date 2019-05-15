@@ -1,6 +1,6 @@
 import { Diagnosed } from '../utils';
 import { XmlNode, XmlNodeElement, isElement } from '../xml';
-import { EpubBook, EpubSource } from './epubParser';
+import { EpubBook, EpubSource, EpubSection } from './epubParser';
 import { Block } from '../bookBlocks';
 import { BookContent } from '../contracts';
 
@@ -17,18 +17,30 @@ export type EpubConverterHooksTable = {
 };
 
 export type EpubConverterHooks = {
-    nodeLevel: EpubConverterHook[],
+    node: Array<EpubConverterHook<XmlNode>>,
+    section: Array<EpubConverterHook<EpubSection>>,
 };
 
-export type EpubConverterHook = (node: XmlNode) => (Block | undefined);
+export type EpubConverterHook<T> = (x: T) => (Block[] | undefined);
 
-export function element2block(hook: (el: XmlNodeElement) => (Block | undefined)): EpubConverterHook {
+export function element2block(hook: (el: XmlNodeElement) => (Block | undefined)): EpubConverterHook<XmlNode> {
     return node => {
         if (!isElement(node)) {
             return undefined;
         }
 
         const result = hook(node);
-        return result;
+        return result ? [result] : undefined;
     };
+}
+
+export function applyHooks<T>(x: T, hooks: Array<EpubConverterHook<T>>): Block[] | undefined {
+    for (const hook of hooks) {
+        const hooked = hook(x);
+        if (hooked) {
+            return hooked;
+        }
+    }
+
+    return undefined;
 }
