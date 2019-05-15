@@ -5,7 +5,7 @@ import {
     xmlNode2String, isDocument, isTextNode,
 } from '../xml';
 import {
-    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces,
+    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
 } from '../utils';
 import { Block, ContainerBlock, blocks2nodes } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterHooks, EpubConverterHook } from './epubConverter';
@@ -19,12 +19,11 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
 async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
     const hooks = params.hooks[epub.source];
-    const intermediate = await AsyncIter.toArray(
-        AsyncIter.flatten(
-            AsyncIter.map(epub.sections(), s => section2blocks(s, { ds, hooks }))
-        )
-    );
-    const nodes = blocks2nodes(intermediate, ds);
+    const sections = await AsyncIter.toArray(epub.sections());
+    const blocks = flatten(sections.map(s =>
+        section2blocks(s, { ds, hooks })));
+
+    const nodes = blocks2nodes(blocks, ds);
 
     // TODO: report missing title
     const book: BookContent = {
@@ -60,16 +59,14 @@ type Env = {
     hooks: EpubConverterHooks,
 };
 
-async function* section2blocks(section: EpubSection, env: Env): EpubCollection<Block> {
+function section2blocks(section: EpubSection, env: Env): Block[] {
     const body = getBodyElement(section.content);
     if (!body) {
-        return;
+        return [];
     }
 
-    for (const node of body.children) {
-        const result = buildBlock(node, section.fileName, env);
-        yield result;
-    }
+    return body.children.map(node =>
+        buildBlock(node, section.fileName, env));
 }
 
 function applyNodeHooks(node: XmlNode, hooks: EpubConverterHook[]): Block | undefined {
