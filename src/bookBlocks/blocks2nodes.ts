@@ -1,4 +1,4 @@
-import { Block, ContainerBlock, TitleBlock } from './block';
+import { Block, ContainerBlock } from './block';
 import {
     BookNode, compoundSpan, Span,
     assign, ChapterNode,

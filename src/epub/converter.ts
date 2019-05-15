@@ -156,7 +156,7 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block {
                     return {
                         block: 'title',
                         title: title,
-                        level: level,
+                        level: 4 - level,
                     };
                 case 'sup': case 'sub':
                     // TODO: implement superscript & subscript parsing

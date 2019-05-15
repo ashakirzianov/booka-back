@@ -1,6 +1,5 @@
 import { EpubConverterHooks, element2block } from './epubConverter';
 import { isTextNode, isElement, XmlNodeWithChildren } from '../xml';
-import { isWhitespaces } from 'src/utils';
 
 const titleElement = element2block(el => {
     // TODO: use parser combinators to define this ?
@@ -20,7 +19,7 @@ const titleElement = element2block(el => {
             if (title) {
                 return {
                     block: 'title',
-                    level,
+                    level: 1 - level,
                     title,
                 };
             }
