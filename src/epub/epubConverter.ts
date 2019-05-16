@@ -34,6 +34,13 @@ export function element2block(hook: (el: XmlNodeElement) => (Block | undefined))
     };
 }
 
+export function ignoreElement(predicate: (el: XmlNodeElement) => boolean): EpubConverterHook<XmlNode> {
+    return element2block(el => predicate(el)
+        ? { block: 'ignore' }
+        : undefined
+    );
+}
+
 export function parser2block(parser: XmlParser<Block>): EpubConverterHook<XmlNode> {
     return node => {
         const result = parser([node]);
