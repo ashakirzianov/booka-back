@@ -1,13 +1,12 @@
-import { EpubConverterHooks, parser2block, element2block } from './epubConverter';
+import { EpubConverterOptions, parser2block, element2block } from './epubConverter';
 
-export const fb2epubHooks: EpubConverterHooks = {
-    node: [
+export const fb2epubHooks: EpubConverterOptions = {
+    nodeHooks: [
         ignoreClass('about'),
         ignoreClass('annotation'),
         ignoreClass('coverpage'),
         ignoreClass('fb2_info'),
     ],
-    section: [],
 };
 
 function ignoreClass(className: string) {

@@ -1,4 +1,4 @@
-import { Diagnosed } from '../utils';
+import { Diagnosed, Diagnostics } from '../utils';
 import { XmlNode, XmlNodeElement, isElement, XmlParser } from '../xml';
 import { EpubBook, EpubSource, EpubSection } from './epubParser';
 import { Block } from '../bookBlocks';
@@ -9,32 +9,35 @@ export type EpubConverter = {
 };
 
 export type EpubConverterParameters = {
-    hooks: EpubConverterHooksTable,
+    options: EpubConverterOptionsTable,
 };
 
-export type EpubConverterHooksTable = {
-    [key in EpubSource]: EpubConverterHooks;
+export type EpubConverterOptionsTable = {
+    [key in EpubSource]: EpubConverterOptions;
 };
 
-export type EpubConverterHooks = {
-    node: Array<EpubConverterHook<XmlNode>>,
-    section: Array<EpubConverterHook<EpubSection>>,
+export type EpubConverterOptions = {
+    nodeHooks: EpubConverterNodeHook[],
 };
 
-export type EpubConverterHook<T> = (x: T) => (Block[] | undefined);
+export type EpubConverterHookEnv = {
+    ds: Diagnostics,
+    node2blocks: (x: XmlNode) => Block[],
+};
+export type EpubConverterNodeHook = (x: XmlNode, env: EpubConverterHookEnv) => (Block[] | undefined);
 
-export function element2block(hook: (el: XmlNodeElement) => (Block | undefined)): EpubConverterHook<XmlNode> {
-    return node => {
+export function element2block(hook: (el: XmlNodeElement, ds: Diagnostics) => (Block | undefined)): EpubConverterNodeHook {
+    return (node, env) => {
         if (!isElement(node)) {
             return undefined;
         }
 
-        const result = hook(node);
+        const result = hook(node, env.ds);
         return result ? [result] : undefined;
     };
 }
 
-export function parser2block(parser: XmlParser<Block>): EpubConverterHook<XmlNode> {
+export function parser2block(parser: XmlParser<Block>): EpubConverterNodeHook {
     return node => {
         const result = parser([node]);
 
@@ -44,9 +47,9 @@ export function parser2block(parser: XmlParser<Block>): EpubConverterHook<XmlNod
     };
 }
 
-export function applyHooks<T>(x: T, hooks: Array<EpubConverterHook<T>>): Block[] | undefined {
+export function applyHooks(x: XmlNode, hooks: EpubConverterNodeHook[], env: EpubConverterHookEnv): Block[] | undefined {
     for (const hook of hooks) {
-        const hooked = hook(x);
+        const hooked = hook(x, env);
         if (hooked) {
             return hooked;
         }

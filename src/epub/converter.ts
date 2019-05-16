@@ -8,7 +8,7 @@ import {
     Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
 } from '../utils';
 import { Block, ContainerBlock, blocks2nodes } from '../bookBlocks';
-import { EpubConverterParameters, EpubConverter, EpubConverterHooks, applyHooks } from './epubConverter';
+import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {
@@ -18,7 +18,7 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
 
 async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
-    const hooks = params.hooks[epub.source];
+    const hooks = params.options[epub.source];
     const sections = await AsyncIter.toArray(epub.sections());
     const blocks = flatten(sections.map(s =>
         section2blocks(s, { ds, hooks })));
@@ -46,15 +46,10 @@ function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
 
 type Env = {
     ds: Diagnostics,
-    hooks: EpubConverterHooks,
+    hooks: EpubConverterOptions,
 };
 
 function section2blocks(section: EpubSection, env: Env): Block[] {
-    const hooked = applyHooks(section, env.hooks.section);
-    if (hooked) {
-        return hooked;
-    }
-
     const body = getBodyElement(section.content);
     if (!body) {
         return [];
@@ -65,7 +60,12 @@ function section2blocks(section: EpubSection, env: Env): Block[] {
 }
 
 function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
-    const hooked = applyHooks(node, env.hooks.node);
+    const hookEnv: EpubConverterHookEnv = {
+        ds: env.ds,
+        node2blocks: node =>
+            buildBlock(node, filePath, env),
+    };
+    const hooked = applyHooks(node, env.hooks.nodeHooks, hookEnv);
     if (hooked) {
         return hooked;
     }
