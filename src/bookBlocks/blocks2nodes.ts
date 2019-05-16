@@ -1,4 +1,4 @@
-import { Block, ContainerBlock } from './block';
+import { Block, ContainerBlock, FootnoteCandidateBlock } from './block';
 import {
     BookNode, compoundSpan, Span,
     assign, ChapterNode,
@@ -26,10 +26,12 @@ function separateFootnoteContainers(blocks: Block[]) {
 
 function collectFootnoteIds(block: Block): string[] {
     switch (block.block) {
-        case 'footnote':
+        case 'footnote-ref':
             return [block.id];
         case 'container':
             return flatten(block.content.map(collectFootnoteIds));
+        case 'footnote-candidate':
+            return collectFootnoteIds(block.content);
         case 'attrs':
             return collectFootnoteIds(block.content);
         default:
@@ -39,19 +41,26 @@ function collectFootnoteIds(block: Block): string[] {
 
 function separateFootnoteContainersImpl(blocks: Block[], footnoteIds: string[]) {
     const rest: Block[] = [];
-    const footnotes: ContainerBlock[] = [];
+    const footnotes: FootnoteCandidateBlock[] = [];
     for (const block of blocks) {
-        if (block.block === 'container') {
+        if (block.block === 'footnote-candidate') {
             if (footnoteIds.some(fid => fid === block.id)) {
                 footnotes.push(block);
             } else {
-                const inside = separateFootnoteContainersImpl(block.content, footnoteIds);
+                const inside = separateFootnoteContainersImpl([block.content], footnoteIds);
                 rest.push({
-                    ...block,
+                    block: 'container',
                     content: inside.rest,
                 });
                 footnotes.push(...inside.footnotes);
             }
+        } else if (block.block === 'container') {
+            const inside = separateFootnoteContainersImpl(block.content, footnoteIds);
+            rest.push({
+                ...block,
+                content: inside.rest,
+            });
+            footnotes.push(...inside.footnotes);
         } else {
             rest.push(block);
         }
@@ -92,7 +101,7 @@ function shouldBeFlatten(container: ContainerBlock): boolean {
 
 type Env = {
     ds: Diagnostics,
-    footnotes: ContainerBlock[],
+    footnotes: FootnoteCandidateBlock[],
 };
 
 function buildChapters(blocks: Block[], level: number | undefined, env: Env): { nodes: BookNode[], next: Block[] } {
@@ -134,7 +143,7 @@ function nodeFromBlock(block: Block, env: Env): BookNode | undefined {
     switch (block.block) {
         case 'text':
         case 'attrs':
-        case 'footnote':
+        case 'footnote-ref':
             const span = spanFromBlock(block, env);
             if (span) {
                 return {
@@ -170,7 +179,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                 env.ds.warn(`Couldn't build span: '${block.content}'`);
                 return undefined;
             }
-        case 'footnote':
+        case 'footnote-ref':
             const footnoteContainer = env.footnotes.find(f => f.id === block.id);
             if (footnoteContainer) {
                 const content = spanFromBlock(block.content, env);
@@ -178,9 +187,9 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     env.ds.warn(`${block.id}: couldn't build footnote text: ${block.content}`);
                     return undefined;
                 }
-                const footnote = spanFromBlock(footnoteContainer, env);
+                const footnote = spanFromBlock(footnoteContainer.content, env);
                 if (!footnote) {
-                    env.ds.warn(`${block.id}: couldn't build footnote: ${footnoteContainer}`);
+                    env.ds.warn(`${block.id}: couldn't build footnote: ${block2string(footnoteContainer)}`);
                     return undefined;
                 }
                 return {
@@ -197,6 +206,8 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
         case 'container':
             const spans = filterUndefined(block.content.map(c => spanFromBlock(c, env)));
             return compoundSpan(spans);
+        case 'footnote-candidate':
+            return spanFromBlock(block.content, env);
         case 'ignore':
             return undefined;
         case 'title':

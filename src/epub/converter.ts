@@ -103,7 +103,7 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                     ]);
                     if (node.attributes.href !== undefined) {
                         return [{
-                            block: 'footnote',
+                            block: 'footnote-ref',
                             id: node.attributes.href,
                             content: buildContainerBlock(node.children, filePath, env),
                         }];
@@ -115,10 +115,15 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                 case 'span':
                 case 'div':
                     diagnoseUnexpectedAttributes(node, env.ds, ['class', 'id']);
-                    return [{
-                        ...buildContainerBlock(node.children, filePath, env),
-                        id: node.attributes.id && `${filePath}#${node.attributes.id}`,
-                    }];
+                    const container = buildContainerBlock(node.children, filePath, env);
+                    const result: Block = node.attributes.id
+                        ? {
+                            block: 'footnote-candidate',
+                            id: `${filePath}#${node.attributes.id}`,
+                            title: [],
+                            content: container,
+                        } : container;
+                    return [result];
                 case 'img':
                 case 'image':
                 case 'svg':
@@ -166,7 +171,6 @@ function buildContainerBlock(nodes: XmlNode[], filePath: string, env: Env): Cont
 
     return {
         block: 'container',
-        id: undefined,
         content,
     };
 }
