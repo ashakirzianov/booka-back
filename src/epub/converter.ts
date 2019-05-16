@@ -2,7 +2,7 @@ import { EpubBook, EpubSection, EpubCollection } from './epubParser';
 import { BookContent, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
-    xmlNode2String, isDocument, isTextNode,
+    xmlNode2String, isDocument, isTextNode, childForPath,
 } from '../xml';
 import {
     Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
@@ -38,17 +38,7 @@ async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Pro
 }
 
 function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
-    if (!isDocument(node)) {
-        return undefined;
-    }
-
-    const html = node.children.find(ch => isElement(ch) && ch.name === 'html');
-    if (!html || !isElement(html)) {
-        return undefined;
-    }
-
-    const body = html.children.find(ch => isElement(ch) && ch.name === 'body');
-
+    const body = childForPath(node, 'html', 'body');
     return body && isElement(body)
         ? body
         : undefined;
