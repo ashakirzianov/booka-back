@@ -1,4 +1,4 @@
-import { EpubConverterHooks, parser2block, element2block, ignoreElement } from './epubConverter';
+import { EpubConverterHooks, parser2block, element2block } from './epubConverter';
 
 export const fb2epubHooks: EpubConverterHooks = {
     node: [
@@ -11,5 +11,9 @@ export const fb2epubHooks: EpubConverterHooks = {
 };
 
 function ignoreClass(className: string) {
-    return ignoreElement(el => el.attributes.class === className);
+    return element2block(el =>
+        el.attributes.class === className
+            ? { block: 'ignore' }
+            : undefined
+    );
 }
