@@ -1,5 +1,5 @@
 import { Diagnosed } from '../utils';
-import { XmlNode, XmlNodeElement, isElement } from '../xml';
+import { XmlNode, XmlNodeElement, isElement, XmlParser } from '../xml';
 import { EpubBook, EpubSource, EpubSection } from './epubParser';
 import { Block } from '../bookBlocks';
 import { BookContent } from '../contracts';
@@ -31,6 +31,16 @@ export function element2block(hook: (el: XmlNodeElement) => (Block | undefined))
 
         const result = hook(node);
         return result ? [result] : undefined;
+    };
+}
+
+export function parser2block(parser: XmlParser<Block>): EpubConverterHook<XmlNode> {
+    return node => {
+        const result = parser([node]);
+
+        return result.success
+            ? [result.value]
+            : undefined;
     };
 }
 
