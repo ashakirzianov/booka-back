@@ -23,8 +23,10 @@ export type EpubConverterOptions = {
 export type EpubConverterHookEnv = {
     ds: Diagnostics,
     node2blocks: (x: XmlNode) => Block[],
+    filePath: string,
 };
-export type EpubConverterNodeHook = (x: XmlNode, env: EpubConverterHookEnv) => (Block[] | undefined);
+export type EpubConverterHookResult = Block[] | undefined;
+export type EpubConverterNodeHook = (x: XmlNode, env: EpubConverterHookEnv) => EpubConverterHookResult;
 
 export function element2block(hook: (el: XmlNodeElement, ds: Diagnostics) => (Block | undefined)): EpubConverterNodeHook {
     return (node, env) => {
@@ -37,12 +39,12 @@ export function element2block(hook: (el: XmlNodeElement, ds: Diagnostics) => (Bl
     };
 }
 
-export function parser2block(parser: XmlParser<Block>): EpubConverterNodeHook {
+export function parser2blocks(parser: XmlParser<Block[]>): EpubConverterNodeHook {
     return node => {
         const result = parser([node]);
 
         return result.success
-            ? [result.value]
+            ? result.value
             : undefined;
     };
 }

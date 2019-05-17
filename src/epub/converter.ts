@@ -62,8 +62,9 @@ function section2blocks(section: EpubSection, env: Env): Block[] {
 function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
     const hookEnv: EpubConverterHookEnv = {
         ds: env.ds,
-        node2blocks: node =>
-            buildBlock(node, filePath, env),
+        node2blocks: n =>
+            buildBlock(n, filePath, env),
+        filePath,
     };
     const hooked = applyHooks(node, env.hooks.nodeHooks, hookEnv);
     if (hooked) {

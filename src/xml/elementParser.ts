@@ -22,11 +22,14 @@ function fromPredicate(pred: ElementPredicate) {
 }
 export const name = (n: ConstraintValue<string>) =>
     fromPredicate(namePred(n));
+// TODO: put back expected
+// export const attrs = (x: ConstraintMap) =>
+//     projectLast(and(
+//         expected(fromPredicate(noAttrsExceptPred(Object.keys(x)))),
+//         fromPredicate(attrsPred(x)),
+//     ));
 export const attrs = (x: ConstraintMap) =>
-    projectFirst(and(
-        fromPredicate(attrsPred(x)),
-        expected(fromPredicate(noAttrsExceptPred(Object.keys(x)))),
-    ));
+    fromPredicate(attrsPred(x));
 
 export const nameChildren = <T>(n: ConstraintValue<string>, ch: XmlParser<T>) =>
     projectLast(and(name(n), expected(attrs({})), children(ch)));
