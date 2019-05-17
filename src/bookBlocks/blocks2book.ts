@@ -1,22 +1,42 @@
-import { Block, ContainerBlock, FootnoteCandidateBlock } from './block';
+import { Block, ContainerBlock, FootnoteCandidateBlock, BookTitleBlock, BookAuthorBlock } from './block';
 import {
     BookNode, compoundSpan, Span,
-    assign, ChapterNode,
+    assign, ChapterNode, BookContent, BookMeta,
 } from '../contracts';
 import {
-    flatten, Diagnostics, filterUndefined,
-    assertNever,
-    Iter,
+    flatten, Diagnostics, filterUndefined, assertNever,
 } from '../utils';
 
-export function blocks2nodes(blocks: Block[], ds: Diagnostics): BookNode[] {
+export function blocks2book(blocks: Block[], ds: Diagnostics): BookContent {
     const { rest, footnotes } = separateFootnoteContainers(blocks);
+    const meta = collectMeta(rest);
     const preprocessed = preprocess(rest);
     const { nodes, next } = buildChapters(preprocessed, undefined, { ds, footnotes });
 
     // TODO: assert that 'next' is empty
 
-    return nodes;
+    return {
+        nodes,
+        meta: {
+            title: meta.title || 'no-title', // TODO: report empty title
+            author: meta.author,
+        },
+    };
+}
+
+function collectMeta(blocks: Block[]): Partial<BookMeta> {
+    const result: Partial<BookMeta> = {};
+    const titleBlock = blocks.find((b): b is BookTitleBlock => b.block === 'book-title');
+    if (titleBlock) {
+        result.title = titleBlock.title;
+    }
+
+    const authorBlock = blocks.find((b): b is BookAuthorBlock => b.block === 'book-author');
+    if (authorBlock) {
+        result.author = authorBlock.author;
+    }
+
+    return result;
 }
 
 function separateFootnoteContainers(blocks: Block[]) {
@@ -209,9 +229,9 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
             return compoundSpan(spans);
         case 'footnote-candidate':
             return spanFromBlock(block.content, env);
-        case 'ignore':
+        case 'ignore': case 'book-author':
             return undefined;
-        case 'chapter-title':
+        case 'chapter-title': case 'book-title':
             // TODO: turn back warns
             // env.ds.warn(`Unexpected title: ${block2string(block)}`);
             return undefined;

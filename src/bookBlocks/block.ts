@@ -23,6 +23,14 @@ export type ChapterTitleBlock = {
     title: string[],
     level: number,
 };
+export type BookTitleBlock = {
+    block: 'book-title',
+    title: string,
+};
+export type BookAuthorBlock = {
+    block: 'book-author',
+    author: string,
+};
 export type ContainerBlock = {
     block: 'container',
     content: Block[],
@@ -36,6 +44,8 @@ export type Block =
     | FootnoteRefBlock
     | FootnoteCandidateBlock
     | ChapterTitleBlock
+    | BookTitleBlock
+    | BookAuthorBlock
     | ContainerBlock
     | IgnoreBlock
     ;

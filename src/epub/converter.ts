@@ -7,7 +7,7 @@ import {
 import {
     Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
 } from '../utils';
-import { Block, ContainerBlock, blocks2nodes } from '../bookBlocks';
+import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
@@ -22,19 +22,31 @@ async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Pro
     const sections = await AsyncIter.toArray(epub.sections());
     const blocks = flatten(sections.map(s =>
         section2blocks(s, { ds, hooks })));
+    const metaBlocks = buildMetaBlocks(epub);
+    const allBlocks = blocks.concat(metaBlocks);
 
-    const nodes = blocks2nodes(blocks, ds);
-
-    // TODO: report missing title
-    const book: BookContent = {
-        meta: {
-            title: epub.metadata.title || 'no-title',
-            author: epub.metadata.author,
-        },
-        nodes: nodes,
-    };
+    const book = blocks2book(allBlocks, ds);
 
     return assignDiagnostics(book, ds);
+}
+
+function buildMetaBlocks(epub: EpubBook): Block[] {
+    const result: Block[] = [];
+    if (epub.metadata.title) {
+        result.push({
+            block: 'book-title',
+            title: epub.metadata.title,
+        });
+    }
+
+    if (epub.metadata.author) {
+        result.push({
+            block: 'book-author',
+            author: epub.metadata.author,
+        });
+    }
+
+    return result;
 }
 
 function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
