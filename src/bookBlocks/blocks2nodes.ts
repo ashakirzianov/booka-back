@@ -197,6 +197,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     id: block.id,
                     content,
                     footnote,
+                    title: footnoteContainer.title,
                 };
             } else {
                 // TODO: put warning back

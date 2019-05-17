@@ -117,6 +117,7 @@ const footnote = translate(
         content: text,
         footnote: undefined as any,
         id: extractId(el.attributes.href),
+        title: [],
     })
 );
 
