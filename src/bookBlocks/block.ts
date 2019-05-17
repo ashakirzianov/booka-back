@@ -18,8 +18,8 @@ export type FootnoteCandidateBlock = {
     title: string[],
     content: Block,
 };
-export type TitleBlock = {
-    block: 'title',
+export type ChapterTitleBlock = {
+    block: 'chapter-title',
     title: string[],
     level: number,
 };
@@ -35,7 +35,7 @@ export type Block =
     | AttrsBlock
     | FootnoteRefBlock
     | FootnoteCandidateBlock
-    | TitleBlock
+    | ChapterTitleBlock
     | ContainerBlock
     | IgnoreBlock
     ;

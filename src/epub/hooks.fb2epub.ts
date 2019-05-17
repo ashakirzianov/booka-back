@@ -13,6 +13,7 @@ export const fb2epubHooks: EpubConverterOptions = {
         ignoreClass('annotation'),
         ignoreClass('coverpage'),
         ignoreClass('fb2_info'),
+        ignoreClass('title2'),
         footnoteSection,
     ],
 };

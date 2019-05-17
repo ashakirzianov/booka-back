@@ -109,7 +109,7 @@ function buildChapters(blocks: Block[], level: number | undefined, env: Env): { 
         return { nodes: [], next: [] };
     }
     const block = blocks[0];
-    if (block.block === 'title') {
+    if (block.block === 'chapter-title') {
         if (level === undefined || level > block.level) {
             const content = buildChapters(blocks.slice(1), block.level, env);
             const chapter: ChapterNode = {
@@ -211,7 +211,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
             return spanFromBlock(block.content, env);
         case 'ignore':
             return undefined;
-        case 'title':
+        case 'chapter-title':
             // TODO: turn back warns
             // env.ds.warn(`Unexpected title: ${block2string(block)}`);
             return undefined;

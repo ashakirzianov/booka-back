@@ -141,7 +141,7 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                     const level = parseInt(node.name[1], 10);
                     const title = extractTitle(node.children, env.ds);
                     return [{
-                        block: 'title',
+                        block: 'chapter-title',
                         title: title,
                         level: 4 - level,
                     }];

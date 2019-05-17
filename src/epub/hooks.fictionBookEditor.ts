@@ -40,7 +40,7 @@ function titleElement() {
                 const title = extractTextLines(el);
                 if (title) {
                     return {
-                        block: 'title',
+                        block: 'chapter-title',
                         level: 1 - level,
                         title,
                     };
