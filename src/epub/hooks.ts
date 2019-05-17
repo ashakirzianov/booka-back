@@ -1,4 +1,4 @@
-import { EpubConverterOptionsTable, element2block } from './epubConverter';
+import { EpubConverterOptionsTable } from './epubConverter';
 import { fictionBookEditorHooks } from './hooks.fictionBookEditor';
 import { fb2epubHooks } from './hooks.fb2epub';
 
