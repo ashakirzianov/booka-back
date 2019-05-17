@@ -104,7 +104,7 @@ function preprocess(blocks: Block[]): Block[] {
                     result.push(preprocessed);
                 }
                 break;
-            case 'ignore':
+            case 'ignore': case 'book-title': case 'book-author':
                 break;
             default:
                 result.push(block);

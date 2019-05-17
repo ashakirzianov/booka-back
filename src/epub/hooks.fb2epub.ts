@@ -1,8 +1,8 @@
-import { EpubConverterOptions, element2block, EpubConverterHookEnv, EpubConverterHookResult } from './epubConverter';
+import { EpubConverterOptions, element2block, EpubConverterHookEnv, EpubConverterHookResult, EpubConverterNodeHook } from './epubConverter';
 import {
     nameChildren, textNode, nameAttrsChildren, some,
     XmlNode, translate, headNode, nameAttrs, choice,
-    seq, children, and, whitespaced, name, attrs, expected,
+    seq, children, and, whitespaced, name, attrs, expected, isElement, XmlNodeElement, attrsChildren, extractText,
 } from '../xml';
 import { Block } from '../bookBlocks';
 import { forceType, flatten } from '../utils';
@@ -15,6 +15,7 @@ export const fb2epubHooks: EpubConverterOptions = {
         ignoreClass('fb2_info'),
         ignoreClass('title2'),
         footnoteSection,
+        titlePage,
     ],
 };
 
@@ -57,6 +58,35 @@ function footnoteSection(node: XmlNode, env: EpubConverterHookEnv): EpubConverte
                 content: flatten(bs),
             },
         })],
+    );
+
+    const result = parser([node]);
+
+    return result.success
+        ? result.value
+        : undefined;
+}
+
+function titlePage(node: XmlNode, env: EpubConverterHookEnv): EpubConverterHookResult {
+    const bookTitle = translate(
+        extractText(attrs({ class: 'title1' })),
+        t => forceType<Block>({
+            block: 'book-title',
+            title: t,
+        }),
+    );
+    const bookAuthor = translate(
+        extractText(attrs({ class: 'title_authors' })),
+        a => forceType<Block>({
+            block: 'book-author',
+            author: a,
+        }),
+    );
+    const ignore = headNode(() => forceType<Block>({ block: 'ignore' }));
+
+    const parser = attrsChildren(
+        { class: 'titlepage' },
+        some(choice(bookTitle, bookAuthor, ignore)),
     );
 
     const result = parser([node]);

@@ -29,7 +29,7 @@ async function seed() {
     const promises = files.map(async (path, idx) => {
         try {
             if (idx !== 7) {
-                return;
+                // return;
             }
             const fullPath = epubLocation + path;
             const book = await logTimeAsync(() => path2book(fullPath), `Parse: ${path}`);
