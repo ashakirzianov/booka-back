@@ -13,10 +13,14 @@ export function blocks2book(blocks: Block[], ds: Diagnostics): BookContent {
     const preprocessed = preprocess(rest);
     const nodes = buildChapters(preprocessed, { ds, footnotes });
 
+    if (meta.title === undefined) {
+        ds.warn(`Expected non-empty title`);
+    }
+
     return {
         nodes,
         meta: {
-            title: meta.title || 'no-title', // TODO: report empty title
+            title: meta.title || 'no-title',
             author: meta.author,
         },
     };
@@ -139,14 +143,14 @@ function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env)
     const block = blocks[0];
     if (block.block === 'chapter-title') {
         if (level === undefined || level > block.level) {
-            const content = buildChapters(blocks.slice(1), block.level, env);
+            const content = buildChaptersImpl(blocks.slice(1), block.level, env);
             const chapter: ChapterNode = {
                 node: 'chapter',
                 nodes: content.nodes,
                 title: block.title,
                 level: block.level,
             };
-            const after = buildChapters(content.next, level, env);
+            const after = buildChaptersImpl(content.next, level, env);
             return {
                 nodes: [chapter as BookNode].concat(after.nodes),
                 next: after.next,
@@ -159,7 +163,7 @@ function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env)
         }
     } else {
         const node = nodeFromBlock(block, env);
-        const after = buildChapters(blocks.slice(1), level, env);
+        const after = buildChaptersImpl(blocks.slice(1), level, env);
         return {
             nodes: node ? [node].concat(after.nodes) : after.nodes,
             next: after.next,
@@ -179,7 +183,7 @@ function nodeFromBlock(block: Block, env: Env): BookNode | undefined {
                     span: span,
                 };
             } else {
-                // TODO: report problems ?
+                // TODO: now: report problems ?
                 return undefined;
             }
         case 'container':
@@ -228,7 +232,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     title: footnoteContainer.title,
                 };
             } else {
-                // TODO: put warning back
+                // TODO: now: put warning back
                 // env.ds.warn(`Could not resolve footnote reference: ${block.id}`);
                 return undefined;
             }
@@ -240,7 +244,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
         case 'ignore': case 'book-author':
             return undefined;
         case 'chapter-title': case 'book-title':
-            // TODO: turn back warns
+            // TODO: now: turn back warns
             // env.ds.warn(`Unexpected title: ${block2string(block)}`);
             return undefined;
         default:
