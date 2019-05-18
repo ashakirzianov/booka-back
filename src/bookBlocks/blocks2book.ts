@@ -11,9 +11,7 @@ export function blocks2book(blocks: Block[], ds: Diagnostics): BookContent {
     const { rest, footnotes } = separateFootnoteContainers(blocks);
     const meta = collectMeta(rest);
     const preprocessed = preprocess(rest);
-    const { nodes, next } = buildChapters(preprocessed, undefined, { ds, footnotes });
-
-    // TODO: assert that 'next' is empty
+    const nodes = buildChapters(preprocessed, { ds, footnotes });
 
     return {
         nodes,
@@ -124,7 +122,17 @@ type Env = {
     footnotes: FootnoteCandidateBlock[],
 };
 
-function buildChapters(blocks: Block[], level: number | undefined, env: Env): { nodes: BookNode[], next: Block[] } {
+function buildChapters(blocks: Block[], env: Env) {
+    const { nodes, next } = buildChaptersImpl(blocks, undefined, env);
+
+    if (next.length !== 0) {
+        env.ds.warn(`Unexpected blocks tail: '${next}`);
+    }
+
+    return nodes;
+}
+
+function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env): { nodes: BookNode[], next: Block[] } {
     if (blocks.length === 0) {
         return { nodes: [], next: [] };
     }
