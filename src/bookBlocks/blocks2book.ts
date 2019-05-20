@@ -4,7 +4,7 @@ import {
     assign, ChapterNode, BookContent, BookMeta,
 } from '../contracts';
 import {
-    flatten, Diagnostics, filterUndefined, assertNever,
+    flatten, Diagnostics, filterUndefined, assertNever, isWhitespaces,
 } from '../utils';
 
 export function blocks2book(blocks: Block[], ds: Diagnostics): BookContent {
@@ -118,7 +118,7 @@ function preprocess(blocks: Block[]): Block[] {
 }
 
 function shouldBeFlatten(container: ContainerBlock): boolean {
-    return !container.content.some(b => b.block === 'text' || b.block === 'attrs');
+    return !container.content.some(b => (b.block === 'text' && !isWhitespaces(b.text)) || b.block === 'attrs');
 }
 
 type Env = {
@@ -183,7 +183,6 @@ function nodeFromBlock(block: Block, env: Env): BookNode | undefined {
                     span: span,
                 };
             } else {
-                // TODO: now: report problems ?
                 return undefined;
             }
         case 'container':

@@ -85,13 +85,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
 
     switch (node.type) {
         case 'text':
-            // TODO: rethink ?
-            return isWhitespaces(node.text)
-                ? []
-                : [{
-                    block: 'text',
-                    text: node.text,
-                }];
+            // TODO: now: rethink ?
+            return [{
+                block: 'text',
+                text: node.text,
+            }];
         case 'element':
             switch (node.name) {
                 case 'em':
@@ -140,11 +138,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                 case 'img':
                 case 'image':
                 case 'svg':
-                    // TODO: support images
+                    // TODO: now: support images
                     diagnoseUnexpectedAttributes(node, env.ds, [
                         'src', 'class', 'alt',
                         'height', 'width', 'viewBox',
-                        'xmlns', 'xlink:href', 'xmlns:xlink', // TODO: check what is that
+                        'xmlns', 'xlink:href', 'xmlns:xlink', // TODO: now: check what is that
                     ]);
                     return [];
                 case 'h1': case 'h2': case 'h3':
@@ -158,12 +156,12 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                         level: 4 - level,
                     }];
                 case 'sup': case 'sub':
-                    // TODO: implement superscript & subscript parsing
+                    // TODO: now: implement superscript & subscript parsing
                     diagnoseUnexpectedAttributes(node, env.ds);
                     return [];
                 case 'ul': case 'li':
                     diagnoseUnexpectedAttributes(node, env.ds);
-                    // TODO: handle lists
+                    // TODO: now: handle lists
                     return [];
                 case 'br':
                     diagnoseUnexpectedAttributes(node, env.ds);
@@ -193,7 +191,7 @@ function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
     for (const node of nodes) {
         switch (node.type) {
             case 'text':
-                // TODO: rethink this
+                // TODO: now: rethink this
                 if (!isWhitespaces(node.text)) {
                     lines.push(node.text);
                 }
