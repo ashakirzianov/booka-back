@@ -83,6 +83,10 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
         return hooked;
     }
 
+    if (shouldSkipNode(node)) {
+        return [];
+    }
+
     switch (node.type) {
         case 'text':
             // TODO: now: rethink ?
@@ -225,4 +229,13 @@ function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, 
             ds.warn(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
         }
     }
+}
+
+function shouldSkipNode(node: XmlNode): boolean {
+    if (isTextNode(node)) {
+        if (node.text.startsWith('\n') && isWhitespaces(node.text)) {
+            return true;
+        }
+    }
+    return false;
 }

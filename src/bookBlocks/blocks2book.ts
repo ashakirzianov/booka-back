@@ -118,7 +118,7 @@ function preprocess(blocks: Block[]): Block[] {
 }
 
 function shouldBeFlatten(container: ContainerBlock): boolean {
-    return !container.content.some(b => (b.block === 'text' && !isWhitespaces(b.text)) || b.block === 'attrs');
+    return !container.content.some(b => (b.block === 'text') || b.block === 'attrs');
 }
 
 type Env = {
