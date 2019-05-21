@@ -1,7 +1,7 @@
 import * as Contracts from '../contracts';
 import * as bookDb from './book';
 import { logString } from '../logger';
-import { optimizeBook } from '../misc';
+import { preprocessBook } from '../preprocessBook';
 
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;
@@ -17,13 +17,13 @@ export async function bookById(id: string): Promise<Contracts.BookContent> {
 }
 
 export async function insertBook(book: Contracts.BookContent) {
-    const optimized = optimizeBook(book);
+    const preprocessed = preprocessBook(book);
 
-    const bookId = await bookDb.generateBookId(optimized.meta.title, optimized.meta.author);
+    const bookId = await bookDb.generateBookId(preprocessed.meta.title, preprocessed.meta.author);
     const bookDocument: bookDb.Book = {
-        title: optimized.meta.title,
-        author: optimized.meta.author,
-        raw: JSON.stringify(optimized),
+        title: preprocessed.meta.title,
+        author: preprocessed.meta.author,
+        raw: JSON.stringify(preprocessed),
         bookId: bookId,
     };
 

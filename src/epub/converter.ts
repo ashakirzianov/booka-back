@@ -1,8 +1,8 @@
-import { EpubBook, EpubSection, EpubCollection } from './epubParser';
+import { EpubBook, EpubSection } from './epubParser';
 import { BookContent, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
-    xmlNode2String, isDocument, isTextNode, childForPath,
+    xmlNode2String, isTextNode, childForPath,
 } from '../xml';
 import {
     Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,

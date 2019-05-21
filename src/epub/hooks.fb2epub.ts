@@ -16,7 +16,6 @@ export const fb2epubHooks: EpubConverterOptions = {
         ignoreClass('annotation'),
         ignoreClass('coverpage'),
         ignoreClass('fb2_info'),
-        ignoreClass('title2'),
         footnoteSection(),
         titlePage(),
     ],
@@ -51,7 +50,7 @@ function footnoteSection(): EpubConverterNodeHook {
         const parser = translate(
             and(
                 divId,
-                children(seq(expected(title), some(choice(back, rec)))),
+                children(seq(title, some(choice(back, rec)))),
             ),
             ([id, [tls, bs]]) => [forceType<Block>({
                 block: 'footnote-candidate',
