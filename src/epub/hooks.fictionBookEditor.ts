@@ -24,7 +24,6 @@ function titleElement() {
     }
 
     return element2block(el => {
-        // TODO: use parser combinators to define this ?
         if (el.name !== 'div') {
             return undefined;
         }

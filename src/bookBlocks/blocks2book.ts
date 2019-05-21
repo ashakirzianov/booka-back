@@ -213,6 +213,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
         case 'footnote-ref':
             const footnoteContainer = env.footnotes.find(f => f.id === block.id);
             if (footnoteContainer) {
+                // TODO: extract title from content
                 const content = spanFromBlock(block.content, env);
                 if (!content) {
                     env.ds.warn(`${block.id}: couldn't build footnote text: ${block.content}`);
@@ -231,8 +232,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     title: footnoteContainer.title,
                 };
             } else {
-                // TODO: now: put warning back
-                // env.ds.warn(`Could not resolve footnote reference: ${block.id}`);
+                env.ds.warn(`Could not resolve footnote reference: ${block.id}`);
                 return undefined;
             }
         case 'container':
@@ -243,7 +243,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
         case 'ignore': case 'book-author':
             return undefined;
         case 'chapter-title': case 'book-title':
-            // TODO: now: turn back warns
+            // TODO: turn back warns
             // env.ds.warn(`Unexpected title: ${block2string(block)}`);
             return undefined;
         default:

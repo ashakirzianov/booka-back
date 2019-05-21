@@ -89,7 +89,6 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
 
     switch (node.type) {
         case 'text':
-            // TODO: now: rethink ?
             return [{
                 block: 'text',
                 text: node.text,
@@ -142,11 +141,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                 case 'img':
                 case 'image':
                 case 'svg':
-                    // TODO: now: support images
+                    // TODO: support images
                     diagnoseUnexpectedAttributes(node, env.ds, [
                         'src', 'class', 'alt',
                         'height', 'width', 'viewBox',
-                        'xmlns', 'xlink:href', 'xmlns:xlink', // TODO: now: check what is that
+                        'xmlns', 'xlink:href', 'xmlns:xlink',
                     ]);
                     return [];
                 case 'h1': case 'h2': case 'h3':
@@ -160,12 +159,12 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                         level: 4 - level,
                     }];
                 case 'sup': case 'sub':
-                    // TODO: now: implement superscript & subscript parsing
+                    // TODO: implement superscript & subscript parsing
                     diagnoseUnexpectedAttributes(node, env.ds);
                     return [];
                 case 'ul': case 'li':
                     diagnoseUnexpectedAttributes(node, env.ds);
-                    // TODO: now: handle lists
+                    // TODO: handle lists
                     return [];
                 case 'br':
                     diagnoseUnexpectedAttributes(node, env.ds);
@@ -195,7 +194,6 @@ function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
     for (const node of nodes) {
         switch (node.type) {
             case 'text':
-                // TODO: now: rethink this
                 if (!isWhitespaces(node.text)) {
                     lines.push(node.text);
                 }
