@@ -5,7 +5,7 @@ import {
 import {
     nameChildren, textNode, nameAttrsChildren, some,
     translate, headNode, nameAttrs, choice,
-    seq, children, and, whitespaced, name, attrs, expected, attrsChildren, extractText,
+    seq, children, and, whitespaced, name, attrs, expected, attrsChildren, extractText, isElement, xmlNode2String, nameEq,
 } from '../xml';
 import { Block } from '../bookBlocks';
 import { forceType, flatten } from '../utils';
@@ -16,6 +16,7 @@ export const fb2epubHooks: EpubConverterOptions = {
         ignoreClass('annotation'),
         ignoreClass('coverpage'),
         ignoreClass('fb2_info'),
+        title(),
         footnoteSection(),
         titlePage(),
     ],
@@ -88,6 +89,37 @@ function titlePage(): EpubConverterNodeHook {
         const parser = attrsChildren(
             { class: 'titlepage' },
             some(choice(bookTitle, bookAuthor, ignore)),
+        );
+
+        return parser;
+    });
+}
+
+function title(): EpubConverterNodeHook {
+    return parserHook(() => {
+        const divTitle = headNode(n => {
+            if (isElement(n) && nameEq('div', n.name)
+                && n.attributes.class && n.attributes.class.startsWith('title')) {
+                const levelString = n.attributes.class.slice('title'.length);
+                const level = parseInt(levelString, 10);
+
+                return isNaN(level)
+                    ? null
+                    : level;
+            }
+
+            return null;
+        });
+        const h = whitespaced(nameChildren(n => n.startsWith('h'), textNode()));
+        const content = some(h);
+
+        const parser = translate(
+            and(divTitle, children(content)),
+            ([level, ts]) => [forceType<Block>({
+                block: 'chapter-title',
+                title: ts,
+                level: 4 - level,
+            })],
         );
 
         return parser;
