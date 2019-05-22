@@ -8,7 +8,9 @@
         "**/.DS_Store": true,
         "**/node_modules/**": true
     },
-    "tslint.autoFixOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+    },
     "editor.formatOnSave": true,
     "cSpell.words": [
         "Booka",
