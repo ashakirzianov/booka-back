@@ -1,4 +1,4 @@
-import { Diagnosed, Diagnostics } from '../utils';
+import { Diagnosed, Diagnostics } from '../diagnostics';
 import { XmlNode, XmlNodeElement, isElement, XmlParser } from '../xml';
 import { EpubBook, EpubSource } from './epubParser';
 import { Block } from '../bookBlocks';

@@ -1,4 +1,4 @@
-import { Diagnosed } from '../utils';
+import { Diagnosed } from '../diagnostics';
 import { BookContent } from '../contracts';
 import { string2tree } from '../xml';
 import { createEpubParser } from './epub2';

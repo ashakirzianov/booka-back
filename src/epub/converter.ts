@@ -5,10 +5,11 @@ import {
     xmlNode2String, isTextNode, childForPath,
 } from '../xml';
 import {
-    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
+    AsyncIter, isWhitespaces, flatten,
 } from '../utils';
 import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
+import { Diagnosed, Diagnostics, assignDiagnostics } from '../diagnostics';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {

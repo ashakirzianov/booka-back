@@ -4,8 +4,9 @@ import {
     assign, ChapterNode, BookContent, BookMeta,
 } from '../contracts';
 import {
-    flatten, Diagnostics, filterUndefined, assertNever, isWhitespaces,
+    flatten, filterUndefined, assertNever,
 } from '../utils';
+import { Diagnostics } from '../diagnostics';
 
 export function blocks2book(blocks: Block[], ds: Diagnostics): BookContent {
     const { rest, footnotes } = separateFootnoteContainers(blocks);
