@@ -15,7 +15,7 @@ export function blocks2book(blocks: Block[], ds: ParserDiagnoser): BookContent {
     const nodes = buildChapters(preprocessed, { ds, footnotes });
 
     if (meta.title === undefined) {
-        ds.add(`Expected non-empty title`);
+        ds.add({ diag: 'empty-book-title' });
     }
 
     return {
@@ -131,7 +131,7 @@ function buildChapters(blocks: Block[], env: Env) {
     const { nodes, next } = buildChaptersImpl(blocks, undefined, env);
 
     if (next.length !== 0) {
-        env.ds.add(`Unexpected blocks tail: '${next}`);
+        env.ds.add({ diag: 'extra-blocks-tail', blocks });
     }
 
     return nodes;
@@ -194,7 +194,7 @@ function nodeFromBlock(block: Block, env: Env): BookNode | undefined {
                 span: compoundSpan(spans),
             };
         default:
-            env.ds.add(`Unexpected block: '${block2string(block)}'`);
+            env.ds.add({ diag: 'unexpected-block', block });
             return undefined;
     }
 }
@@ -208,7 +208,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
             if (attrSpan !== undefined) {
                 return assign(block.attr)(attrSpan);
             } else {
-                env.ds.add(`Couldn't build span: '${block.content}'`);
+                env.ds.add({ diag: 'couldnt-build-span', block, context: 'attr' });
                 return undefined;
             }
         case 'footnote-ref':
@@ -217,12 +217,12 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                 // TODO: extract title from content
                 const content = spanFromBlock(block.content, env);
                 if (!content) {
-                    env.ds.add(`${block.id}: couldn't build footnote text: ${block.content}`);
+                    env.ds.add({ diag: 'couldnt-build-span', block, context: 'footnote' });
                     return undefined;
                 }
                 const footnote = spanFromBlock(footnoteContainer.content, env);
                 if (!footnote) {
-                    env.ds.add(`${block.id}: couldn't build footnote: ${block2string(footnoteContainer)}`);
+                    env.ds.add({ diag: 'couldnt-build-span', block, context: 'footnote' });
                     return undefined;
                 }
                 return {
@@ -233,7 +233,7 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
                     title: footnoteContainer.title,
                 };
             } else {
-                env.ds.add(`Could not resolve footnote reference: ${block.id}`);
+                env.ds.add({ diag: 'couldnt-resolve-ref', id: block.id });
                 return undefined;
             }
         case 'container':
@@ -248,12 +248,8 @@ function spanFromBlock(block: Block, env: Env): Span | undefined {
             // env.ds.warn(`Unexpected title: ${block2string(block)}`);
             return undefined;
         default:
-            env.ds.add(`Unexpected block: ${block2string(block)}`);
+            env.ds.add({ diag: 'unexpected-block', block });
             assertNever(block);
             return undefined;
     }
-}
-
-function block2string(block: Block): string {
-    return JSON.stringify(block, undefined, 4);
 }

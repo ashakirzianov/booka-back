@@ -2,7 +2,7 @@ import { EpubBook, EpubSection } from './epubParser';
 import { BookContent, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
-    xmlNode2String, isTextNode, childForPath,
+    isTextNode, childForPath,
 } from '../xml';
 import {
     AsyncIter, isWhitespaces, flatten,
@@ -123,7 +123,7 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                             content: buildContainerBlock(node.children, filePath, env),
                         }];
                     } else {
-                        env.ds.add(`Link should have ref: '${xmlNode2String(node)}'`);
+                        env.ds.add({ diag: 'link-must-have-ref', node });
                         return [];
                     }
                 case 'p':
@@ -171,11 +171,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                     diagnoseUnexpectedAttributes(node, env.ds);
                     return [];
                 default:
-                    env.ds.add(`Unexpected element: '${xmlNode2String(node)}'`);
+                    env.ds.add({ diag: 'unexpected-node', node });
                     return [];
             }
         default:
-            env.ds.add(`Unexpected node: '${xmlNode2String(node)}'`);
+            env.ds.add({ diag: 'unexpected-node', node });
             return [];
     }
 }
@@ -206,18 +206,18 @@ function extractTitle(nodes: XmlNode[], ds: ParserDiagnoser): ChapterTitle {
                         lines.push(fromElement.join(''));
                         break;
                     default:
-                        ds.add(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                        ds.add({ diag: 'unexpected-node', node, context: 'title' });
                         break;
                 }
                 break;
             default:
-                ds.add(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                ds.add({ diag: 'unexpected-node', node, context: 'title' });
                 break;
         }
     }
 
     if (lines.length === 0) {
-        ds.add(`Couldn't extract title from nodes: '${nodes.map(xmlNode2String)}'`);
+        ds.add({ diag: 'no-title', nodes });
     }
     return lines;
 }
@@ -225,7 +225,7 @@ function extractTitle(nodes: XmlNode[], ds: ParserDiagnoser): ChapterTitle {
 function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: ParserDiagnoser, expected: string[] = []) {
     for (const [attr, value] of Object.entries(element.attributes)) {
         if (!expected.some(e => e === attr)) {
-            ds.add(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
+            ds.add({ diag: 'unexpected-attr', name: attr, value, element });
         }
     }
 }
