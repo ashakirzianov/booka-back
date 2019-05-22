@@ -15,6 +15,7 @@ export type FootnoteSpan = {
     content: Span,
     footnote: Span,
     id: FootnoteId,
+    title: string[],
 };
 export type Span =
     | SimpleSpan | CompoundSpan

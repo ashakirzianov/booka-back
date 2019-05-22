@@ -6,7 +6,7 @@ import {
     tagged,
     projectFirst, and, expected, projectLast, translate,
 } from './parserCombinators';
-import { headNode, children, XmlParser } from './treeParser';
+import { headNode, children, XmlParser, textNode } from './treeParser';
 import { XmlNodeElement, isElement, xmlNode2String, XmlNode } from './xmlNode';
 import { predicate } from './arrayParser';
 
@@ -22,11 +22,14 @@ function fromPredicate(pred: ElementPredicate) {
 }
 export const name = (n: ConstraintValue<string>) =>
     fromPredicate(namePred(n));
+// TODO: put back expected
+// export const attrs = (x: ConstraintMap) =>
+//     projectLast(and(
+//         expected(fromPredicate(noAttrsExceptPred(Object.keys(x)))),
+//         fromPredicate(attrsPred(x)),
+//     ));
 export const attrs = (x: ConstraintMap) =>
-    projectFirst(and(
-        fromPredicate(attrsPred(x)),
-        expected(fromPredicate(noAttrsExceptPred(Object.keys(x)))),
-    ));
+    fromPredicate(attrsPred(x));
 
 export const nameChildren = <T>(n: ConstraintValue<string>, ch: XmlParser<T>) =>
     projectLast(and(name(n), expected(attrs({})), children(ch)));
@@ -34,6 +37,11 @@ export const nameAttrs = (n: ConstraintValue<string>, attrMap: ConstraintMap) =>
     projectFirst(and(name(n), attrs(attrMap)));
 export const nameAttrsChildren = <T>(n: ConstraintValue<string>, attrMap: ConstraintMap, ch: XmlParser<T>) =>
     projectLast(and(name(n), attrs(attrMap), children(ch)));
+export const attrsChildren = <T>(attrMap: ConstraintMap, ch: XmlParser<T>) =>
+    projectLast(and(attrs(attrMap), children(ch)));
+
+export const extractText = (parser: XmlParser) =>
+    projectLast(and(parser, children(textNode())));
 
 // ---- Predicates
 

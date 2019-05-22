@@ -8,19 +8,32 @@ export type AttrsBlock = {
     attr: 'italic' | 'bold',
 };
 export type FootnoteRefBlock = {
-    block: 'footnote',
+    block: 'footnote-ref',
     id: string,
     content: Block,
 };
-export type TitleBlock = {
-    block: 'title',
+export type FootnoteCandidateBlock = {
+    block: 'footnote-candidate',
+    id: string,
+    title: string[],
+    content: Block,
+};
+export type ChapterTitleBlock = {
+    block: 'chapter-title',
     title: string[],
     level: number,
+};
+export type BookTitleBlock = {
+    block: 'book-title',
+    title: string,
+};
+export type BookAuthorBlock = {
+    block: 'book-author',
+    author: string,
 };
 export type ContainerBlock = {
     block: 'container',
     content: Block[],
-    id: string | undefined,
 };
 export type IgnoreBlock = {
     block: 'ignore',
@@ -29,8 +42,10 @@ export type Block =
     | TextBlock
     | AttrsBlock
     | FootnoteRefBlock
-    | TitleBlock
+    | FootnoteCandidateBlock
+    | ChapterTitleBlock
+    | BookTitleBlock
+    | BookAuthorBlock
     | ContainerBlock
     | IgnoreBlock
     ;
-export type IntermediateBook = Block[];

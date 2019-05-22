@@ -78,6 +78,27 @@ export function xmlElement(
     };
 }
 
+export function childForPath(node: XmlNode, ...path: string[]): XmlNode | undefined {
+    if (path.length === 0) {
+        return node;
+    }
+
+    if (!hasChildren(node)) {
+        return undefined;
+    }
+
+    const head = path[0];
+    const child = node.children.find(ch => isElement(ch) && sameName(ch.name, head));
+
+    return child
+        ? childForPath(child, ...path.slice(1))
+        : undefined;
+}
+
+export function sameName(n1: string, n2: string) {
+    return n1.toUpperCase() === n2.toUpperCase();
+}
+
 export function attributesToString(attr: XmlAttributes): string {
     const result = Object.keys(attr)
         .map(k => attr[k] ? `${k}="${attr[k]}"` : k)

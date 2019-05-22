@@ -53,7 +53,7 @@ function optimizeParagraph(p: ParagraphNode): BookNode {
 }
 
 function optimizeSpan(span: Span): Span {
-    if (isSimple(span) || isFootnote(span)) {
+    if (isSimple(span)) {
         return span;
     } else if (isAttributed(span)) {
         const optimizedContent = optimizeSpan(span.content);
@@ -63,9 +63,11 @@ function optimizeSpan(span: Span): Span {
         };
     } else if (isFootnote(span)) {
         const content = optimizeSpan(span.content);
+        const footnote = optimizeSpan(span.footnote);
         return {
             ...span,
             content,
+            footnote,
         };
     } else if (isCompound(span)) {
         return optimizeCompound(span);

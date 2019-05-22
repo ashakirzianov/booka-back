@@ -16,7 +16,7 @@ export function createEpubParser(xmlParser: (text: string) => (XmlNodeDocument |
                     author: epub.metadata.creator,
                 },
                 imageResolver: () => undefined,
-                sections: async function*() {
+                sections: async function* () {
                     for (const el of epub.flow) {
                         if (el.id && el.href) {
                             // TODO: find better solution

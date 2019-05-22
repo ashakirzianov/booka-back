@@ -8,7 +8,7 @@ import { converterHooks } from './hooks';
 export async function path2book(path: string): Promise<Diagnosed<BookContent>> {
     const parser = createEpubParser(string2tree);
     const converter = createConverter({
-        hooks: converterHooks,
+        options: converterHooks,
     });
     const epub = await parser.parseFile(path);
     const book = converter.convertEpub(epub);

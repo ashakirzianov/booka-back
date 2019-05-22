@@ -8,7 +8,9 @@
         "**/.DS_Store": true,
         "**/node_modules/**": true
     },
-    "tslint.autoFixOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+    },
     "editor.formatOnSave": true,
     "cSpell.words": [
         "Booka",
@@ -21,10 +23,14 @@
         "backend",
         "coverpage",
         "epub",
+        "multiline",
+        "paren",
+        "parens",
         "pphs",
         "preds",
         "preprocessed",
         "promisify",
+        "quotemark",
         "reparse",
         "reparser",
         "reresult",

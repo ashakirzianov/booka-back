@@ -1,14 +1,14 @@
-import { EpubBook, EpubSection, EpubCollection } from './epubParser';
+import { EpubBook, EpubSection } from './epubParser';
 import { BookContent, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
-    xmlNode2String, isDocument, isTextNode,
+    xmlNode2String, isTextNode, childForPath,
 } from '../xml';
 import {
-    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces,
+    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
 } from '../utils';
-import { Block, ContainerBlock, intermediate2actual } from '../intermediateBook';
-import { EpubConverterParameters, EpubConverter, EpubConverterHooks, EpubConverterHook } from './epubConverter';
+import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
+import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {
@@ -18,38 +18,39 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
 
 async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
     const ds = new Diagnostics();
-    const hooks = params.hooks[epub.source];
-    const intermediate = await AsyncIter.toArray(
-        AsyncIter.flatten(
-            AsyncIter.map(epub.sections(), s => section2blocks(s, { ds, hooks }))
-        )
-    );
-    const nodes = intermediate2actual(intermediate, ds);
+    const hooks = params.options[epub.source];
+    const sections = await AsyncIter.toArray(epub.sections());
+    const blocks = flatten(sections.map(s =>
+        section2blocks(s, { ds, hooks })));
+    const metaBlocks = buildMetaBlocks(epub);
+    const allBlocks = blocks.concat(metaBlocks);
 
-    // TODO: report missing title
-    const book: BookContent = {
-        meta: {
-            title: epub.metadata.title || 'no-title',
-            author: epub.metadata.author,
-        },
-        nodes: nodes,
-    };
+    const book = blocks2book(allBlocks, ds);
 
     return assignDiagnostics(book, ds);
 }
 
+function buildMetaBlocks(epub: EpubBook): Block[] {
+    const result: Block[] = [];
+    if (epub.metadata.title) {
+        result.push({
+            block: 'book-title',
+            title: epub.metadata.title,
+        });
+    }
+
+    if (epub.metadata.author) {
+        result.push({
+            block: 'book-author',
+            author: epub.metadata.author,
+        });
+    }
+
+    return result;
+}
+
 function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
-    if (!isDocument(node)) {
-        return undefined;
-    }
-
-    const html = node.children.find(ch => isElement(ch) && ch.name === 'html');
-    if (!html || !isElement(html)) {
-        return undefined;
-    }
-
-    const body = html.children.find(ch => isElement(ch) && ch.name === 'body');
-
+    const body = childForPath(node, 'html', 'body');
     return body && isElement(body)
         ? body
         : undefined;
@@ -57,63 +58,57 @@ function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
 
 type Env = {
     ds: Diagnostics,
-    hooks: EpubConverterHooks,
+    hooks: EpubConverterOptions,
 };
 
-async function* section2blocks(section: EpubSection, env: Env): EpubCollection<Block> {
+function section2blocks(section: EpubSection, env: Env): Block[] {
     const body = getBodyElement(section.content);
     if (!body) {
-        return;
+        return [];
     }
 
-    for (const node of body.children) {
-        const result = buildBlock(node, section.fileName, env);
-        yield result;
-    }
+    return flatten(body.children.map(node =>
+        buildBlock(node, section.fileName, env)));
 }
 
-function applyNodeHooks(node: XmlNode, hooks: EpubConverterHook[]): Block | undefined {
-    for (const hook of hooks) {
-        const hooked = hook(node);
-        if (hooked) {
-            return hooked;
-        }
-    }
-
-    return undefined;
-}
-
-function buildBlock(node: XmlNode, filePath: string, env: Env): Block {
-    const hooked = applyNodeHooks(node, env.hooks.nodeLevel);
+function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
+    const hookEnv: EpubConverterHookEnv = {
+        ds: env.ds,
+        node2blocks: n =>
+            buildBlock(n, filePath, env),
+        filePath,
+    };
+    const hooked = applyHooks(node, env.hooks.nodeHooks, hookEnv);
     if (hooked) {
         return hooked;
     }
 
+    if (shouldSkipNode(node)) {
+        return [];
+    }
+
     switch (node.type) {
         case 'text':
-            // TODO: rethink ?
-            return isWhitespaces(node.text)
-                ? { block: 'ignore' }
-                : {
-                    block: 'text',
-                    text: node.text,
-                };
+            return [{
+                block: 'text',
+                text: node.text,
+            }];
         case 'element':
             switch (node.name) {
                 case 'em':
                     diagnoseUnexpectedAttributes(node, env.ds);
-                    return {
+                    return [{
                         block: 'attrs',
                         attr: 'italic',
                         content: buildContainerBlock(node.children, filePath, env),
-                    };
+                    }];
                 case 'strong':
                     diagnoseUnexpectedAttributes(node, env.ds);
-                    return {
+                    return [{
                         block: 'attrs',
                         attr: 'bold',
                         content: buildContainerBlock(node.children, filePath, env),
-                    };
+                    }];
                 case 'a':
                     diagnoseUnexpectedAttributes(node, env.ds, [
                         'href',
@@ -121,23 +116,28 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block {
                         'title',
                     ]);
                     if (node.attributes.href !== undefined) {
-                        return {
-                            block: 'footnote',
+                        return [{
+                            block: 'footnote-ref',
                             id: node.attributes.href,
                             content: buildContainerBlock(node.children, filePath, env),
-                        };
+                        }];
                     } else {
                         env.ds.warn(`Link should have ref: '${xmlNode2String(node)}'`);
-                        return { block: 'ignore' };
+                        return [];
                     }
                 case 'p':
                 case 'span':
                 case 'div':
                     diagnoseUnexpectedAttributes(node, env.ds, ['class', 'id']);
-                    return {
-                        ...buildContainerBlock(node.children, filePath, env),
-                        id: node.attributes.id && `${filePath}#${node.attributes.id}`,
-                    };
+                    const container = buildContainerBlock(node.children, filePath, env);
+                    const result: Block = node.attributes.id
+                        ? {
+                            block: 'footnote-candidate',
+                            id: `${filePath}#${node.attributes.id}`,
+                            title: [],
+                            content: container,
+                        } : container;
+                    return [result];
                 case 'img':
                 case 'image':
                 case 'svg':
@@ -145,47 +145,46 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block {
                     diagnoseUnexpectedAttributes(node, env.ds, [
                         'src', 'class', 'alt',
                         'height', 'width', 'viewBox',
-                        'xmlns', 'xlink:href', 'xmlns:xlink', // TODO: check what is that
+                        'xmlns', 'xlink:href', 'xmlns:xlink',
                     ]);
-                    return { block: 'ignore' };
+                    return [];
                 case 'h1': case 'h2': case 'h3':
                 case 'h4': case 'h5': case 'h6':
                     diagnoseUnexpectedAttributes(node, env.ds, ['class']);
                     const level = parseInt(node.name[1], 10);
                     const title = extractTitle(node.children, env.ds);
-                    return {
-                        block: 'title',
+                    return [{
+                        block: 'chapter-title',
                         title: title,
-                        level: level,
-                    };
+                        level: 4 - level,
+                    }];
                 case 'sup': case 'sub':
                     // TODO: implement superscript & subscript parsing
                     diagnoseUnexpectedAttributes(node, env.ds);
-                    return { block: 'ignore' };
+                    return [];
                 case 'ul': case 'li':
                     diagnoseUnexpectedAttributes(node, env.ds);
                     // TODO: handle lists
-                    return { block: 'ignore' };
+                    return [];
                 case 'br':
                     diagnoseUnexpectedAttributes(node, env.ds);
-                    return { block: 'ignore' };
+                    return [];
                 default:
                     env.ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
-                    return { block: 'ignore' };
+                    return [];
             }
         default:
             env.ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
-            return { block: 'ignore' };
+            return [];
     }
 }
 
 function buildContainerBlock(nodes: XmlNode[], filePath: string, env: Env): ContainerBlock {
-    const content = nodes
-        .map(ch => buildBlock(ch, filePath, env));
+    const content = flatten(nodes
+        .map(ch => buildBlock(ch, filePath, env)));
 
     return {
         block: 'container',
-        id: undefined,
         content,
     };
 }
@@ -195,7 +194,6 @@ function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
     for (const node of nodes) {
         switch (node.type) {
             case 'text':
-                // TODO: rethink this
                 if (!isWhitespaces(node.text)) {
                     lines.push(node.text);
                 }
@@ -229,4 +227,13 @@ function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, 
             ds.warn(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
         }
     }
+}
+
+function shouldSkipNode(node: XmlNode): boolean {
+    if (isTextNode(node)) {
+        if (node.text.startsWith('\n') && isWhitespaces(node.text)) {
+            return true;
+        }
+    }
+    return false;
 }
