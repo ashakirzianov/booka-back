@@ -33,8 +33,9 @@ async function seed() {
             }
             const fullPath = epubLocation + path;
             const book = await logTimeAsync(() => path2book(fullPath), `Parse: ${path}`);
-            if (!book.diagnostics.isEmpty()) {
-                log(book.diagnostics.toString());
+            const ds = book.diagnostics.all();
+            if (ds.length !== 0) {
+                log(ds);
             }
             await insertBook(book.value);
         } catch (e) {

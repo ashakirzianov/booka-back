@@ -9,7 +9,7 @@ import {
 } from '../utils';
 import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
-import { Diagnosed, Diagnostics, assignDiagnostics } from '../diagnostics';
+import { Diagnosed, ParserDiagnoser, assignDiagnostics } from '../diagnostics';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {
@@ -18,7 +18,7 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
 }
 
 async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
-    const ds = new Diagnostics();
+    const ds = new ParserDiagnoser();
     const hooks = params.options[epub.source];
     const sections = await AsyncIter.toArray(epub.sections());
     const blocks = flatten(sections.map(s =>
@@ -58,7 +58,7 @@ function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
 }
 
 type Env = {
-    ds: Diagnostics,
+    ds: ParserDiagnoser,
     hooks: EpubConverterOptions,
 };
 
@@ -123,7 +123,7 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                             content: buildContainerBlock(node.children, filePath, env),
                         }];
                     } else {
-                        env.ds.warn(`Link should have ref: '${xmlNode2String(node)}'`);
+                        env.ds.add(`Link should have ref: '${xmlNode2String(node)}'`);
                         return [];
                     }
                 case 'p':
@@ -171,11 +171,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                     diagnoseUnexpectedAttributes(node, env.ds);
                     return [];
                 default:
-                    env.ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
+                    env.ds.add(`Unexpected element: '${xmlNode2String(node)}'`);
                     return [];
             }
         default:
-            env.ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
+            env.ds.add(`Unexpected node: '${xmlNode2String(node)}'`);
             return [];
     }
 }
@@ -190,7 +190,7 @@ function buildContainerBlock(nodes: XmlNode[], filePath: string, env: Env): Cont
     };
 }
 
-function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
+function extractTitle(nodes: XmlNode[], ds: ParserDiagnoser): ChapterTitle {
     const lines: string[] = [];
     for (const node of nodes) {
         switch (node.type) {
@@ -206,26 +206,26 @@ function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
                         lines.push(fromElement.join(''));
                         break;
                     default:
-                        ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                        ds.add(`Unexpected node in title: '${xmlNode2String(node)}'`);
                         break;
                 }
                 break;
             default:
-                ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                ds.add(`Unexpected node in title: '${xmlNode2String(node)}'`);
                 break;
         }
     }
 
     if (lines.length === 0) {
-        ds.warn(`Couldn't extract title from nodes: '${nodes.map(xmlNode2String)}'`);
+        ds.add(`Couldn't extract title from nodes: '${nodes.map(xmlNode2String)}'`);
     }
     return lines;
 }
 
-function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, expected: string[] = []) {
+function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: ParserDiagnoser, expected: string[] = []) {
     for (const [attr, value] of Object.entries(element.attributes)) {
         if (!expected.some(e => e === attr)) {
-            ds.warn(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
+            ds.add(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
         }
     }
 }

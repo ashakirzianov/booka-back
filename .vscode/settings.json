@@ -15,6 +15,7 @@
     "cSpell.words": [
         "Booka",
         "Combinators",
+        "Diagnoser",
         "Metas",
         "Shakirzianov",
         "Succ",
@@ -22,6 +23,7 @@
         "Whitespaces",
         "backend",
         "coverpage",
+        "diags",
         "epub",
         "multiline",
         "paren",

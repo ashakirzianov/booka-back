@@ -1,24 +1,21 @@
-export class Diagnostics {
-    private messages: string[] = [];
-    public warn(message: string) {
-        this.messages.push(message);
+export class Diagnoser<T> {
+    private diags: T[] = [];
+
+    public add(diag: T) {
+        this.diags.push(diag);
     }
 
-    public toString() {
-        return `${this.messages.join('\n')}`;
-    }
-
-    public isEmpty() {
-        return this.messages.length === 0;
+    public all(): T[] {
+        return { ...this.diags };
     }
 }
 
 export type Diagnosed<T> = {
     value: T,
-    diagnostics: Diagnostics,
+    diagnostics: Diagnoser<any>,
 };
 
-export function assignDiagnostics<T>(value: T, diagnostics: Diagnostics): Diagnosed<T> {
+export function assignDiagnostics<T>(value: T, diagnostics: Diagnoser<any>): Diagnosed<T> {
     return {
         value, diagnostics,
     };
