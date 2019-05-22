@@ -1,5 +1,7 @@
-export class Diagnoser<T> {
-    private diags: T[] = [];
+import { Logger } from './logger';
+
+export abstract class Diagnoser<T> {
+    protected diags: T[] = [];
 
     public add(diag: T) {
         this.diags.push(diag);
@@ -8,6 +10,8 @@ export class Diagnoser<T> {
     public all(): T[] {
         return { ...this.diags };
     }
+
+    public abstract log(logger: Logger): void;
 }
 
 export type Diagnosed<T> = {

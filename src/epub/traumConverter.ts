@@ -7,7 +7,6 @@ import { section } from './traumConverter.section';
 import { EpubBook, EpubSection, EpubCollection } from './epubParser';
 import { filterUndefined, AsyncIter } from '../utils';
 import { BookContent, BookNode, ChapterNode, ParagraphNode } from '../contracts';
-import { logString } from '../logger';
 
 type HeaderElement = {
     element: 'header',
@@ -63,12 +62,6 @@ async function* sections2elements(secs: EpubCollection<EpubSection>) {
 function tree2elements(tree: XmlNode): Element[] {
     const result = section([tree]);
 
-    // TODO: implement better logging strategy
-    const message = messageToString(result.message);
-    if (message) {
-        const prefix = result.success ? 'Warnings: ' : 'Errors: ';
-        logString(prefix + message);
-    }
     return result.success ? result.value : [];
 }
 
