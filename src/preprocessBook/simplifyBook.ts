@@ -28,9 +28,13 @@ function simplifyNode(node: BookNode): BookNode | undefined {
 }
 
 function simplifyChapter(chapter: ChapterNode): BookNode | undefined {
-    return chapter.nodes.length === 0
+    const nodes = simplifyNodes(chapter.nodes);
+    return nodes.length === 0
         ? undefined
-        : chapter;
+        : {
+            ...chapter,
+            nodes,
+        };
 }
 
 function simplifyParagraph(paragraph: ParagraphNode): BookNode | undefined {
