@@ -16,7 +16,7 @@ export const fb2epubHooks: EpubConverterOptions = {
         ignoreClass('annotation'),
         ignoreClass('coverpage'),
         ignoreClass('fb2_info'),
-        title(),
+        divTitle(),
         footnoteSection(),
         titlePage(),
     ],
@@ -95,9 +95,9 @@ function titlePage(): EpubConverterNodeHook {
     });
 }
 
-function title(): EpubConverterNodeHook {
+function divTitle(): EpubConverterNodeHook {
     return parserHook(() => {
-        const divTitle = headNode(n => {
+        const divLevel = headNode(n => {
             if (isElement(n) && nameEq('div', n.name)
                 && n.attributes.class && n.attributes.class.startsWith('title')) {
                 const levelString = n.attributes.class.slice('title'.length);
@@ -114,7 +114,7 @@ function title(): EpubConverterNodeHook {
         const content = some(h);
 
         const parser = translate(
-            and(divTitle, children(content)),
+            and(divLevel, children(content)),
             ([level, ts]) => [forceType<Block>({
                 block: 'chapter-title',
                 title: ts,
