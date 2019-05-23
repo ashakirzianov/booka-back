@@ -4,8 +4,8 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { path2book } from '../epub';
 import { countBooks, insertBook, removeAllBooks } from '../db';
-import { logTimeAsync, logString, log } from '../logger';
 import { debugAsync } from '../utils';
+import { logger, logTime, logTimeAsync } from '../log';
 
 const epubLocation = 'public/epub/';
 
@@ -19,7 +19,7 @@ export async function connectDb() {
     await debugAsync(removeAllBooks);
     const bookCount = await countBooks();
     if (bookCount === 0) {
-        logTimeAsync(seed, 'seed');
+        logTimeAsync('seed', seed);
     }
 }
 
@@ -32,13 +32,11 @@ async function seed() {
                 // return;
             }
             const fullPath = epubLocation + path;
-            const book = await logTimeAsync(() => path2book(fullPath), `Parse: ${path}`);
-            if (!book.diagnostics.isEmpty()) {
-                log(book.diagnostics.toString());
-            }
+            const book = await logTimeAsync(`Parse: ${path}`, () => path2book(fullPath));
+            book.diagnostics.log(logger());
             await insertBook(book.value);
         } catch (e) {
-            logString(`While parsing '${path}' error: ${e}`);
+            logger().warn(`While parsing '${path}' error: ${e}`);
         }
     });
 

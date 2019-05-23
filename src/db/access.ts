@@ -1,7 +1,7 @@
 import * as Contracts from '../contracts';
 import * as bookDb from './book';
-import { logString } from '../logger';
 import { preprocessBook } from '../preprocessBook';
+import { logger } from '../log';
 
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;
@@ -27,7 +27,7 @@ export async function insertBook(book: Contracts.BookContent) {
         bookId: bookId,
     };
 
-    logString('Insert book for id: ' + bookId);
+    logger().important('Insert book for id: ' + bookId);
     bookDb.insert(bookDocument);
 }
 

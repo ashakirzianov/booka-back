@@ -1,11 +1,11 @@
-import { Diagnosed, Diagnostics } from '../utils';
+import { WithDiagnostics, ParserDiagnoser } from '../log';
 import { XmlNode, XmlNodeElement, isElement, XmlParser } from '../xml';
 import { EpubBook, EpubSource } from './epubParser';
 import { Block } from '../bookBlocks';
 import { BookContent } from '../contracts';
 
 export type EpubConverter = {
-    convertEpub: (epub: EpubBook) => Promise<Diagnosed<BookContent>>,
+    convertEpub: (epub: EpubBook) => Promise<WithDiagnostics<BookContent>>,
 };
 
 export type EpubConverterParameters = {
@@ -21,14 +21,14 @@ export type EpubConverterOptions = {
 };
 
 export type EpubConverterHookEnv = {
-    ds: Diagnostics,
+    ds: ParserDiagnoser,
     node2blocks: (x: XmlNode) => Block[],
     filePath: string,
 };
 export type EpubConverterHookResult = Block[] | undefined;
 export type EpubConverterNodeHook = (x: XmlNode, env: EpubConverterHookEnv) => EpubConverterHookResult;
 
-export function element2block(hook: (el: XmlNodeElement, ds: Diagnostics) => (Block | undefined)): EpubConverterNodeHook {
+export function element2block(hook: (el: XmlNodeElement, ds: ParserDiagnoser) => (Block | undefined)): EpubConverterNodeHook {
     return (node, env) => {
         if (!isElement(node)) {
             return undefined;

@@ -2,13 +2,14 @@ import { EpubBook, EpubSection } from './epubParser';
 import { BookContent, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
-    xmlNode2String, isTextNode, childForPath,
+    isTextNode, childForPath,
 } from '../xml';
 import {
-    Diagnostics, Diagnosed, assignDiagnostics, AsyncIter, isWhitespaces, flatten,
+    AsyncIter, isWhitespaces, flatten,
 } from '../utils';
 import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
+import { WithDiagnostics, ParserDiagnoser, diagnoser } from '../log';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {
@@ -16,8 +17,8 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
     };
 }
 
-async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
-    const ds = new Diagnostics();
+async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<WithDiagnostics<BookContent>> {
+    const ds = diagnoser({ context: 'epub', title: epub.metadata.title });
     const hooks = params.options[epub.source];
     const sections = await AsyncIter.toArray(epub.sections());
     const blocks = flatten(sections.map(s =>
@@ -27,7 +28,10 @@ async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Pro
 
     const book = blocks2book(allBlocks, ds);
 
-    return assignDiagnostics(book, ds);
+    return {
+        value: book,
+        diagnostics: ds,
+    };
 }
 
 function buildMetaBlocks(epub: EpubBook): Block[] {
@@ -57,7 +61,7 @@ function getBodyElement(node: XmlNode): XmlNodeElement | undefined {
 }
 
 type Env = {
-    ds: Diagnostics,
+    ds: ParserDiagnoser,
     hooks: EpubConverterOptions,
 };
 
@@ -122,7 +126,7 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                             content: buildContainerBlock(node.children, filePath, env),
                         }];
                     } else {
-                        env.ds.warn(`Link should have ref: '${xmlNode2String(node)}'`);
+                        env.ds.add({ diag: 'link-must-have-ref', node });
                         return [];
                     }
                 case 'p':
@@ -170,11 +174,11 @@ function buildBlock(node: XmlNode, filePath: string, env: Env): Block[] {
                     diagnoseUnexpectedAttributes(node, env.ds);
                     return [];
                 default:
-                    env.ds.warn(`Unexpected element: '${xmlNode2String(node)}'`);
+                    env.ds.add({ diag: 'unexpected-node', node });
                     return [];
             }
         default:
-            env.ds.warn(`Unexpected node: '${xmlNode2String(node)}'`);
+            env.ds.add({ diag: 'unexpected-node', node });
             return [];
     }
 }
@@ -189,7 +193,7 @@ function buildContainerBlock(nodes: XmlNode[], filePath: string, env: Env): Cont
     };
 }
 
-function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
+function extractTitle(nodes: XmlNode[], ds: ParserDiagnoser): ChapterTitle {
     const lines: string[] = [];
     for (const node of nodes) {
         switch (node.type) {
@@ -205,26 +209,26 @@ function extractTitle(nodes: XmlNode[], ds: Diagnostics): ChapterTitle {
                         lines.push(fromElement.join(''));
                         break;
                     default:
-                        ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                        ds.add({ diag: 'unexpected-node', node, context: 'title' });
                         break;
                 }
                 break;
             default:
-                ds.warn(`Unexpected node in title: '${xmlNode2String(node)}'`);
+                ds.add({ diag: 'unexpected-node', node, context: 'title' });
                 break;
         }
     }
 
     if (lines.length === 0) {
-        ds.warn(`Couldn't extract title from nodes: '${nodes.map(xmlNode2String)}'`);
+        ds.add({ diag: 'no-title', nodes });
     }
     return lines;
 }
 
-function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: Diagnostics, expected: string[] = []) {
+function diagnoseUnexpectedAttributes(element: XmlNodeElement, ds: ParserDiagnoser, expected: string[] = []) {
     for (const [attr, value] of Object.entries(element.attributes)) {
         if (!expected.some(e => e === attr)) {
-            ds.warn(`Unexpected attribute: '${attr} = ${value}' on element '${xmlNode2String(element)}'`);
+            ds.add({ diag: 'unexpected-attr', name: attr, value, element });
         }
     }
 }

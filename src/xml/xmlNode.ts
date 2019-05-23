@@ -1,6 +1,5 @@
 import * as parseXmlLib from '@rgrove/parse-xml';
 import { assertNever, isWhitespaces } from '../utils';
-import { log } from '../logger';
 
 export type XmlAttributes = { [key: string]: string | undefined };
 export type XmlNodeBase<T extends string> = { type: T, parent: XmlNodeWithChildren };

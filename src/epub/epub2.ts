@@ -23,6 +23,8 @@ export function createEpubParser(xmlParser: (text: string) => (XmlNodeDocument |
                             const href = last(el.href.split('/'));
                             const chapter = await epub.chapterForId(el.id);
                             const node = xmlParser(chapter);
+
+                            // TODO: report parsing issues
                             if (node) {
                                 const section: EpubSection = {
                                     id: el.id,
