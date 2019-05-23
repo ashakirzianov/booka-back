@@ -72,6 +72,9 @@ export class ParserDiagnoser {
             case 'couldnt-resolve-ref':
                 logger.warn(`Couldn't resolve footnote ref for id: ${d.id}`);
                 break;
+            case 'unknown-source':
+                logger.warn(`Unknown epub source`);
+                break;
             default:
                 assertNever(d);
         }
@@ -94,6 +97,7 @@ export type ParserDiagnostic =
     | BlockDiag<'unexpected-block'>
     | BlockDiag<'couldnt-build-span'> & { context: 'attr' | 'footnote' }
     | Diag<'couldnt-resolve-ref'> & { id: string }
+    | Diag<'unknown-source'>
     ;
 
 type Diag<K extends string> = {

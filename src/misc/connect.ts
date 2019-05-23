@@ -2,10 +2,12 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import { path2book } from '../epub';
-import { countBooks, insertBook, removeAllBooks } from '../db';
-import { debugAsync } from '../utils';
-import { logger, logTime, logTimeAsync } from '../log';
+import {
+    insertBook, removeAllBooks,
+    storedParserVersion, storeParserVersion,
+} from '../db';
+import { logger, logTimeAsync } from '../log';
+import { parserVersion, path2book } from '../epub';
 
 const epubLocation = 'public/epub/';
 
@@ -16,32 +18,35 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
-    await debugAsync(removeAllBooks);
-    const bookCount = await countBooks();
-    if (bookCount === 0) {
-        logTimeAsync('seed', seed);
-    }
+    await logTimeAsync('seed', seed);
 }
 
 async function seed() {
-    const files = await readdir(epubLocation);
+    seedImpl(parserVersion);
+}
 
-    const promises = files.map(async (path, idx) => {
-        try {
-            if (idx !== 7) {
-                // return;
-            }
-            const fullPath = epubLocation + path;
-            const book = await logTimeAsync(`Parse: ${path}`, () => path2book(fullPath));
-            book.diagnostics.log(logger());
-            await insertBook(book.value);
-        } catch (e) {
-            logger().warn(`While parsing '${path}' error: ${e}`);
-        }
-    });
+async function seedImpl(pv: number) {
+    const storedVersion = await storedParserVersion();
+    if (pv !== storedVersion) {
+        removeAllBooks();
+        const files = await readdir(epubLocation);
+        const promises = files
+            // .slice(2, 4)
+            .map(parseAndInsert);
+        await Promise.all(promises);
+        storeParserVersion(pv);
+    }
+}
 
-    await Promise.all(promises);
+async function parseAndInsert(path: string) {
+    try {
+        const fullPath = epubLocation + path;
+        const book = await logTimeAsync(`Parse: ${path}`, () => path2book(fullPath));
+        book.diagnostics.log(logger());
+        await insertBook(book.value);
+    } catch (e) {
+        logger().warn(`While parsing '${path}' error: ${e}`);
+    }
 }
 
 const readdir = promisify(fs.readdir);
-const readFile = promisify(fs.readFile);

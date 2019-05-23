@@ -40,9 +40,11 @@
         "slugify",
         "titlepage",
         "traum",
+        "upsert",
         "whitespaced",
         "xlink",
         "xmlns",
         "zipfile"
     ],
+    "typescript.preferences.importModuleSpecifier": "relative",
 }
