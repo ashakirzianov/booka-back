@@ -7,7 +7,7 @@ import {
     insertBook, removeAllBooks,
     storedParserVersion, storeParserVersion,
 } from '../db';
-import { logger, logTimeAsync, logDebug } from '../log';
+import { logger, logTimeAsync } from '../log';
 import { parserVersion } from '../epub';
 
 const epubLocation = 'public/epub/';
@@ -28,7 +28,6 @@ async function seed() {
 
 async function seedImpl(pv: number) {
     const storedVersion = await storedParserVersion();
-    logDebug(storedVersion);
     if (pv !== storedVersion) {
         removeAllBooks();
         const files = await readdir(epubLocation);
