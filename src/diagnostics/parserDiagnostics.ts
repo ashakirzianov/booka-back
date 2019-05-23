@@ -22,18 +22,21 @@ export class ParserDiagnoser {
     }
 
     public log(logger: Logger) {
+        if (this.diags.length === 0) {
+            return;
+        }
         this.logContext(logger);
         for (const d of this.diags) {
             this.logDiagnostic(d, logger);
         }
-        logger.logInfo('-----');
+        logger.warn('-----');
     }
 
     logContext(logger: Logger) {
         const context = this.context;
         switch (context.context) {
             case 'epub':
-                logger.logInfo(`Parse epub: ${context.title}`);
+                logger.warn(`Parse epub: ${context.title}`);
                 break;
             default:
                 assertNever(context.context);
@@ -43,31 +46,31 @@ export class ParserDiagnoser {
     logDiagnostic(d: ParserDiagnostic, logger: Logger) {
         switch (d.diag) {
             case 'link-must-have-ref':
-                logger.logWarn(`Links must have ref: ${xmlNode2String(d.node)}`);
+                logger.warn(`Links must have ref: ${xmlNode2String(d.node)}`);
                 break;
             case 'no-title':
-                logger.logWarn(`Couldn't find title in nodes: ${d.nodes.map(xmlNode2String)}`);
+                logger.warn(`Couldn't find title in nodes: ${d.nodes.map(xmlNode2String)}`);
                 break;
             case 'unexpected-attr':
-                logger.logWarn(`Unexpected attribute '${d.name} = ${d.value}' on element: ${xmlNode2String(d.element)}`);
+                logger.warn(`Unexpected attribute '${d.name} = ${d.value}' on element: ${xmlNode2String(d.element)}`);
                 break;
             case 'unexpected-node':
-                logger.logWarn(`Unexpected node: ${xmlNode2String(d.node)}`);
+                logger.warn(`Unexpected node: ${xmlNode2String(d.node)}`);
                 break;
             case 'unexpected-block':
-                logger.logWarn(`Unexpected block: '${block2string(d.block)}'`);
+                logger.warn(`Unexpected block: '${block2string(d.block)}'`);
                 break;
             case 'couldnt-build-span':
-                logger.logWarn(`Couldn't build span: '${block2string(d.block)}', context: ${d.context}`);
+                logger.warn(`Couldn't build span: '${block2string(d.block)}', context: ${d.context}`);
                 break;
             case 'empty-book-title':
-                logger.logWarn(`Expected book title to be not empty`);
+                logger.warn(`Expected book title to be not empty`);
                 break;
             case 'extra-blocks-tail':
-                logger.logWarn(`Unexpected blocks at tail: ${d.blocks.map(block2string)}`);
+                logger.warn(`Unexpected blocks at tail: ${d.blocks.map(block2string)}`);
                 break;
             case 'couldnt-resolve-ref':
-                logger.logWarn(`Couldn't resolve footnote ref for id: ${d.id}`);
+                logger.warn(`Couldn't resolve footnote ref for id: ${d.id}`);
                 break;
             default:
                 assertNever(d);

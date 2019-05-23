@@ -4,7 +4,7 @@ import {
     isFootnote, isCompound, CompoundSpan, compoundSpan,
 } from '../contracts';
 import { assertNever } from '../utils';
-import { consoleLogger } from '../diagnostics';
+import { logger } from '../diagnostics';
 
 export function optimizeBook(book: BookContent): BookContent {
     const optimized = {
@@ -16,7 +16,7 @@ export function optimizeBook(book: BookContent): BookContent {
     const after = JSON.stringify(optimized).length;
     const won = Math.floor((before - after) / before * 100);
     const length = Math.floor(after / 1000);
-    consoleLogger().logInfo(`Optimized by ${won}%, length: ${length}kCh`);
+    logger().info(`Optimized by ${won}%, length: ${length}kCh`);
 
     return optimized;
 }
