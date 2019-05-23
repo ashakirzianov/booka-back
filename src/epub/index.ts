@@ -1,1 +1,1 @@
-export { path2book } from './path2book';
+export { path2book, parserVersion } from './path2book';

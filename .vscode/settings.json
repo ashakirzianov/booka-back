@@ -40,6 +40,7 @@
         "slugify",
         "titlepage",
         "traum",
+        "upsert",
         "whitespaced",
         "xlink",
         "xmlns",

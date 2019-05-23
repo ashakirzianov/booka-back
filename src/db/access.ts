@@ -2,8 +2,20 @@ import * as Contracts from '../contracts';
 import * as bookDb from './book';
 import { preprocessBook } from '../preprocessBook';
 import { logger } from '../log';
+import { getValue, setValue } from './info';
 
-export { getValue, setValue } from './info';
+const parserVersionKey = 'pv';
+export async function storedParserVersion(): Promise<number> {
+    const value = await getValue(parserVersionKey) || '0';
+    const version = parseInt(value, 10);
+
+    return isNaN(version) ? 0 : version;
+}
+
+export async function storeParserVersion(version: number) {
+    await setValue(parserVersionKey, version.toString());
+    logger().important(`Update parser version to: ${version}`);
+}
 
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;

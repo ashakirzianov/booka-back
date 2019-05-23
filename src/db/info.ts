@@ -27,5 +27,5 @@ export async function getValue(key: string): Promise<string | undefined> {
 }
 
 export async function setValue(key: string, value: string) {
-    await InfoCollection.updateOne({ key }, { value });
+    const result = await InfoCollection.updateOne({ key }, { value }, { upsert: true }).exec();
 }

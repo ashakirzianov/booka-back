@@ -3,9 +3,12 @@ import * as fs from 'fs';
 
 import { promisify } from 'util';
 import { path2book } from '../epub';
-import { countBooks, insertBook, removeAllBooks } from '../db';
-import { debugAsync } from '../utils';
-import { logger, logTime, logTimeAsync } from '../log';
+import {
+    insertBook, removeAllBooks,
+    storedParserVersion, storeParserVersion,
+} from '../db';
+import { logger, logTimeAsync, logDebug } from '../log';
+import { parserVersion } from '../epub';
 
 const epubLocation = 'public/epub/';
 
@@ -16,23 +19,25 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
-    await seed();
+    await logTimeAsync('seed', seed);
 }
 
 async function seed() {
-    await debugAsync(removeAllBooks);
-    const bookCount = await countBooks();
-    if (bookCount === 0) {
-        logTimeAsync('seed', seed);
-    }
+    seedImpl(parserVersion);
 }
 
-async function seedImpl() {
-    const files = await readdir(epubLocation);
-
-    const promises = files.map(parseAndInsert);
-
-    await Promise.all(promises);
+async function seedImpl(pv: number) {
+    const storedVersion = await storedParserVersion();
+    logDebug(storedVersion);
+    if (pv !== storedVersion) {
+        removeAllBooks();
+        const files = await readdir(epubLocation);
+        const promises = files
+            // .slice(2, 4)
+            .map(parseAndInsert);
+        await Promise.all(promises);
+        storeParserVersion(pv);
+    }
 }
 
 async function parseAndInsert(path: string) {

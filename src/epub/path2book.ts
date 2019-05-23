@@ -5,6 +5,7 @@ import { createEpubParser } from './epub2';
 import { createConverter } from './converter';
 import { converterHooks } from './hooks';
 
+export const parserVersion = 1;
 export async function path2book(path: string): Promise<WithDiagnostics<BookContent>> {
     const parser = createEpubParser(string2tree);
     const converter = createConverter({

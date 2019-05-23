@@ -11,6 +11,11 @@ export function logger() {
     });
 }
 
+export function logDebug(obj: any) {
+    // tslint:disable-next-line: no-console
+    console.log(obj);
+}
+
 export function logTime<T = void>(msg: string, f: () => T): T {
     const begin = Date.now();
     logger().info(`${msg} - start`);
