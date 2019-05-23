@@ -3,6 +3,8 @@ import * as bookDb from './book';
 import { preprocessBook } from '../preprocessBook';
 import { logger } from '../log';
 
+export { getValue, setValue } from './info';
+
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;
 
