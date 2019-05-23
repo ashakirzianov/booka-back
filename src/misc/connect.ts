@@ -2,13 +2,12 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import { path2book } from '../epub';
 import {
     insertBook, removeAllBooks,
     storedParserVersion, storeParserVersion,
 } from '../db';
 import { logger, logTimeAsync } from '../log';
-import { parserVersion } from '../epub';
+import { parserVersion, path2book } from '../epub';
 
 const epubLocation = 'public/epub/';
 

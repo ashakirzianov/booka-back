@@ -46,4 +46,5 @@
         "xmlns",
         "zipfile"
     ],
+    "typescript.preferences.importModuleSpecifier": "relative",
 }
