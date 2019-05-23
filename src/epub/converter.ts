@@ -20,7 +20,7 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
 async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<WithDiagnostics<BookContent>> {
     const ds = diagnoser({ context: 'epub', title: epub.metadata.title });
     if (epub.source === 'unknown') {
-        ds.add({ diag: 'unknown-source', source: epub.source });
+        ds.add({ diag: 'unknown-source' });
     }
 
     const hooks = params.options[epub.source];
