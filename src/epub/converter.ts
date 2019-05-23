@@ -9,7 +9,7 @@ import {
 } from '../utils';
 import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
-import { WithDiagnostics, ParserDiagnoser, diagnoser } from '../diagnostics';
+import { WithDiagnostics, ParserDiagnoser, diagnoser } from '../log';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {

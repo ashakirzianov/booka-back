@@ -1,4 +1,4 @@
-import { WithDiagnostics, ParserDiagnoser } from '../diagnostics';
+import { WithDiagnostics, ParserDiagnoser } from '../log';
 import { XmlNode, XmlNodeElement, isElement, XmlParser } from '../xml';
 import { EpubBook, EpubSource } from './epubParser';
 import { Block } from '../bookBlocks';

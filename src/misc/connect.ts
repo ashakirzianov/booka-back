@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import { path2book } from '../epub';
 import { countBooks, insertBook, removeAllBooks } from '../db';
 import { debugAsync } from '../utils';
-import { logger, logTime, logTimeAsync } from '../diagnostics';
+import { logger, logTime, logTimeAsync } from '../log';
 
 const epubLocation = 'public/epub/';
 

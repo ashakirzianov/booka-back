@@ -6,7 +6,7 @@ import {
 import {
     flatten, filterUndefined, assertNever,
 } from '../utils';
-import { ParserDiagnoser } from '../diagnostics';
+import { ParserDiagnoser } from '../log';
 
 export function blocks2book(blocks: Block[], ds: ParserDiagnoser): BookContent {
     const { rest, footnotes } = separateFootnoteContainers(blocks);

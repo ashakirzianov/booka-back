@@ -4,7 +4,7 @@ import {
     isFootnote, isCompound, CompoundSpan, compoundSpan,
 } from '../contracts';
 import { assertNever } from '../utils';
-import { logger } from '../diagnostics';
+import { logger } from '../log';
 
 export function optimizeBook(book: BookContent): BookContent {
     const optimized = {

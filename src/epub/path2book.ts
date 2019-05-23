@@ -1,4 +1,4 @@
-import { WithDiagnostics } from '../diagnostics';
+import { WithDiagnostics } from '../log';
 import { BookContent } from '../contracts';
 import { string2tree } from '../xml';
 import { createEpubParser } from './epub2';

@@ -1,7 +1,7 @@
 import * as Contracts from '../contracts';
 import * as bookDb from './book';
 import { preprocessBook } from '../preprocessBook';
-import { logger } from '../diagnostics';
+import { logger } from '../log';
 
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;
