@@ -16,6 +16,10 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 
+    await seed();
+}
+
+async function seed() {
     await debugAsync(removeAllBooks);
     const bookCount = await countBooks();
     if (bookCount === 0) {
@@ -23,25 +27,23 @@ export async function connectDb() {
     }
 }
 
-async function seed() {
+async function seedImpl() {
     const files = await readdir(epubLocation);
 
-    const promises = files.map(async (path, idx) => {
-        try {
-            if (idx !== 7) {
-                // return;
-            }
-            const fullPath = epubLocation + path;
-            const book = await logTimeAsync(`Parse: ${path}`, () => path2book(fullPath));
-            book.diagnostics.log(logger());
-            await insertBook(book.value);
-        } catch (e) {
-            logger().warn(`While parsing '${path}' error: ${e}`);
-        }
-    });
+    const promises = files.map(parseAndInsert);
 
     await Promise.all(promises);
 }
 
+async function parseAndInsert(path: string) {
+    try {
+        const fullPath = epubLocation + path;
+        const book = await logTimeAsync(`Parse: ${path}`, () => path2book(fullPath));
+        book.diagnostics.log(logger());
+        await insertBook(book.value);
+    } catch (e) {
+        logger().warn(`While parsing '${path}' error: ${e}`);
+    }
+}
+
 const readdir = promisify(fs.readdir);
-const readFile = promisify(fs.readFile);
