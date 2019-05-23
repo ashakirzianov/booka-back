@@ -1,11 +1,11 @@
-import { Diagnosed, ParserDiagnoser } from '../diagnostics';
+import { WithDiagnostics, ParserDiagnoser } from '../diagnostics';
 import { XmlNode, XmlNodeElement, isElement, XmlParser } from '../xml';
 import { EpubBook, EpubSource } from './epubParser';
 import { Block } from '../bookBlocks';
 import { BookContent } from '../contracts';
 
 export type EpubConverter = {
-    convertEpub: (epub: EpubBook) => Promise<Diagnosed<BookContent>>,
+    convertEpub: (epub: EpubBook) => Promise<WithDiagnostics<BookContent>>,
 };
 
 export type EpubConverterParameters = {

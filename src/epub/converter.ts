@@ -9,7 +9,7 @@ import {
 } from '../utils';
 import { Block, ContainerBlock, blocks2book } from '../bookBlocks';
 import { EpubConverterParameters, EpubConverter, EpubConverterOptions, applyHooks, EpubConverterHookEnv } from './epubConverter';
-import { Diagnosed, ParserDiagnoser, assignDiagnostics } from '../diagnostics';
+import { WithDiagnostics, ParserDiagnoser, diagnoser } from '../diagnostics';
 
 export function createConverter(params: EpubConverterParameters): EpubConverter {
     return {
@@ -17,8 +17,8 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
     };
 }
 
-async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<Diagnosed<BookContent>> {
-    const ds = new ParserDiagnoser();
+async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<WithDiagnostics<BookContent>> {
+    const ds = diagnoser({ context: 'epub', title: epub.metadata.title });
     const hooks = params.options[epub.source];
     const sections = await AsyncIter.toArray(epub.sections());
     const blocks = flatten(sections.map(s =>
@@ -28,7 +28,10 @@ async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Pro
 
     const book = blocks2book(allBlocks, ds);
 
-    return assignDiagnostics(book, ds);
+    return {
+        value: book,
+        diagnostics: ds,
+    };
 }
 
 function buildMetaBlocks(epub: EpubBook): Block[] {

@@ -1,13 +1,42 @@
-import { Diagnoser } from '.';
 import { Logger } from './logger';
 import { XmlNode, XmlNodeElement, xmlNode2String } from '../xml';
 import { assertNever } from '../utils';
 import { Block } from '../bookBlocks';
 
-export class ParserDiagnoser extends Diagnoser<ParserDiagnostic> {
+export type WithDiagnostics<T> = {
+    value: T,
+    diagnostics: ParserDiagnoser,
+};
+
+export function diagnoser(context: ParserContext): ParserDiagnoser {
+    return new ParserDiagnoser(context);
+}
+
+export class ParserDiagnoser {
+    private readonly diags: ParserDiagnostic[] = [];
+
+    constructor(readonly context: ParserContext) { }
+
+    public add(diag: ParserDiagnostic) {
+        this.diags.push(diag);
+    }
+
     public log(logger: Logger) {
+        this.logContext(logger);
         for (const d of this.diags) {
             this.logDiagnostic(d, logger);
+        }
+        logger.logInfo('-----');
+    }
+
+    logContext(logger: Logger) {
+        const context = this.context;
+        switch (context.context) {
+            case 'epub':
+                logger.logInfo(`Parse epub: ${context.title}`);
+                break;
+            default:
+                assertNever(context.context);
         }
     }
 
@@ -45,6 +74,12 @@ export class ParserDiagnoser extends Diagnoser<ParserDiagnostic> {
         }
     }
 }
+
+export type ParserContext =
+    | Context<'epub'> & { title?: string }
+    ;
+
+type Context<K extends string> = { context: K };
 
 export type ParserDiagnostic =
     | NodeDiag<'link-must-have-ref'>
