@@ -2,6 +2,7 @@ import { Logger } from './logger';
 import { XmlNode, XmlNodeElement, xmlNode2String } from '../xml';
 import { assertNever } from '../utils';
 import { Block } from '../bookBlocks';
+import { EpubSource } from 'src/epub/epubParser';
 
 export type WithDiagnostics<T> = {
     value: T,
@@ -72,6 +73,9 @@ export class ParserDiagnoser {
             case 'couldnt-resolve-ref':
                 logger.warn(`Couldn't resolve footnote ref for id: ${d.id}`);
                 break;
+            case 'unknown-source':
+                logger.warn(`Unknown epub source: ${d.source}`);
+                break;
             default:
                 assertNever(d);
         }
@@ -94,6 +98,7 @@ export type ParserDiagnostic =
     | BlockDiag<'unexpected-block'>
     | BlockDiag<'couldnt-build-span'> & { context: 'attr' | 'footnote' }
     | Diag<'couldnt-resolve-ref'> & { id: string }
+    | Diag<'unknown-source'> & { source: EpubSource }
     ;
 
 type Diag<K extends string> = {
