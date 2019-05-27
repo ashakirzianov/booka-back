@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import {
     insertBook, removeAllBooks,
-    storedParserVersion, storeParserVersion,
+    storedParserVersion, storeParserVersion, countBooks,
 } from '../db';
 import { logger, logTimeAsync } from '../log';
 import { parserVersion, path2book } from '../epub';
@@ -28,7 +28,11 @@ async function seed() {
 async function seedImpl(pv: number) {
     const storedVersion = await storedParserVersion();
     if (pv !== storedVersion) {
-        removeAllBooks();
+        await removeAllBooks();
+    }
+
+    const count = await countBooks();
+    if (count === 0) {
         const files = await readdir(epubLocation);
         const promises = files
             // .slice(2, 4)
