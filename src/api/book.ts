@@ -7,7 +7,7 @@ export const JsonRouter = getRouter({
     summary: 'Get full book by ID',
     description: 'Returns JSON representation of requested book',
     param: { id: 'string' },
-})<Contracts.BookContent>(bookById);
+})<Contracts.VolumeNode>(bookById);
 
 export const LibraryRouter = getRouter({
     path: 'library',

@@ -1,5 +1,5 @@
 import { EpubBook, EpubSection } from './epubParser';
-import { BookContent, ChapterTitle } from '../contracts';
+import { VolumeNode, ChapterTitle } from '../contracts';
 import {
     isElement, XmlNodeElement, XmlNode,
     isTextNode, childForPath,
@@ -17,7 +17,7 @@ export function createConverter(params: EpubConverterParameters): EpubConverter 
     };
 }
 
-async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<WithDiagnostics<BookContent>> {
+async function convertEpub(epub: EpubBook, params: EpubConverterParameters): Promise<WithDiagnostics<VolumeNode>> {
     const ds = diagnoser({ context: 'epub', title: epub.metadata.title });
     if (epub.source === 'unknown') {
         ds.add({ diag: 'unknown-source' });

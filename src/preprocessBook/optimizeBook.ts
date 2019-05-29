@@ -1,12 +1,12 @@
 import {
-    BookContent, BookNode, isChapter, isSimple, isAttributed,
+    VolumeNode, ContentNode, isChapter, isSimple, isAttributed,
     Span, AttributeName, ParagraphNode, paragraphNode, isParagraph,
     isFootnote, isCompound, CompoundSpan, compoundSpan,
 } from '../contracts';
 import { assertNever } from '../utils';
 import { logger } from '../log';
 
-export function optimizeBook(book: BookContent): BookContent {
+export function optimizeVolume(book: VolumeNode): VolumeNode {
     const optimized = {
         ...book,
         nodes: optimizeNodes(book.nodes),
@@ -21,11 +21,11 @@ export function optimizeBook(book: BookContent): BookContent {
     return optimized;
 }
 
-function optimizeNodes(nodes: BookNode[]) {
+function optimizeNodes(nodes: ContentNode[]) {
     return nodes.map(optimizeNode);
 }
 
-function optimizeNode(node: BookNode): BookNode {
+function optimizeNode(node: ContentNode): ContentNode {
     if (isChapter(node)) {
         return {
             ...node,
@@ -38,7 +38,7 @@ function optimizeNode(node: BookNode): BookNode {
     }
 }
 
-function optimizeParagraph(p: ParagraphNode): BookNode {
+function optimizeParagraph(p: ParagraphNode): ContentNode {
     const optimized = optimizeSpan(p.span);
 
     // Handle case of single string attributed with 'line'

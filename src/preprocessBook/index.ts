@@ -1,1 +1,1 @@
-export { preprocessBook } from './preprocess';
+export { preprocessVolume as preprocessBook } from './preprocess';

@@ -20,17 +20,17 @@ export async function storeParserVersion(version: number) {
 export const countBooks = bookDb.count;
 export const removeAllBooks = bookDb.removeAll;
 
-export async function bookById(id: string): Promise<Contracts.BookContent> {
+export async function bookById(id: string): Promise<Contracts.VolumeNode> {
     const book = await bookDb.byId(id);
     if (!book || !book.raw) {
         throw new Error(`Can't find book with id: '${id}'`);
     }
     const parsed = JSON.parse(book.raw);
-    const contract = parsed as Contracts.BookContent;
+    const contract = parsed as Contracts.VolumeNode;
     return contract;
 }
 
-export async function insertBook(book: Contracts.BookContent) {
+export async function insertBook(book: Contracts.VolumeNode) {
     const preprocessed = preprocessBook(book);
 
     const bookId = await bookDb.generateBookId(preprocessed.meta.title, preprocessed.meta.author);

@@ -1,6 +1,6 @@
 import {
-    Span, isCompound, BookNode, isChapter, isParagraph,
-    BookContent,
+    Span, isCompound, ContentNode, isChapter, isParagraph,
+    VolumeNode,
 } from '../contracts';
 import { assertNever } from '../utils';
 
@@ -13,7 +13,7 @@ export function* spanSpans(span: Span): IterableIterator<Span> {
     }
 }
 
-export function* nodeSpans(node: BookNode): IterableIterator<Span> {
+export function* nodeSpans(node: ContentNode): IterableIterator<Span> {
     if (isChapter(node)) {
         for (const n of node.nodes) {
             yield* nodeSpans(n);
@@ -25,8 +25,8 @@ export function* nodeSpans(node: BookNode): IterableIterator<Span> {
     }
 }
 
-export function* bookSpans(bookContent: BookContent): IterableIterator<Span> {
-    for (const n of bookContent.nodes) {
+export function* volumeSpans(volume: VolumeNode): IterableIterator<Span> {
+    for (const n of volume.nodes) {
         yield* nodeSpans(n);
     }
 }

@@ -1,9 +1,9 @@
-import { BookContent } from '../contracts';
-import { optimizeBook } from './optimizeBook';
-import { simplifyBook } from './simplifyBook';
+import { VolumeNode } from '../contracts';
+import { optimizeVolume } from './optimizeBook';
+import { simplifyVolume } from './simplifyBook';
 
-export function preprocessBook(bookContent: BookContent): BookContent {
-    const simplified = simplifyBook(bookContent);
-    const optimized = optimizeBook(simplified);
+export function preprocessVolume(volume: VolumeNode): VolumeNode {
+    const simplified = simplifyVolume(volume);
+    const optimized = optimizeVolume(simplified);
     return optimized;
 }
