@@ -49,10 +49,11 @@ export type VolumeNode = {
 };
 
 export type BookNode = VolumeNode | ContentNode;
+export type HasSubnodes = VolumeNode | ChapterNode;
 
 // Helpers:
 
-export function hasSubnodes(bn: BookNode): bn is VolumeNode | ChapterNode {
+export function hasSubnodes(bn: BookNode): bn is HasSubnodes {
     return bn.node === 'chapter' || bn.node === 'volume';
 }
 
