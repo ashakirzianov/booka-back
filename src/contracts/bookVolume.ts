@@ -32,22 +32,30 @@ export type ChapterNode = {
     node: 'chapter',
     level: number,
     title: ChapterTitle,
-    nodes: BookNode[],
+    nodes: ContentNode[],
 };
 
-export type BookNode = ChapterNode | ParagraphNode;
+export type ContentNode = ChapterNode | ParagraphNode;
 
 export type BookMeta = {
     title: string,
     author?: string,
 };
 
-export type BookContent = {
+export type VolumeNode = {
+    node: 'volume',
     meta: BookMeta,
-    nodes: BookNode[],
+    nodes: ContentNode[],
 };
 
+export type BookNode = VolumeNode | ContentNode;
+export type HasSubnodes = VolumeNode | ChapterNode;
+
 // Helpers:
+
+export function hasSubnodes(bn: BookNode): bn is HasSubnodes {
+    return bn.node === 'chapter' || bn.node === 'volume';
+}
 
 export function isChapter(bn: BookNode): bn is ChapterNode {
     return bn.node === 'chapter';
@@ -74,7 +82,7 @@ export function isCompound(span: Span): span is CompoundSpan {
 }
 
 export function children(node: BookNode) {
-    return isChapter(node) ? node.nodes : [];
+    return hasSubnodes(node) ? node.nodes : [];
 }
 
 export function assign(...attributes: AttributeName[]) {
@@ -115,8 +123,8 @@ function attrObject(attributes: AttributeName[]): AttributesObject {
             ({ ...as, [a]: true }), {} as AttributesObject);
 }
 
-export function contentToString(content: BookContent) {
-    return JSON.stringify(content);
+export function volumeToString(volume: VolumeNode) {
+    return JSON.stringify(volume);
 }
 
 export function nodeToString(bn: BookNode) {

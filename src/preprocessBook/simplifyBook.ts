@@ -1,23 +1,23 @@
 import {
-    BookContent, BookNode, ChapterNode, ParagraphNode,
+    VolumeNode, ContentNode, ChapterNode, ParagraphNode,
     isChapter, isParagraph, isSimple, Span, isAttributed,
     isFootnote, isCompound,
 } from '../contracts';
 import { filterUndefined, assertNever, isWhitespaces } from '../utils';
 
-export function simplifyBook(bookContent: BookContent): BookContent {
-    const nodes = simplifyNodes(bookContent.nodes);
+export function simplifyVolume(volume: VolumeNode): VolumeNode {
+    const nodes = simplifyNodes(volume.nodes);
     return {
-        ...bookContent,
+        ...volume,
         nodes,
     };
 }
 
-function simplifyNodes(nodes: BookNode[]): BookNode[] {
+function simplifyNodes(nodes: ContentNode[]): ContentNode[] {
     return filterUndefined(nodes.map(simplifyNode));
 }
 
-function simplifyNode(node: BookNode): BookNode | undefined {
+function simplifyNode(node: ContentNode): ContentNode | undefined {
     if (isChapter(node)) {
         return simplifyChapter(node);
     } else if (isParagraph(node)) {
@@ -27,7 +27,7 @@ function simplifyNode(node: BookNode): BookNode | undefined {
     }
 }
 
-function simplifyChapter(chapter: ChapterNode): BookNode | undefined {
+function simplifyChapter(chapter: ChapterNode): ContentNode | undefined {
     const nodes = simplifyNodes(chapter.nodes);
     return nodes.length === 0
         ? undefined
@@ -37,7 +37,7 @@ function simplifyChapter(chapter: ChapterNode): BookNode | undefined {
         };
 }
 
-function simplifyParagraph(paragraph: ParagraphNode): BookNode | undefined {
+function simplifyParagraph(paragraph: ParagraphNode): ContentNode | undefined {
     const span = simplifySpan(paragraph.span);
     return span === undefined
         ? undefined

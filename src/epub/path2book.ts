@@ -1,12 +1,12 @@
 import { WithDiagnostics } from '../log';
-import { BookContent } from '../contracts';
+import { VolumeNode } from '../contracts';
 import { string2tree } from '../xml';
 import { createEpubParser } from './epub2';
 import { createConverter } from './converter';
 import { converterHooks } from './hooks';
 
-export const parserVersion = 1;
-export async function path2book(path: string): Promise<WithDiagnostics<BookContent>> {
+export const parserVersion = 3;
+export async function path2book(path: string): Promise<WithDiagnostics<VolumeNode>> {
     const parser = createEpubParser(string2tree);
     const converter = createConverter({
         options: converterHooks,

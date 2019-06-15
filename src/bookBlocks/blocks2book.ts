@@ -1,14 +1,14 @@
 import { Block, ContainerBlock, FootnoteCandidateBlock, BookTitleBlock, BookAuthorBlock } from './block';
 import {
-    BookNode, compoundSpan, Span,
-    assign, ChapterNode, BookContent, BookMeta,
+    ContentNode, compoundSpan, Span,
+    assign, ChapterNode, VolumeNode, BookMeta,
 } from '../contracts';
 import {
     flatten, filterUndefined, assertNever,
 } from '../utils';
 import { ParserDiagnoser } from '../log';
 
-export function blocks2book(blocks: Block[], ds: ParserDiagnoser): BookContent {
+export function blocks2book(blocks: Block[], ds: ParserDiagnoser): VolumeNode {
     const { rest, footnotes } = separateFootnoteContainers(blocks);
     const meta = collectMeta(rest);
     const preprocessed = preprocess(rest);
@@ -19,6 +19,7 @@ export function blocks2book(blocks: Block[], ds: ParserDiagnoser): BookContent {
     }
 
     return {
+        node: 'volume',
         nodes,
         meta: {
             title: meta.title || 'no-title',
@@ -137,7 +138,7 @@ function buildChapters(blocks: Block[], env: Env) {
     return nodes;
 }
 
-function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env): { nodes: BookNode[], next: Block[] } {
+function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env): { nodes: ContentNode[], next: Block[] } {
     if (blocks.length === 0) {
         return { nodes: [], next: [] };
     }
@@ -153,7 +154,7 @@ function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env)
             };
             const after = buildChaptersImpl(content.next, level, env);
             return {
-                nodes: [chapter as BookNode].concat(after.nodes),
+                nodes: [chapter as ContentNode].concat(after.nodes),
                 next: after.next,
             };
         } else {
@@ -172,7 +173,7 @@ function buildChaptersImpl(blocks: Block[], level: number | undefined, env: Env)
     }
 }
 
-function nodeFromBlock(block: Block, env: Env): BookNode | undefined {
+function nodeFromBlock(block: Block, env: Env): ContentNode | undefined {
     switch (block.block) {
         case 'text':
         case 'attrs':
