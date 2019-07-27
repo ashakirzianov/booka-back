@@ -1,11 +1,23 @@
 import * as parseXmlLib from '@rgrove/parse-xml';
 import { assertNever, isWhitespaces } from '../utils';
 
-export type XmlAttributes = { [key: string]: string | undefined };
-export type XmlNodeBase<T extends string> = { type: T, parent: XmlNodeWithChildren };
+export type XmlAttributes = {
+    [key: string]: string | undefined,
+};
+export type XmlNodeBase<T extends string> = {
+    type: T,
+    parent: XmlNode,
+};
+export type XmlNodeWithParent<T extends string> = XmlNodeBase<T> & {
+    parent: XmlNodeWithChildren,
+};
+
 export type XmlNode = XmlNodeDocument | XmlNodeElement | XmlNodeText | XmlNodeCData | XmlNodeComment;
-export type XmlNodeWithParent<T extends string> = XmlNodeBase<T> & { parent: XmlNodeWithChildren };
-export type XmlNodeDocument = { type: 'document', children: XmlNode[], parent: undefined };
+export type XmlNodeDocument = {
+    type: 'document',
+    children: XmlNode[],
+    parent: undefined,
+};
 export type XmlNodeElement = XmlNodeBase<'element'> & {
     name: string,
     attributes: XmlAttributes,

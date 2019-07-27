@@ -1,6 +1,5 @@
 import * as Contracts from '../contracts';
 import * as bookDb from './book';
-import { preprocessBook } from '../preprocessBook';
 import { logger } from '../log';
 import { getValue, setValue } from './info';
 
@@ -31,13 +30,11 @@ export async function bookById(id: string): Promise<Contracts.VolumeNode> {
 }
 
 export async function insertBook(book: Contracts.VolumeNode) {
-    const preprocessed = preprocessBook(book);
-
-    const bookId = await bookDb.generateBookId(preprocessed.meta.title, preprocessed.meta.author);
+    const bookId = await bookDb.generateBookId(book.meta.title, book.meta.author);
     const bookDocument: bookDb.Book = {
-        title: preprocessed.meta.title,
-        author: preprocessed.meta.author,
-        raw: JSON.stringify(preprocessed),
+        title: book.meta.title,
+        author: book.meta.author,
+        raw: JSON.stringify(book),
         bookId: bookId,
     };
 
