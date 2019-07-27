@@ -5,9 +5,9 @@ import { promisify } from 'util';
 import {
     insertBook, removeAllBooks,
     storedParserVersion, storeParserVersion, countBooks,
-} from '../db';
-import { logger, logTimeAsync } from '../log';
-import { parserVersion, loadEpubPath } from '../bookConverter';
+} from './db';
+import { logger, logTimeAsync } from './log';
+import { parserVersion, loadEpubPath } from './bookConverter';
 
 const epubLocation = 'public/epub/';
 

@@ -1,6 +1,6 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
-import { transliterate } from '../misc';
+import { transliterate } from '../utils';
 
 const schema = {
     author: {
