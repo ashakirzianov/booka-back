@@ -24,6 +24,7 @@
         "Whitespaces",
         "backend",
         "coverpage",
+        "deserialize",
         "diags",
         "epub",
         "multiline",
