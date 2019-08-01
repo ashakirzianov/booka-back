@@ -1,4 +1,5 @@
 import { request, summary, description, path, Context } from 'koa-swagger-decorator';
+import { IRouterContext } from 'koa-router';
 
 type TypeName = 'string' | 'number';
 type TypeForName<Name extends TypeName> =
