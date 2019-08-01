@@ -1,12 +1,13 @@
-import passport from 'koa-passport';
+import * as passport from 'koa-passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { users } from '../db';
 import { config } from './config';
 import { IRouterContext } from 'koa-router';
+import { UserInfo } from '../contracts';
 
 const jwtConfig = config().jwt;
 passport.use(new Strategy({
-    jwtFromRequest: ExtractJwt.fromAuthHeader(),
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: jwtConfig.secret,
     issuer: jwtConfig.issuer,
     audience: jwtConfig.audience,
@@ -20,6 +21,14 @@ passport.use(new Strategy({
     return done(null, false, { message: 'Couldn\'t find user' });
 }));
 
-export const requireAuthentication = passport.authenticate('jwt', { session: false });
+export function authenticate(callback: (ctx: IRouterContext, user: UserInfo) => void) {
+    return (ctx: IRouterContext, next: () => Promise<any>) => {
+        return passport.authenticate(
+            'jwt',
+            { session: false },
+            (err, user) => callback(ctx, user),
+        )(ctx, next);
+    };
+}
 
 export { passport };

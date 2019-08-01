@@ -27,6 +27,7 @@
         "deserialize",
         "diags",
         "epub",
+        "fbtoken",
         "multiline",
         "paren",
         "parens",

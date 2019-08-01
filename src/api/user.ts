@@ -1,10 +1,9 @@
-import * as Contracts from '../contracts';
 import * as KoaRouter from 'koa-router';
-import { requireAuthentication } from '../auth';
+import { authenticate } from '../auth';
 
 export const userRouter = new KoaRouter();
 
-userRouter.get('/user', requireAuthentication, ctx => {
-    const user = ctx.user as Contracts.UserInfo | undefined;
+userRouter.get('/user', authenticate((ctx, user) => {
+    ctx.body = user;
     return user;
-});
+}));

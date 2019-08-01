@@ -1,7 +1,7 @@
 import { Schema } from 'mongoose';
 
 export type TypeFromSchema<T extends SchemaDefinition> =
-    { _id?: string } &
+    { id?: string } &
     { [P in Extract<keyof T, RequiredProperties<T>>]: ActualType<T[P]> } &
     { [P in Exclude<keyof T, RequiredProperties<T>>]?: ActualType<T[P]> };
 

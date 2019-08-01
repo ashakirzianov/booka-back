@@ -5,11 +5,10 @@ import { users } from '../db';
 
 export const authRouter = new KoaRouter();
 
-const tokenHeader = 'fb-token';
-authRouter.get('/auth/fbToken', async ctx => {
-    const fbToken = ctx.request.headers[tokenHeader];
+authRouter.get('/auth/fbtoken/:token', async ctx => {
+    const fbToken = ctx.params.token;
     if (!fbToken) {
-        ctx.response.body = `Please provide access token in '${tokenHeader} header`;
+        ctx.response.body = `Please provide access token as a param`;
         return;
     }
 
@@ -30,8 +29,8 @@ authRouter.get('/auth/fbToken', async ctx => {
         }
     );
 
-    if (user._id) {
-        const accessToken = generateToken(user._id);
+    if (user && user.id) {
+        const accessToken = generateToken(user.id);
         ctx.response.body = accessToken;
     }
 
