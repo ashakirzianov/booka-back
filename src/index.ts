@@ -1,6 +1,5 @@
 import * as Koa from 'koa';
 import * as cors from '@koa/cors';
-import * as session from 'koa-session';
 import { config as configEnv } from 'dotenv';
 import { router } from './api';
 import { connectDb } from './connect';
@@ -14,10 +13,7 @@ async function startup(app: Koa) {
 
     app.use(cors());
 
-    app
-        .use(session(app))
-        .use(passport.initialize())
-        .use(passport.session());
+    app.use(passport.initialize());
 
     app
         .use(router.routes())
