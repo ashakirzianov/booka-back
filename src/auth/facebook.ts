@@ -5,7 +5,7 @@ export type FacebookUserInfo = {
     name: string,
     profilePicture?: string,
 };
-export async function getUserInfo(token: string): Promise<FacebookUserInfo | undefined> {
+export async function getFbUserInfo(token: string): Promise<FacebookUserInfo | undefined> {
     const url = `https://graph.facebook.com/me?access_token=${token}`;
     const response = await axios.get(url);
     const data = response.data;

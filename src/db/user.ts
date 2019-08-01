@@ -21,12 +21,12 @@ type UserDocument = User & Document;
 const UserSchema = new Schema(schema, { timestamps: true });
 const UserCollection: Model<UserDocument> = model<UserDocument>('User', UserSchema);
 
-async function byExternalId(id: string): Promise<User | null> {
-    return UserCollection.findOne({ externalId: id }).exec();
-}
-
 async function byId(id: string): Promise<User | null> {
     return UserCollection.findById(id).exec();
+}
+
+async function byFacebookId(facebookId: string): Promise<User | null> {
+    return UserCollection.findOne({ facebookId }).exec();
 }
 
 async function insert(user: User) {
@@ -48,5 +48,24 @@ export const users = {
                 pictureUrl: user.pictureUrl,
             }
             : undefined;
+    },
+    async getOrCreate(externalId: ExternalId, user: Contracts.UserInfo) {
+        if (externalId.provider === 'facebook') {
+            const existing = await byFacebookId(externalId.id);
+            if (existing) {
+                return existing;
+            }
+
+            await insert({
+                name: user.name,
+                pictureUrl: user.pictureUrl,
+                facebookId: externalId.id,
+            });
+
+            const created = await byFacebookId(externalId.id);
+            return created || undefined;
+        }
+
+        return undefined;
     },
 };
