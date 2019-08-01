@@ -6,8 +6,16 @@ export type FacebookConfig = {
     callbackUrl: string,
     profileFields: FacebookProfileField[],
 };
+
+export type JwtConfig = {
+    secret: string,
+    issuer: string,
+    audience: string,
+};
+
 export type AuthConfig = {
     facebook: FacebookConfig,
+    jwt: JwtConfig,
 };
 
 export function config(): AuthConfig {
@@ -21,6 +29,11 @@ function debugConfig(): AuthConfig {
             clientSecret: process.env.FB_SECRET || '',
             callbackUrl: 'http://localhost:3000/auth/callback',
             profileFields: ['displayName'],
+        },
+        jwt: {
+            secret: process.env.JWT_SECRET || 'secret',
+            audience: 'booka',
+            issuer: 'booka',
         },
     };
 }
