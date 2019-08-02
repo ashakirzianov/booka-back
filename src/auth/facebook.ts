@@ -6,8 +6,7 @@ export type FacebookUserInfo = {
     profilePicture?: string,
 };
 export async function getFbUserInfo(token: string): Promise<FacebookUserInfo | undefined> {
-    const url = `https://graph.facebook.com/me?
-    fields=name,picture
+    const url = `https://graph.facebook.com/me?fields=name,picture
     &access_token=${token}`;
 
     try {

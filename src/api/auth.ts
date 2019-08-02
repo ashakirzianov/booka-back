@@ -18,7 +18,7 @@ authRouter.get('/auth/fbtoken/:token', async ctx => {
         return;
     }
 
-    const user = await users.getOrCreate(
+    const user = await users.updateOrCreate(
         {
             provider: 'facebook',
             id: userInfo.facebookId,

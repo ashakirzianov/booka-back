@@ -1,6 +1,7 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
 import * as Contracts from '../contracts';
+import { assertNever } from '../bookConverter/utils';
 
 const schema = {
     facebookId: {
@@ -21,18 +22,6 @@ type UserDocument = User & Document;
 const UserSchema = new Schema(schema, { timestamps: true });
 const UserCollection: Model<UserDocument> = model<UserDocument>('User', UserSchema);
 
-async function byId(id: string): Promise<User | null> {
-    return UserCollection.findById(id).exec();
-}
-
-async function byFacebookId(facebookId: string): Promise<User | null> {
-    return UserCollection.findOne({ facebookId }).exec();
-}
-
-async function insert(user: User) {
-    await UserCollection.insertMany(user);
-}
-
 export type IdProvider = 'facebook';
 export type ExternalId = {
     provider: IdProvider,
@@ -40,8 +29,7 @@ export type ExternalId = {
 };
 export const users = {
     async byId(id: string): Promise<Contracts.UserInfo | undefined> {
-        const user = await byId(id);
-        // TODO: create user here
+        const user = await UserCollection.findById(id).exec();
         return user
             ? {
                 name: user.name,
@@ -49,23 +37,34 @@ export const users = {
             }
             : undefined;
     },
-    async getOrCreate(externalId: ExternalId, user: Contracts.UserInfo) {
+    async updateOrCreate(externalId: ExternalId, userInfo: Contracts.UserInfo) {
         if (externalId.provider === 'facebook') {
-            const existing = await byFacebookId(externalId.id);
-            if (existing) {
-                return existing;
-            }
-
-            await insert({
-                name: user.name,
-                pictureUrl: user.pictureUrl,
-                facebookId: externalId.id,
-            });
-
-            const created = await byFacebookId(externalId.id);
-            return created || undefined;
+            return updateOrCreate({ facebookId: externalId.id }, userInfo);
+        } else {
+            return assertNever(externalId.provider);
         }
-
-        return undefined;
     },
 };
+
+async function updateOrCreate(condition: Partial<User>, userInfo: Contracts.UserInfo): Promise<User> {
+    const existing = await UserCollection.findOne(
+        condition,
+        (err, doc) => {
+            if (doc) {
+                doc.name = userInfo.name;
+                doc.pictureUrl = userInfo.pictureUrl;
+                doc.save();
+            }
+        })
+        .exec();
+
+    if (existing) {
+        return existing;
+    } else {
+        const created = await UserCollection.insertMany({
+            name: userInfo.name,
+            pictureUrl: userInfo.pictureUrl,
+        });
+        return created;
+    }
+}
