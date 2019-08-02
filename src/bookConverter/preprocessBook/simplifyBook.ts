@@ -1,9 +1,12 @@
 import {
     VolumeNode, ContentNode, ChapterNode, ParagraphNode,
-    isChapter, isParagraph, isSimple, Span, isAttributed,
-    isFootnote, isCompound,
+    Span,
 } from '../contracts';
 import { filterUndefined, assertNever, isWhitespaces } from '../utils';
+import {
+    isChapter, isParagraph, isSimple, isAttributed,
+    isFootnote, isCompound,
+} from '../bookUtils';
 
 export function simplifyVolume(volume: VolumeNode): VolumeNode {
     const nodes = simplifyNodes(volume.nodes);

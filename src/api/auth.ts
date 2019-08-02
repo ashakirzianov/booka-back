@@ -8,13 +8,13 @@ export const authRouter = new KoaRouter();
 authRouter.get('/auth/fbtoken/:token', async ctx => {
     const fbToken = ctx.params.token;
     if (!fbToken) {
-        ctx.response.body = `Please provide access token as a param`;
+        // TODO: report error
         return;
     }
 
     const userInfo = await getFbUserInfo(fbToken);
     if (!userInfo) {
-        ctx.response.body = `Couldn't get user info`;
+        // TODO: report error
         return;
     }
 
@@ -31,7 +31,10 @@ authRouter.get('/auth/fbtoken/:token', async ctx => {
 
     if (user && user.id) {
         const accessToken = generateToken(user.id);
-        ctx.response.body = accessToken;
+        const response: Contracts.AuthToken = {
+            token: accessToken,
+        };
+        ctx.response.body = response;
     }
 
     return;
