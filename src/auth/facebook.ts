@@ -6,16 +6,26 @@ export type FacebookUserInfo = {
     profilePicture?: string,
 };
 export async function getFbUserInfo(token: string): Promise<FacebookUserInfo | undefined> {
-    const url = `https://graph.facebook.com/me?access_token=${token}`;
-    const response = await axios.get(url);
-    const data = response.data;
-    if (data.id && data.name) {
-        return {
-            facebookId: data.id,
-            name: data.name,
-            profilePicture: data.profile_pic,
-        };
-    } else {
+    const url = `https://graph.facebook.com/me?
+    fields=name,picture
+    &access_token=${token}`;
+
+    try {
+        const response = await axios.get(url);
+        const data = response.data;
+        if (data.id && data.name) {
+            const pictureUrl = data.picture
+                && data.picture.data
+                && data.picture.data.url;
+            return {
+                facebookId: data.id,
+                name: data.name,
+                profilePicture: pictureUrl,
+            };
+        } else {
+            return undefined;
+        }
+    } catch (e) {
         return undefined;
     }
 }
