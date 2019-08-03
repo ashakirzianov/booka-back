@@ -5,9 +5,9 @@ import { promisify } from 'util';
 import {
     insertBook, removeAllBooks,
     storedParserVersion, storeParserVersion, countBooks,
-} from '../db';
-import { logger, logTimeAsync } from '../log';
-import { parserVersion, path2book } from '../epub';
+} from './db';
+import { logger, logTimeAsync } from './log';
+import { parserVersion, loadEpubPath } from './bookConverter';
 
 const epubLocation = 'public/epub/';
 
@@ -45,9 +45,11 @@ async function seedImpl(pv: number) {
 async function parseAndInsert(path: string) {
     try {
         const fullPath = epubLocation + path;
-        const book = await logTimeAsync(`Parse: ${path}`, () => path2book(fullPath));
-        book.diagnostics.log(logger());
-        await insertBook(book.value);
+        const book = await logTimeAsync(
+            `Parse: ${path}`,
+            () => loadEpubPath(fullPath)
+        );
+        await insertBook(book);
     } catch (e) {
         logger().warn(`While parsing '${path}' error: ${e}`);
     }

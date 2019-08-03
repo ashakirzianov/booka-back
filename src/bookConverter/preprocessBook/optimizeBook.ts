@@ -1,10 +1,13 @@
 import {
-    VolumeNode, ContentNode, isChapter, isSimple, isAttributed,
-    Span, AttributeName, ParagraphNode, paragraphNode, isParagraph,
-    isFootnote, isCompound, CompoundSpan, compoundSpan,
+    VolumeNode, ContentNode,
+    Span, AttributeName, ParagraphNode, CompoundSpan,
 } from '../contracts';
 import { assertNever } from '../utils';
 import { logger } from '../log';
+import {
+    isChapter, isParagraph, paragraphNode, isSimple,
+    isAttributed, isFootnote, compoundSpan, isCompound,
+} from '../bookUtils';
 
 export function optimizeVolume(book: VolumeNode): VolumeNode {
     const optimized = {

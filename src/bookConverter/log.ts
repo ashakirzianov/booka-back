@@ -1,7 +1,9 @@
-import { Logger } from './logger';
-import { XmlNode, XmlNodeElement, xmlNode2String } from '../xml';
-import { assertNever } from '../utils';
-import { Block } from '../bookBlocks';
+export * from '../log';
+
+import { Logger } from './log';
+import { XmlNode, XmlNodeElement, xmlNode2String } from './xml';
+import { assertNever } from './utils';
+import { Block } from './bookBlocks';
 
 export type WithDiagnostics<T> = {
     value: T,

@@ -1,12 +1,15 @@
-import { Block, ContainerBlock, FootnoteCandidateBlock, BookTitleBlock, BookAuthorBlock } from './block';
 import {
-    ContentNode, compoundSpan, Span,
-    assign, ChapterNode, VolumeNode, BookMeta,
+    Block, ContainerBlock, FootnoteCandidateBlock, BookTitleBlock,
+    BookAuthorBlock,
+} from './block';
+import {
+    ContentNode, Span, ChapterNode, VolumeNode, BookMeta,
 } from '../contracts';
 import {
     flatten, filterUndefined, assertNever,
 } from '../utils';
 import { ParserDiagnoser } from '../log';
+import { compoundSpan, assign } from '../bookUtils';
 
 export function blocks2book(blocks: Block[], ds: ParserDiagnoser): VolumeNode {
     const { rest, footnotes } = separateFootnoteContainers(blocks);
