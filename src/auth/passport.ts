@@ -12,13 +12,15 @@ passport.use(new Strategy({
     issuer: jwtConfig.issuer,
     audience: jwtConfig.audience,
 }, async (payload, done) => {
-    const id = payload.sub;
-    const user = await users.byId(id);
-    if (user) {
-        return done(null, user);
+    try {
+        const id = payload.sub;
+        const user = await users.byId(id);
+        if (user) {
+            return done(null, user);
+        }
+    } catch (e) {
+        return done(null, false, { message: `Couldn\'t find user: ${e}` });
     }
-
-    return done(null, false, { message: 'Couldn\'t find user' });
 }));
 
 export function authenticate(callback: (ctx: IRouterContext, user: UserInfo) => void) {

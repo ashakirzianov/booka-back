@@ -47,24 +47,29 @@ export const users = {
 };
 
 async function updateOrCreate(condition: Partial<User>, userInfo: Contracts.UserInfo): Promise<User> {
-    const existing = await UserCollection.findOne(
-        condition,
-        (err, doc) => {
-            if (doc) {
-                doc.name = userInfo.name;
-                doc.pictureUrl = userInfo.pictureUrl;
-                doc.save();
-            }
-        })
-        .exec();
+    try {
+        const existing = await UserCollection.findOne(
+            condition,
+            (err, doc) => {
+                if (doc) {
+                    doc.name = userInfo.name;
+                    doc.pictureUrl = userInfo.pictureUrl;
+                    doc.save();
+                }
+            })
+            .exec();
 
-    if (existing) {
-        return existing;
-    } else {
-        const created = await UserCollection.insertMany({
-            name: userInfo.name,
-            pictureUrl: userInfo.pictureUrl,
-        });
-        return created;
+        if (existing) {
+            return existing;
+        } else {
+            const created = await UserCollection.insertMany({
+                ...condition,
+                name: userInfo.name,
+                pictureUrl: userInfo.pictureUrl,
+            });
+            return created;
+        }
+    } catch (e) {
+        throw e;
     }
 }
