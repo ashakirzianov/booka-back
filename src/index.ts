@@ -15,9 +15,7 @@ startup(new Koa());
 async function startup(app: Koa) {
     await connectDb();
 
-    app.use(cors({
-        origin: '*',
-    }));
+    app.use(cors());
 
     app.use(passport.initialize());
 
