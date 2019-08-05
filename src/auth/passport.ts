@@ -5,7 +5,7 @@ import { config } from '../config';
 import { IRouterContext } from 'koa-router';
 import { UserInfo } from '../contracts';
 
-const jwtConfig = config().jwt;
+const jwtConfig = config().auth.jwt;
 passport.use(new Strategy({
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: jwtConfig.secret,
