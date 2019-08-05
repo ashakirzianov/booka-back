@@ -1,7 +1,7 @@
 import * as passport from 'koa-passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { users } from '../db';
-import { config } from './config';
+import { config } from '../config';
 import { IRouterContext } from 'koa-router';
 import { UserInfo } from '../contracts';
 
