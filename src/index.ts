@@ -7,6 +7,7 @@ import { router } from './api';
 import { connectDb } from './connect';
 import { passport } from './auth';
 import { config } from './config';
+import { logDebug } from './log';
 
 configEnv();
 startup(new Koa());
@@ -37,6 +38,8 @@ function serverOptions(): https.ServerOptions {
                 key: fs.readFileSync(sslConfig.keyPath),
                 cert: fs.readFileSync(sslConfig.certPath),
             };
+        } else {
+            logDebug(`You should add '${sslConfig.keyPath}' and '${sslConfig.certPath}' for server to work properly on localhost`);
         }
     }
 
