@@ -7,6 +7,10 @@ export function config(): Config {
 function debugConfig(): Config {
     return {
         auth: authConfig,
+        ssl: {
+            keyPath: 'server.key',
+            certPath: 'server.crt',
+        },
     };
 }
 
