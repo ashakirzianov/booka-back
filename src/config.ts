@@ -1,11 +1,23 @@
 export function config(): Config {
-    return debugConfig();
+    return isDebug()
+        ? debugConfig()
+        : productionConfig();
 }
 
 function debugConfig(): Config {
     return {
         auth: authConfig,
     };
+}
+
+function productionConfig(): Config {
+    return {
+        auth: authConfig,
+    };
+}
+
+function isDebug() {
+    return process.env.NODE_ENV === 'development';
 }
 
 const authConfig: AuthConfig = {
