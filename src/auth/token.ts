@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
-import { config } from './config';
+import { config } from '../config';
 
-const jwtConfig = config().jwt;
+const jwtConfig = config().auth.jwt;
 export function generateToken(userId: string) {
     const token = jwt.sign({}, jwtConfig.secret, {
         // TODO: extract as const ?

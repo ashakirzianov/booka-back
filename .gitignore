@@ -65,3 +65,6 @@ dist/**/*
 
 # ignore public cache
 public/cache/**/*
+
+server.key
+server.crt
