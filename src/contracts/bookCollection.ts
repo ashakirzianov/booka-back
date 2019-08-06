@@ -1,8 +1,9 @@
 export type BookInfo = {
+    id: string,
     title: string,
     author?: string,
 };
 
-export type Library = {
-    [key: string]: BookInfo | undefined;
+export type BookCollection = {
+    books: BookInfo[],
 };

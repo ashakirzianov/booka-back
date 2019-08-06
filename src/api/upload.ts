@@ -1,20 +1,26 @@
 import * as KoaRouter from 'koa-router';
 import { logTimeAsync, logger } from '../log';
-import { insertBook } from '../db';
+import { insertBook, users } from '../db';
 import { loadEpubPath } from '../bookConverter';
+import { authenticate } from '../auth';
 
 export const uploadRouter = new KoaRouter();
 
-uploadRouter.post('/upload', async ctx => {
+uploadRouter.post('/upload', authenticate(async (ctx, userInfo) => {
     const files = ctx.request.files;
     const book = files && files.book;
     if (book) {
-        await parseAndInsert(book.path);
-        ctx.response.body = 'success';
+        const bookId = await parseAndInsert(book.path);
+        if (bookId && userInfo.id) {
+            const result = await users.addUploadedBook(userInfo.id, bookId);
+            ctx.response.body = result.success
+                ? `Inserted with id: '${bookId}'`
+                : `Couldn't update user info: '${result.reason}'`;
+        }
     } else {
         ctx.response.body = 'fail';
     }
-});
+}));
 
 async function parseAndInsert(fullPath: string) {
     try {
@@ -22,8 +28,9 @@ async function parseAndInsert(fullPath: string) {
             `Parse: ${fullPath}`,
             () => loadEpubPath(fullPath)
         );
-        await insertBook(book);
+        return await insertBook(book);
     } catch (e) {
         logger().warn(`While parsing '${fullPath}' error: ${e}`);
+        return undefined;
     }
 }

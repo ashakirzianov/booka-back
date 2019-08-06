@@ -58,3 +58,11 @@ export function compose<T, U, V>(f: (x: T) => U, g: (x: U) => V): (x: T) => V {
 export function last<T>(arr: T[]): T {
     return arr[arr.length - 1];
 }
+
+export function addUnique<T>(arr: T[], value: T): T[] {
+    if (arr.some(x => x === value)) {
+        return arr;
+    } else {
+        return arr.concat([value]);
+    }
+}

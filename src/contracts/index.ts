@@ -1,4 +1,4 @@
 export * from './bookVolume';
-export * from './library';
+export * from './bookCollection';
 export * from './user';
 export * from './auth';
