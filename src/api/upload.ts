@@ -5,11 +5,14 @@ import { loadEpubPath } from '../bookConverter';
 
 export const uploadRouter = new KoaRouter();
 
-uploadRouter.post('/upload', ctx => {
+uploadRouter.post('/upload', async ctx => {
     const files = ctx.request.files;
     const book = files && files.book;
     if (book) {
-        parseAndInsert(book.path);
+        await parseAndInsert(book.path);
+        ctx.response.body = 'success';
+    } else {
+        ctx.response.body = 'fail';
     }
 });
 
