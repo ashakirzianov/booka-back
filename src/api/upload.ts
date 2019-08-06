@@ -2,10 +2,11 @@ import * as KoaRouter from 'koa-router';
 import { logTimeAsync, logger } from '../log';
 import { insertBook } from '../db';
 import { loadEpubPath } from '../bookConverter';
+import { authenticate } from '../auth';
 
 export const uploadRouter = new KoaRouter();
 
-uploadRouter.post('/upload', async ctx => {
+uploadRouter.post('/upload', authenticate(async (ctx, userInfo) => {
     const files = ctx.request.files;
     const book = files && files.book;
     if (book) {
@@ -14,7 +15,7 @@ uploadRouter.post('/upload', async ctx => {
     } else {
         ctx.response.body = 'fail';
     }
-});
+}));
 
 async function parseAndInsert(fullPath: string) {
     try {

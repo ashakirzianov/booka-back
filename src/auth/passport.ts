@@ -23,12 +23,18 @@ passport.use(new Strategy({
     }
 }));
 
-export function authenticate(callback: (ctx: IRouterContext, user: UserInfo) => void) {
+export function authenticate(callback: (cbCtx: IRouterContext, user: UserInfo) => void) {
     return (ctx: IRouterContext, next: () => Promise<any>) => {
         return passport.authenticate(
             'jwt',
             { session: false },
-            (err, user) => callback(ctx, user),
+            async (err, user) => {
+                if (user) {
+                    await callback(ctx, user);
+                } else {
+                    ctx.response.body = 'Unauthorized';
+                }
+            },
         )(ctx, next);
     };
 }
