@@ -31,14 +31,9 @@ export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function byId(id: string): Promise<Contracts.UserInfo | undefined> {
+async function byId(id: string): Promise<User | undefined> {
     const user = await UserCollection.findById(id).exec();
-    return user
-        ? {
-            name: user.name,
-            pictureUrl: user.pictureUrl,
-        }
-        : undefined;
+    return user || undefined;
 }
 
 async function updateOrCreate(externalId: ExternalId, userInfo: Contracts.UserInfo) {

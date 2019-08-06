@@ -40,6 +40,7 @@ export async function insertBook(book: Contracts.VolumeNode) {
 
     logger().important('Insert book for id: ' + bookId);
     bookDb.insert(bookDocument);
+    return bookId;
 }
 
 export async function library(): Promise<Contracts.Library> {
