@@ -14,4 +14,4 @@ export const LibraryRouter = getRouter({
     summary: 'Get list of books',
     description: 'Returns list of titles available in the library',
     param: undefined,
-})<Contracts.Library>(library);
+})<Contracts.BookCollection>(library);

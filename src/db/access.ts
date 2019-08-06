@@ -2,6 +2,7 @@ import * as Contracts from '../contracts';
 import * as bookDb from './book';
 import { logger } from '../log';
 import { getValue, setValue } from './info';
+import { filterUndefined } from '../bookConverter/utils';
 
 const parserVersionKey = 'pv';
 export async function storedParserVersion(): Promise<number> {
@@ -43,14 +44,17 @@ export async function insertBook(book: Contracts.VolumeNode) {
     return bookId;
 }
 
-export async function library(): Promise<Contracts.Library> {
-    const books = await bookDb.metas();
-    const result: Contracts.Library = books.reduce((lib, book) => ({
-        ...lib,
-        [book.bookId]: {
+export async function library(): Promise<Contracts.BookCollection> {
+    const bookMetas = await bookDb.metas();
+    const books = bookMetas.map((book) => book.id
+        ? {
             author: book.author,
             title: book.title,
-        },
-    }), {} as Contracts.Library);
-    return result;
+            id: book.id,
+        }
+        : undefined);
+
+    return {
+        books: filterUndefined(books),
+    };
 }

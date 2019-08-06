@@ -13,5 +13,7 @@ meRouter.get('/me/info', authenticate((ctx, user) => {
 }));
 
 meRouter.get('/me/books', authenticate((ctx, user) => {
-    ctx.response.body = user.uploadedBooks;
+    ctx.response.body = {
+        books: user.uploadedBooks || [],
+    };
 }));
