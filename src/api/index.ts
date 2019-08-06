@@ -1,6 +1,6 @@
 import * as KoaRouter from 'koa-router';
 import { apiRouter } from './api';
-import { userRouter } from './user';
+import { userRouter } from './me';
 import { authRouter } from './auth';
 import { uploadRouter } from './upload';
 
