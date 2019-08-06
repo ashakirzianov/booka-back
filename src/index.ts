@@ -3,6 +3,8 @@ import * as cors from '@koa/cors';
 import * as https from 'https';
 import * as http from 'http';
 import * as fs from 'fs';
+import * as koaBody from 'koa-body';
+import * as logger from 'koa-logger';
 import { config as configEnv } from 'dotenv';
 import { router } from './api';
 import { connectDb } from './connect';
@@ -16,6 +18,11 @@ startup(new Koa());
 async function startup(app: Koa) {
     await connectDb();
 
+    app.use(logger());
+    app.use(koaBody({
+        multipart: true,
+        formLimit: 50 * 1024 * 1024,
+    }));
     app.use(cors({
         origin: '*',
     }));
