@@ -67,7 +67,7 @@ function* bookIdCandidate(title: string, author?: string) {
     let candidate = transliterate(title);
     yield candidate;
     if (author) {
-        candidate = candidate + '-' + author;
+        candidate = transliterate(candidate + '-' + author);
         yield candidate;
     }
 
