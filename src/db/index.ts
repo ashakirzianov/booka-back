@@ -1,3 +1,3 @@
 export * from './info';
-export * from './user';
-export * from './book';
+export * from './users';
+export * from './books';
