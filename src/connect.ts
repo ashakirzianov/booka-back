@@ -2,10 +2,7 @@ import * as Mongoose from 'mongoose';
 import * as fs from 'fs';
 
 import { promisify } from 'util';
-import {
-    insertBook, removeAllBooks,
-    storedParserVersion, storeParserVersion, countBooks,
-} from './db';
+import { info, books } from './db';
 import { logger, logTimeAsync } from './log';
 import { parserVersion, loadEpubPath } from './bookConverter';
 
@@ -26,19 +23,19 @@ async function seed() {
 }
 
 async function seedImpl(pv: number) {
-    const storedVersion = await storedParserVersion();
+    const storedVersion = await info.parserVersion();
     if (pv !== storedVersion) {
-        await removeAllBooks();
+        await books.removeAll();
     }
 
-    const count = await countBooks();
+    const count = await books.count();
     if (count === 0) {
         const files = await readdir(epubLocation);
         const promises = files
             // .slice(2, 4)
             .map(parseAndInsert);
         await Promise.all(promises);
-        storeParserVersion(pv);
+        info.setParserVersion(pv);
     }
 }
 
@@ -49,7 +46,7 @@ async function parseAndInsert(path: string) {
             `Parse: ${path}`,
             () => loadEpubPath(fullPath)
         );
-        await insertBook(book);
+        await books.insertParsed(book);
     } catch (e) {
         logger().warn(`While parsing '${path}' error: ${e}`);
     }

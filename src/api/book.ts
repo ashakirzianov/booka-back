@@ -1,4 +1,4 @@
-import { bookById, library, users, insertBook } from '../db';
+import { users, books } from '../db';
 import * as Contracts from '../contracts';
 import { createRouter, jsonApi, authenticate } from './router';
 import { logTimeAsync, logger } from '../log';
@@ -9,13 +9,19 @@ export const bookRouter = createRouter();
 bookRouter.get('/id/:id',
     jsonApi<Contracts.VolumeNode>(async p => {
         return p.params.id
-            ? bookById(p.params.id)
+            ? books.byBookIdParsed(p.params.id)
             : undefined;
     })
 );
 
 bookRouter.get('/all',
-    jsonApi<Contracts.BookCollection>(library)
+    jsonApi<Contracts.BookCollection>(async () => {
+        const allBooks = await books.all();
+
+        return {
+            books: allBooks,
+        };
+    })
 );
 
 bookRouter.post('/upload', authenticate, jsonApi<string>(async p => {
@@ -41,7 +47,7 @@ async function parseAndInsert(fullPath: string) {
             `Parse: ${fullPath}`,
             () => loadEpubPath(fullPath)
         );
-        return await insertBook(book);
+        return await books.insertParsed(book);
     } catch (e) {
         logger().warn(`While parsing '${fullPath}' error: ${e}`);
         return undefined;

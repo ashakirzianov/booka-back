@@ -1,6 +1,8 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
-import { transliterate } from '../utils';
+import { transliterate, filterUndefined } from '../utils';
+import * as Contracts from '../contracts';
+import { logger } from '../log';
 
 const schema = {
     author: {
@@ -28,23 +30,65 @@ type BookDocument = Book & Document;
 const BookSchema = new Schema(schema, { timestamps: true });
 const BookCollection: Model<BookDocument> = model<BookDocument>('Book', BookSchema);
 
-export async function byId(id: string): Promise<Book | null> {
-    return BookCollection.findOne({ bookId: id }).exec();
+export const books = {
+    byBookIdParsed,
+    insertParsed,
+    all,
+    count,
+    removeAll,
+};
+
+async function byBookIdParsed(id: string) {
+    const book = await BookCollection.findOne({ bookId: id }).exec();
+    if (!book || !book.raw) {
+        return undefined;
+    }
+    const parsed = JSON.parse(book.raw);
+    const contract = parsed as Contracts.VolumeNode;
+
+    return contract;
 }
 
-export async function insert(book: Book) {
-    await BookCollection.insertMany(book);
+async function insertParsed(book: Contracts.VolumeNode) {
+    const bookId = await generateBookId(book.meta.title, book.meta.author);
+    const bookDocument: Book = {
+        title: book.meta.title,
+        author: book.meta.author,
+        raw: JSON.stringify(book),
+        bookId: bookId,
+    };
+
+    const inserted = await BookCollection.insertMany(book);
+    if (inserted) {
+        logger().important('Inserted book for id: ' + bookId);
+        return bookId;
+    } else {
+        throw new Error(`Couldn't insert book for id: '${bookId}'`);
+    }
 }
 
-export async function count(): Promise<number> {
+async function all() {
+    const bookMetas = await BookCollection
+        .find({}, ['title', 'author', 'bookId'])
+        .exec();
+    const allMetas = bookMetas.map(
+        book => book.id
+            ? {
+                author: book.author,
+                title: book.title,
+                id: book.id,
+            }
+            : undefined
+    );
+
+    return filterUndefined(allMetas);
+}
+
+async function count() {
     return BookCollection.countDocuments().exec();
 }
 
-export async function metas(): Promise<Book[]> {
-    return BookCollection.find({}, ['title', 'author', 'bookId']).exec();
-}
-
-export async function removeAll() {
+async function removeAll() {
     await BookCollection.deleteMany({});
 }
 
@@ -53,7 +97,7 @@ async function isBookExists(bookId: string): Promise<boolean> {
     return book !== null;
 }
 
-export async function generateBookId(title: string, author?: string): Promise<string> {
+async function generateBookId(title: string, author?: string): Promise<string> {
     for (const bookId of bookIdCandidate(title, author)) {
         if (!await isBookExists(bookId)) {
             return bookId;
