@@ -1,12 +1,10 @@
-import * as KoaRouter from 'koa-router';
-import { apiRouter } from './api';
 import { meRouter } from './me';
 import { authRouter } from './auth';
-import { uploadRouter } from './upload';
+import { createRouter } from './router';
+import { bookRouter } from './book';
 
-export const router = new KoaRouter();
+export const router = createRouter();
 
-router.use('', apiRouter.routes());
-router.use('', meRouter.routes());
-router.use('', authRouter.routes());
-router.use('', uploadRouter.routes());
+router.use('/me', meRouter.routes());
+router.use('/auth', authRouter.routes());
+router.use('/book', bookRouter.routes());

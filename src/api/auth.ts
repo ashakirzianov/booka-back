@@ -1,41 +1,42 @@
 import * as Contracts from '../contracts';
 import { getFbUserInfo, generateToken } from '../auth';
-import * as KoaRouter from 'koa-router';
 import { users } from '../db';
+import { createRouter, jsonApi } from './router';
 
-export const authRouter = new KoaRouter();
+export const authRouter = createRouter();
 
-authRouter.get('/auth/fbtoken/:token', async ctx => {
-    const fbToken = ctx.params.token;
-    if (!fbToken) {
-        // TODO: report error
-        return;
-    }
-
-    const userInfo = await getFbUserInfo(fbToken);
-    if (!userInfo) {
-        // TODO: report error
-        return;
-    }
-
-    const user = await users.updateOrCreate(
-        {
-            provider: 'facebook',
-            id: userInfo.facebookId,
-        },
-        {
-            name: userInfo.name,
-            pictureUrl: userInfo.profilePicture,
+authRouter.get('/fbtoken/:token',
+    jsonApi<Contracts.AuthToken>(async p => {
+        const fbToken = p.params.token;
+        if (!fbToken) {
+            // TODO: report error
+            return undefined;
         }
-    );
 
-    if (user && user.id) {
-        const accessToken = generateToken(user.id);
-        const response: Contracts.AuthToken = {
-            token: accessToken,
-        };
-        ctx.response.body = response;
-    }
+        const userInfo = await getFbUserInfo(fbToken);
+        if (!userInfo) {
+            // TODO: report error
+            return undefined;
+        }
 
-    return;
-});
+        const user = await users.updateOrCreate(
+            {
+                provider: 'facebook',
+                id: userInfo.facebookId,
+            },
+            {
+                name: userInfo.name,
+                pictureUrl: userInfo.profilePicture,
+            }
+        );
+
+        if (user && user.id) {
+            const accessToken = generateToken(user.id);
+            return {
+                token: accessToken,
+            };
+        }
+
+        return undefined;
+    })
+);

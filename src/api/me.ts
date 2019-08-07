@@ -1,19 +1,20 @@
-import * as KoaRouter from 'koa-router';
-import { authenticate } from '../auth';
-import { users } from '../db';
+import { createRouter, authenticate, jsonApi } from './router';
 
-export const meRouter = new KoaRouter();
+export const meRouter = createRouter();
 
-meRouter.get('/me/info', authenticate((ctx, user) => {
-    ctx.body = {
-        name: user.name,
-        pictureUrl: user.pictureUrl,
-    };
-    return user;
+meRouter.get('/info', authenticate, jsonApi(async ({ user }) => {
+    return user
+        ? {
+            name: user.name,
+            pictureUrl: user.pictureUrl,
+        }
+        : undefined;
 }));
 
-meRouter.get('/me/books', authenticate((ctx, user) => {
-    ctx.response.body = {
-        books: user.uploadedBooks || [],
-    };
+meRouter.get('/books', authenticate, jsonApi<any>(async ({ user }) => {
+    return user
+        ? {
+            books: user.uploadedBooks || [],
+        }
+        : undefined;
 }));
