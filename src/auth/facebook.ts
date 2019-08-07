@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '../log';
 
 export type FacebookUserInfo = {
     facebookId: string,
@@ -25,6 +26,7 @@ export async function getFbUserInfo(token: string): Promise<FacebookUserInfo | u
             return undefined;
         }
     } catch (e) {
+        logger().important(`Failed fetch user info: '${e}`);
         return undefined;
     }
 }
