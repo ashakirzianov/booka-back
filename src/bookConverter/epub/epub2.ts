@@ -67,7 +67,7 @@ function identifySource(epub: EPub): EpubSource {
 
 const sourceResolver: EpubSourceResolver<EPub> = {
     fb2epub: epub => {
-        const rawMetadata = getRawData(epub.metadata);
+        const rawMetadata = getRawData(epub.metadata) as any;
         if (!rawMetadata) {
             return false;
         }

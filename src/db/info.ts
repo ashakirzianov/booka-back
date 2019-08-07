@@ -1,5 +1,6 @@
 import { Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
+import { logger } from '../log';
 
 const schema = {
     key: {
@@ -19,13 +20,31 @@ type InfoDocument = Info & Document;
 const InfoSchema = new Schema(schema, { timestamps: true });
 const InfoCollection = model<InfoDocument>('Info', InfoSchema);
 
-export async function getValue(key: string): Promise<string | undefined> {
-    const info = await InfoCollection.findOne({ key }).exec();
-    return info === null
-        ? undefined
-        : info.value;
+export const info = {
+    setParserVersion,
+    parserVersion,
+};
+
+const parserVersionKey = 'pv';
+async function parserVersion(): Promise<number> {
+    const value = await getValue(parserVersionKey) || '0';
+    const version = parseInt(value, 10);
+
+    return isNaN(version) ? 0 : version;
 }
 
-export async function setValue(key: string, value: string) {
-    const result = await InfoCollection.updateOne({ key }, { value }, { upsert: true }).exec();
+async function setParserVersion(version: number) {
+    await setValue(parserVersionKey, version.toString());
+    logger().important(`Update parser version to: ${version}`);
+}
+
+async function getValue(key: string): Promise<string | undefined> {
+    const value = await InfoCollection.findOne({ key }).exec();
+    return value === null
+        ? undefined
+        : value.value;
+}
+
+async function setValue(key: string, value: string) {
+    await InfoCollection.updateOne({ key }, { value }, { upsert: true }).exec();
 }
