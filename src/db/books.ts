@@ -58,7 +58,7 @@ async function insertParsed(book: ParsedBook) {
         bookId: bookId,
     };
 
-    const inserted = await BookCollection.insertMany(book);
+    const inserted = await BookCollection.insertMany(bookDocument);
     if (inserted) {
         logger().important('Inserted book for id: ' + bookId);
         return bookId;
@@ -76,7 +76,7 @@ async function all() {
             ? {
                 author: book.author,
                 title: book.title,
-                id: book.id,
+                id: book.bookId,
             }
             : undefined
     );
