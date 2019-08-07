@@ -44,7 +44,7 @@ export function messageToString(message: Message): string | undefined {
 }
 
 export function isCompound(message: Message): message is MessageCompound {
-    return message !== undefined && message['messages'] !== undefined;
+    return message !== undefined && (message as any)['messages'] !== undefined;
 }
 
 export type Result<In, Out> = Success<In, Out> | Fail;
@@ -212,7 +212,7 @@ type WarnFnPair<T> = {
 type WarnFnResult<To> = To | WarnFnPair<To> | null;
 export type WarnFn<From, To> = (x: From) => WarnFnResult<To>;
 export function isWarnPair<To>(x: WarnFnResult<To>): x is WarnFnPair<To> {
-    return x !== null && x['message'] !== undefined;
+    return x !== null && (x as any)['message'] !== undefined;
 }
 export function translateAndWarn<TI, From, To>(parser: Parser<TI, From>, f: WarnFn<From, To>): Parser<TI, To> {
     return input => {
