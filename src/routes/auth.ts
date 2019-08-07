@@ -9,14 +9,12 @@ authRouter.get('/fbtoken/:token',
     jsonApi<Contracts.AuthToken>(async p => {
         const fbToken = p.params.token;
         if (!fbToken) {
-            // TODO: report error
-            return undefined;
+            return { fail: 'Facebook token is not specified' };
         }
 
         const userInfo = await getFbUserInfo(fbToken);
         if (!userInfo) {
-            // TODO: report error
-            return undefined;
+            return { fail: `Can't validate fb token: '${fbToken}'` };
         }
 
         const user = await users.updateOrCreate(
@@ -33,10 +31,12 @@ authRouter.get('/fbtoken/:token',
         if (user && user.id) {
             const accessToken = generateToken(user.id);
             return {
-                token: accessToken,
+                success: {
+                    token: accessToken,
+                },
             };
+        } else {
+            return { fail: 'Can\'t create user' };
         }
-
-        return undefined;
     })
 );

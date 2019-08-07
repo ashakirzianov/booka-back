@@ -1,5 +1,6 @@
 import { Request, ParameterizedContext } from 'koa';
 import * as KoaRouter from 'koa-router';
+import { Result } from '../contracts';
 import { User } from '../db';
 import { passport } from '../auth';
 
@@ -22,16 +23,24 @@ type ApiHandlerParam = {
     files: StringMap<File>,
     user?: User,
 };
-type ApiHandlerResult<T> = Promise<T | undefined>;
-type ApiHandler<Result> = (param: ApiHandlerParam) => ApiHandlerResult<Result>;
-export function jsonApi<Result = {}>(handler: ApiHandler<Result>): KoaRouter.IMiddleware<{}> {
+type ApiHandlerResult<T> = {
+    fail: string,
+    success?: undefined,
+} | {
+    fail?: undefined,
+    success: T,
+};
+type ApiHandler<R> = (param: ApiHandlerParam) => Promise<ApiHandlerResult<R>>;
+export function jsonApi<R = {}>(handler: ApiHandler<R>): KoaRouter.IMiddleware<{}> {
     return async ctx => {
         const param = paramFromContext(ctx);
-        const result = await handler(param);
+        const handlerResult = await handler(param);
 
-        ctx.response.body = result !== undefined
-            ? result
-            : 'fail';
+        const apiResult: Result<R> = handlerResult.success
+            ? { success: true, value: handlerResult.success }
+            : { success: false, reason: handlerResult.fail };
+
+        ctx.response.body = apiResult;
     };
 }
 

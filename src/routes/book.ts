@@ -8,9 +8,18 @@ export const bookRouter = createRouter();
 
 bookRouter.get('/id/:id',
     jsonApi<Contracts.VolumeNode>(async p => {
-        return p.params.id
-            ? books.byBookIdParsed(p.params.id)
-            : undefined;
+        if (p.params.id) {
+            const book = await books.byBookIdParsed(p.params.id);
+            return book
+                ? {
+                    success: book,
+                }
+                : {
+                    fail: `Couldn't find book for id: '${p.params.id}'`,
+                };
+        } else {
+            return { fail: 'Book id is not specified' };
+        }
     })
 );
 
@@ -19,7 +28,9 @@ bookRouter.get('/all',
         const allBooks = await books.all();
 
         return {
-            books: allBooks,
+            success: {
+                books: allBooks,
+            },
         };
     })
 );
@@ -32,15 +43,15 @@ bookRouter.post('/upload', authenticate, jsonApi<string>(async p => {
         if (bookId && p.user && p.user.id) {
             const result = await users.addUploadedBook(p.user.id, bookId);
             return result.success
-                ? `Inserted with id: '${bookId}'`
-                : `Couldn't update user info: '${result.reason}'`;
+                ? { success: `Inserted with id: '${bookId}'` }
+                : { fail: `Couldn't update user info: '${result.reason}'` };
         }
     }
 
-    return 'fail';
+    return { fail: 'File is not attached' };
 }));
 
-// TODO: move
+// TODO: move ?
 async function parseAndInsert(fullPath: string) {
     try {
         const book = await logTimeAsync(

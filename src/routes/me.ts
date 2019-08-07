@@ -1,20 +1,25 @@
+import * as Contracts from '../contracts';
 import { createRouter, authenticate, jsonApi } from './router';
 
 export const meRouter = createRouter();
 
-meRouter.get('/info', authenticate, jsonApi(async ({ user }) => {
+meRouter.get('/info', authenticate, jsonApi<Contracts.UserInfo>(async ({ user }) => {
     return user
         ? {
-            name: user.name,
-            pictureUrl: user.pictureUrl,
+            success: {
+                name: user.name,
+                pictureUrl: user.pictureUrl,
+            },
         }
-        : undefined;
+        : { fail: 'Unauthorized' };
 }));
 
-meRouter.get('/books', authenticate, jsonApi<any>(async ({ user }) => {
+meRouter.get('/books', authenticate, jsonApi<Contracts.UserBooks>(async ({ user }) => {
     return user
         ? {
-            books: user.uploadedBooks || [],
+            success: {
+                books: user.uploadedBooks || [],
+            },
         }
-        : undefined;
+        : { fail: 'Unauthorized' };
 }));
