@@ -1,6 +1,5 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
-import * as Contracts from '../contracts';
 import { assertNever } from '../bookConverter/utils';
 import { addUnique } from '../utils';
 
@@ -36,9 +35,9 @@ async function byId(id: string): Promise<User | undefined> {
     return user || undefined;
 }
 
-async function updateOrCreate(externalId: ExternalId, userInfo: Contracts.UserInfo) {
+async function updateOrCreate(externalId: ExternalId, user: Partial<User>) {
     if (externalId.provider === 'facebook') {
-        return updateOrCreateWithCond({ facebookId: externalId.id }, userInfo);
+        return updateOrCreateWithCond({ facebookId: externalId.id }, user);
     } else {
         return assertNever(externalId.provider);
     }
@@ -65,18 +64,18 @@ export const users = {
     addUploadedBook,
 };
 
-async function updateOrCreateWithCond(condition: Partial<User>, userInfo: Contracts.UserInfo): Promise<User> {
+async function updateOrCreateWithCond(condition: Partial<User>, user: Partial<User>): Promise<User> {
     const existing = await UserCollection.findOne(condition).exec();
     if (existing) {
-        existing.name = userInfo.name;
-        existing.pictureUrl = userInfo.pictureUrl;
+        existing.name = user.name || existing.name;
+        existing.pictureUrl = user.pictureUrl;
         await existing.save();
         return existing;
     } else {
         const created = await UserCollection.insertMany({
             ...condition,
-            name: userInfo.name,
-            pictureUrl: userInfo.pictureUrl,
+            name: user.name,
+            pictureUrl: user.pictureUrl,
         });
         return created;
     }

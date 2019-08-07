@@ -1,7 +1,7 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from './mongooseMapper';
 import { transliterate, filterUndefined } from '../utils';
-import * as Contracts from '../contracts';
+import { ParsedBook } from '../common';
 import { logger } from '../log';
 
 const schema = {
@@ -44,12 +44,12 @@ async function byBookIdParsed(id: string) {
         return undefined;
     }
     const parsed = JSON.parse(book.raw);
-    const contract = parsed as Contracts.VolumeNode;
+    const contract = parsed as ParsedBook;
 
     return contract;
 }
 
-async function insertParsed(book: Contracts.VolumeNode) {
+async function insertParsed(book: ParsedBook) {
     const bookId = await generateBookId(book.meta.title, book.meta.author);
     const bookDocument: Book = {
         title: book.meta.title,
