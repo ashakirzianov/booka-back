@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as koaBody from 'koa-body';
 import * as logger from 'koa-logger';
 import { config as configEnv } from 'dotenv';
-import { router } from './api';
+import { router } from './routes';
 import { connectDb } from './connect';
 import { passport } from './auth';
 import { config, SslConfig } from './config';
