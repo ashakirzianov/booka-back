@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as FormData from 'form-data';
 import { File } from './router';
-import { promisify } from 'util';
 
 export type Files = {
     [k: string]: File | undefined;

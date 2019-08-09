@@ -1,11 +1,11 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import {
-    PathContract, ApiContract, MethodNames, StringKeysOf,
+    PathContract, ApiContract, MethodNames, PathMethodContract, AllowedPaths, Contract,
 } from './contractTypes';
 import { ApiHandler } from './router';
 
-export type FetchReturn<C extends PathContract> = {
+export type FetchReturn<C extends PathMethodContract> = {
     success: true,
     value: C['return'],
 } | {
@@ -13,7 +13,7 @@ export type FetchReturn<C extends PathContract> = {
     status: number,
     response: any,
 };
-export type FetchParam<C extends PathContract> = Omit<C, 'return' | 'files'> & {
+export type FetchParam<C extends PathMethodContract> = Omit<C, 'return' | 'files'> & {
     extra?: {
         headers?: object,
         postData?: any,
@@ -21,8 +21,8 @@ export type FetchParam<C extends PathContract> = Omit<C, 'return' | 'files'> & {
 };
 
 export type FetchMethod<C extends ApiContract, M extends MethodNames> =
-    <Path extends StringKeysOf<C[M]>>(path: Path, param: FetchParam<C[M][Path]>)
-        => Promise<FetchReturn<C[M][Path]>>;
+    <Path extends AllowedPaths<C, M>>(path: Path, param: FetchParam<Contract<C, M, Path>>)
+        => Promise<FetchReturn<Contract<C, M, Path>>>;
 export type Fetcher<C extends ApiContract> = {
     [m in MethodNames]: FetchMethod<C, m>;
 };
@@ -65,10 +65,10 @@ export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C
 export function proxy<
     C extends ApiContract,
     M extends MethodNames,
-    Path extends StringKeysOf<C[M]>,
-    >(method: FetchMethod<C, M>, path: Path): ApiHandler<C[M][Path]> {
+    Path extends AllowedPaths<C, M>,
+    >(method: FetchMethod<C, M>, path: Path): ApiHandler<Contract<C, M, Path>> {
     return async ctx => {
-        const param: FetchParam<PathContract> = {
+        const param: FetchParam<PathMethodContract> = {
             params: ctx.params,
             query: ctx.query,
             // files: ctx.request.files,

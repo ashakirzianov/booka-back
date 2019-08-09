@@ -22,21 +22,23 @@ export type UserInfo = {
 export type UserBooks = BookCollection;
 
 export type BackContract = {
-    get: {
-        '/auth/fbtoken': {
+    '/auth/fbtoken': {
+        get: {
             return: AuthToken,
             query: { token: string },
         },
-        '/me/info': { return: UserInfo },
-        '/me/books': { return: UserBooks },
-        '/book/single': {
+    },
+    '/me/info': { get: { return: UserInfo } },
+    '/me/books': { get: { return: UserBooks } },
+    '/book/single': {
+        get: {
             return: BookObject,
             query: { id: string },
         },
-        '/book/all': { return: BookCollection },
     },
-    post: {
-        '/book/upload': {
+    '/book/all': { get: { return: BookCollection } },
+    '/book/upload': {
+        post: {
             return: string,
             files: 'book',
         },

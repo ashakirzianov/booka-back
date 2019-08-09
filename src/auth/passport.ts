@@ -2,7 +2,7 @@ import * as passport from 'koa-passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { users, User } from '../db';
 import { config } from '../config';
-import { PathContract } from '../common';
+import { PathMethodContract } from '../common';
 import { ApiHandler } from '../common';
 
 const jwtConfig = config().auth.jwt;
@@ -25,7 +25,7 @@ passport.use(new Strategy({
 
 export { passport };
 
-export function authenticate<C extends PathContract>(handler: ApiHandler<C, { user?: User }>): ApiHandler<C> {
+export function authenticate<C extends PathMethodContract>(handler: ApiHandler<C, { user?: User }>): ApiHandler<C> {
     return async (ctx, next) => {
         let userToSet: User | undefined;
         await passport.authenticate(
