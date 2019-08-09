@@ -1,7 +1,8 @@
 import { users, books } from './db';
 import { BackContract } from './backContract';
 import { LibContract } from './libContract';
-import { createRouter, createFetcher, proxy } from './common';
+import { createRouter } from './common/router';
+import { createFetcher, proxy } from './common/fetcher';
 import { logTimeAsync, logger } from './log';
 import { loadEpubPath } from './bookConverter';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
