@@ -3,7 +3,7 @@ import { BackContract } from './contracts';
 import { createRouter } from './common';
 import { logTimeAsync, logger } from './log';
 import { loadEpubPath } from './bookConverter';
-import { getFbUserInfo, generateToken } from './auth';
+import { getFbUserInfo, generateToken, authenticate } from './auth';
 
 export const router = createRouter<BackContract>();
 
@@ -32,8 +32,8 @@ router.get('/book/all', async () => {
     };
 });
 
-router.post('/book/upload', async ctx => {
-    const files = ctx.files;
+router.post('/book/upload', authenticate(async ctx => {
+    const files = ctx.request.files;
     const book = files && files.book;
     if (book) {
         const bookId = await parseAndInsert(book.path);
@@ -46,7 +46,7 @@ router.post('/book/upload', async ctx => {
     }
 
     return { fail: 'File is not attached' };
-});
+}));
 
 router.get('/auth/fbtoken', async ctx => {
     const fbToken = ctx.query.token;
@@ -82,28 +82,28 @@ router.get('/auth/fbtoken', async ctx => {
     }
 });
 
-router.get('/me/info', async ctx => {
-    // return user
-    //     ? {
-    //         success: {
-    //             name: user.name,
-    //             pictureUrl: user.pictureUrl,
-    //         },
-    //     }
-    //     : { fail: 'Unauthorized' };
-    return { fail: 'Not implemented' };
-});
+router.get('/me/info', authenticate(async ctx => {
+    const user = ctx.user;
+    return user
+        ? {
+            success: {
+                name: user.name,
+                pictureUrl: user.pictureUrl,
+            },
+        }
+        : { fail: 'Unauthorized' };
+}));
 
-router.get('/me/books', async ctx => {
-    // return user
-    //     ? {
-    //         success: {
-    //             books: user.uploadedBooks || [],
-    //         },
-    //     }
-    //     : { fail: 'Unauthorized' };
-    return { fail: 'Not implemented' };
-});
+router.get('/me/books', authenticate(async ctx => {
+    const user = ctx.user;
+    return user
+        ? {
+            success: {
+                books: user.uploadedBooks || [],
+            },
+        }
+        : { fail: 'Unauthorized' };
+}));
 
 // TODO: move ?
 async function parseAndInsert(fullPath: string) {
