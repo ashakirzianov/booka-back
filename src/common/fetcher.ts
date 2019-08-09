@@ -3,6 +3,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
     PathContract, ApiContract, MethodNames, StringKeysOf,
 } from './contractTypes';
+import { ApiHandler } from './router';
 
 export type FetchReturn<C extends PathContract> = {
     success: true,
@@ -10,7 +11,7 @@ export type FetchReturn<C extends PathContract> = {
 } | {
     success: false,
     status: number,
-    reason?: string,
+    response: any,
 };
 export type FetchParam<C extends PathContract> = Omit<C, 'return'>;
 
@@ -21,7 +22,7 @@ export type Fetcher<C extends ApiContract> = {
     [m in MethodNames]: FetchMethod<C, m>;
 };
 
-export function fetcher<C extends ApiContract>(baseUrl: string): Fetcher<C> {
+export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C> {
     function buildFetchMethod<M extends MethodNames>(m: M): FetchMethod<C, M> {
         return async (path, param) => {
             const conf: AxiosRequestConfig = {
@@ -32,26 +33,20 @@ export function fetcher<C extends ApiContract>(baseUrl: string): Fetcher<C> {
 
             // TODO: support files
             const url = baseUrl + replaceParams(path, param.params);
-            let response: AxiosResponse<any> | undefined;
-            switch (m) {
-                case 'get':
-                    response = await axios.get(url, conf);
-                    break;
-                case 'post':
-                    response = await axios.post(url, undefined, conf);
-                    break;
-            }
-
-            if (response.status === 200) {
+            try {
+                const response = m === 'post'
+                    ? await axios.post(url, undefined, conf)
+                    : await axios.get(url, conf);
                 return {
                     success: true,
                     value: response.data,
                 };
-            } else {
+            } catch (e) {
+                const response = e.response as AxiosResponse;
                 return {
                     success: false,
                     status: response.status,
-                    reason: response.data,
+                    response: response.data,
                 };
             }
         };
@@ -63,10 +58,35 @@ export function fetcher<C extends ApiContract>(baseUrl: string): Fetcher<C> {
     };
 }
 
+export function proxy<
+    C extends ApiContract,
+    M extends MethodNames,
+    Path extends StringKeysOf<C[M]>,
+    >(method: FetchMethod<C, M>, path: Path): ApiHandler<C[M][Path]> {
+    return async ctx => {
+        const param: FetchParam<C[M][Path]> = {
+            params: ctx.params as any,
+            query: ctx.query as any,
+            files: ctx.request.files as any,
+        };
+        const result = await method(path, param);
+
+        if (result.success) {
+            return { success: result.value };
+        } else {
+            return {
+                // TODO: rethink this?
+                fail: result.response,
+                status: result.status,
+            };
+        }
+    };
+}
+
 function replaceParams(url: string, params?: object): string {
     if (params) {
         const replaced = Object.keys(params)
-            .reduce((u, key) => u.replace(`:${key}`, params[key]), url);
+            .reduce((u, key) => u.replace(`:${key}`, (params as any)[key]), url);
         return replaced;
     } else {
         return url;

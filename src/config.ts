@@ -6,7 +6,7 @@ export function config(): Config {
 
 function debugConfig(): Config {
     return {
-        libUrl: 'https://localhost:3141',
+        libUrl: 'http://localhost:3141',
         auth: authConfig,
         ssl: {
             keyPath: 'server.key',
@@ -17,7 +17,7 @@ function debugConfig(): Config {
 
 function productionConfig(): Config {
     return {
-        libUrl: 'https://localhost:3141',
+        libUrl: 'http://localhost:3141',
         auth: authConfig,
     };
 }

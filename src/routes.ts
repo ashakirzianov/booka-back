@@ -1,36 +1,18 @@
 import { users, books } from './db';
 import { BackContract } from './backContract';
-import { createRouter } from './common';
+import { LibContract } from './libContract';
+import { createRouter, createFetcher, proxy } from './common';
 import { logTimeAsync, logger } from './log';
 import { loadEpubPath } from './bookConverter';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
+import { config } from './config';
 
 export const router = createRouter<BackContract>();
+const lib = createFetcher<LibContract>(config().libUrl);
 
-router.get('/book/single', async ctx => {
-    if (ctx.query.id) {
-        const book = await books.byBookIdParsed(ctx.query.id);
-        return book
-            ? {
-                success: book,
-            }
-            : {
-                fail: `Couldn't find book for id: '${ctx.query.id}'`,
-            };
-    } else {
-        return { fail: 'Book id is not specified' };
-    }
-});
+router.get('/book/single', proxy(lib.get, '/single'));
 
-router.get('/book/all', async () => {
-    const allBooks = await books.all();
-
-    return {
-        success: {
-            books: allBooks,
-        },
-    };
-});
+router.get('/book/all', proxy(lib.get, '/all'));
 
 router.post('/book/upload', authenticate(async ctx => {
     const files = ctx.request.files;
