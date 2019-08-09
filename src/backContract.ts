@@ -28,8 +28,8 @@ export type BackContract = {
             query: { token: string },
         },
     },
-    '/me/info': { get: { return: UserInfo } },
-    '/me/books': { get: { return: UserBooks } },
+    '/me/info': { get: { return: UserInfo, auth: string } },
+    '/me/books': { get: { return: UserBooks, auth: string } },
     '/book/single': {
         get: {
             return: BookObject,
@@ -41,6 +41,7 @@ export type BackContract = {
         post: {
             return: string,
             files: 'book',
+            auth: string,
         },
     },
 };

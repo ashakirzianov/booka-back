@@ -33,7 +33,10 @@ export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C
             const conf: AxiosRequestConfig = {
                 responseType: 'json',
                 params: param.query,
-                headers: param.extra && param.extra.headers,
+                headers: {
+                    ...param.extra && param.extra.headers,
+                    ...param.auth && { Authorization: param.auth },
+                },
             };
 
             const url = baseUrl + replaceParams(path, param.params);
@@ -71,7 +74,7 @@ export function proxy<
         const param: FetchParam<PathMethodContract> = {
             params: ctx.params,
             query: ctx.query,
-            // files: ctx.request.files,
+            auth: ctx.request.headers.Authorization,
         };
         const result = await method(path, param as any);
 
