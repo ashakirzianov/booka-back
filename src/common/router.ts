@@ -1,4 +1,4 @@
-import { ParameterizedContext, Middleware, Request } from 'koa';
+import { Middleware, Request } from 'koa';
 import * as KoaRouter from 'koa-router';
 import {
     PathContract, ApiContract, MethodNames, StringKeysOf,
