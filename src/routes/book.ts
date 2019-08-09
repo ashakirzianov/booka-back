@@ -1,47 +1,43 @@
 import { users, books } from '../db';
-import * as Contracts from '../contracts';
-import { createRouter, jsonApi, authenticate } from './router';
+import { BackContract } from '../contracts';
+import { createRouter } from '../common';
 import { logTimeAsync, logger } from '../log';
 import { loadEpubPath } from '../bookConverter';
 
-export const bookRouter = createRouter();
+export const bookRouter = createRouter<BackContract>();
 
-bookRouter.get('/id/:id',
-    jsonApi<Contracts.VolumeNode>(async p => {
-        if (p.params.id) {
-            const book = await books.byBookIdParsed(p.params.id);
-            return book
-                ? {
-                    success: book,
-                }
-                : {
-                    fail: `Couldn't find book for id: '${p.params.id}'`,
-                };
-        } else {
-            return { fail: 'Book id is not specified' };
-        }
-    })
-);
+bookRouter.get('/book/single', async ctx => {
+    if (ctx.query.id) {
+        const book = await books.byBookIdParsed(ctx.query.id);
+        return book
+            ? {
+                success: book,
+            }
+            : {
+                fail: `Couldn't find book for id: '${ctx.query.id}'`,
+            };
+    } else {
+        return { fail: 'Book id is not specified' };
+    }
+});
 
-bookRouter.get('/all',
-    jsonApi<Contracts.BookCollection>(async () => {
-        const allBooks = await books.all();
+bookRouter.get('/book/all', async () => {
+    const allBooks = await books.all();
 
-        return {
-            success: {
-                books: allBooks,
-            },
-        };
-    })
-);
+    return {
+        success: {
+            books: allBooks,
+        },
+    };
+});
 
-bookRouter.post('/upload', authenticate, jsonApi<string>(async p => {
-    const files = p.files;
+bookRouter.post('/book/upload', async ctx => {
+    const files = ctx.files;
     const book = files && files.book;
     if (book) {
         const bookId = await parseAndInsert(book.path);
-        if (bookId && p.user && p.user.id) {
-            const result = await users.addUploadedBook(p.user.id, bookId);
+        if (bookId && ctx.user && ctx.user.id) {
+            const result = await users.addUploadedBook(ctx.user.id, bookId);
             return result.success
                 ? { success: `Inserted with id: '${bookId}'` }
                 : { fail: `Couldn't update user info: '${result.reason}'` };
@@ -49,7 +45,7 @@ bookRouter.post('/upload', authenticate, jsonApi<string>(async p => {
     }
 
     return { fail: 'File is not attached' };
-}));
+});
 
 // TODO: move ?
 async function parseAndInsert(fullPath: string) {

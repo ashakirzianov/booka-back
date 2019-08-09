@@ -1,25 +1,27 @@
-import * as Contracts from '../contracts';
-import { createRouter, authenticate, jsonApi } from './router';
+import { BackContract } from '../contracts';
+import { createRouter } from '../common';
 
-export const meRouter = createRouter();
+export const meRouter = createRouter<BackContract>();
 
-meRouter.get('/info', authenticate, jsonApi<Contracts.UserInfo>(async ({ user }) => {
-    return user
-        ? {
-            success: {
-                name: user.name,
-                pictureUrl: user.pictureUrl,
-            },
-        }
-        : { fail: 'Unauthorized' };
-}));
+meRouter.get('/me/info', async ctx => {
+    // return user
+    //     ? {
+    //         success: {
+    //             name: user.name,
+    //             pictureUrl: user.pictureUrl,
+    //         },
+    //     }
+    //     : { fail: 'Unauthorized' };
+    return { fail: 'Not implemented' };
+});
 
-meRouter.get('/books', authenticate, jsonApi<Contracts.UserBooks>(async ({ user }) => {
-    return user
-        ? {
-            success: {
-                books: user.uploadedBooks || [],
-            },
-        }
-        : { fail: 'Unauthorized' };
-}));
+meRouter.get('/me/books', async ctx => {
+    // return user
+    //     ? {
+    //         success: {
+    //             books: user.uploadedBooks || [],
+    //         },
+    //     }
+    //     : { fail: 'Unauthorized' };
+    return { fail: 'Not implemented' };
+});

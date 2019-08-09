@@ -59,7 +59,7 @@ function namePred(n: ConstraintValue<string>): ElementPredicate {
     return keyValuePred<XmlNodeElement>()({
         key: 'name',
         value: n,
-    });
+    }) as any;
 }
 
 type ElementPredicate<T = XmlNodeElement> = Predicate<XmlNodeElement, T>;
