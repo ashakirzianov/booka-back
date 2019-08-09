@@ -6,6 +6,7 @@ import { logTimeAsync, logger } from './log';
 import { loadEpubPath } from './bookConverter';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
 import { config } from './config';
+import { buildData } from './common/dataBuilder';
 
 export const router = createRouter<BackContract>();
 const lib = createFetcher<LibContract>(config().libUrl);
@@ -17,13 +18,25 @@ router.get('/book/all', proxy(lib.get, '/all'));
 router.post('/book/upload', authenticate(async ctx => {
     const files = ctx.request.files;
     const book = files && files.book;
-    if (book) {
-        const bookId = await parseAndInsert(book.path);
-        if (bookId && ctx.user && ctx.user.id) {
-            const result = await users.addUploadedBook(ctx.user.id, bookId);
-            return result.success
-                ? { success: `Inserted with id: '${bookId}'` }
-                : { fail: `Couldn't update user info: '${result.reason}'` };
+
+    if (files && book) {
+        const data = buildData(files);
+        const result = await lib.post('/upload', {
+            extra: {
+                headers: data.headers,
+                postData: data.data,
+            },
+        });
+        if (result.success) {
+            const bookId = result.value;
+            if (bookId && ctx.user && ctx.user.id) {
+                const bookAdded = await users.addUploadedBook(ctx.user.id, bookId);
+                return bookAdded.success
+                    ? { success: bookId }
+                    : { fail: `Couldn't update user info: '${bookAdded.reason}'` };
+            }
+        } else {
+            return { fail: `Couldn't upload book` };
         }
     }
 

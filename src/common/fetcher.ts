@@ -13,7 +13,12 @@ export type FetchReturn<C extends PathContract> = {
     status: number,
     response: any,
 };
-export type FetchParam<C extends PathContract> = Omit<C, 'return'>;
+export type FetchParam<C extends PathContract> = Omit<C, 'return' | 'files'> & {
+    extra?: {
+        headers?: object,
+        postData?: any,
+    },
+};
 
 export type FetchMethod<C extends ApiContract, M extends MethodNames> =
     <Path extends StringKeysOf<C[M]>>(path: Path, param: FetchParam<C[M][Path]>)
@@ -28,14 +33,13 @@ export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C
             const conf: AxiosRequestConfig = {
                 responseType: 'json',
                 params: param.query,
-                // TODO: add headers here
+                headers: param.extra && param.extra.headers,
             };
 
-            // TODO: support files
             const url = baseUrl + replaceParams(path, param.params);
             try {
                 const response = m === 'post'
-                    ? await axios.post(url, undefined, conf)
+                    ? await axios.post(url, param.extra && param.extra.postData, conf)
                     : await axios.get(url, conf);
                 return {
                     success: true,
@@ -64,12 +68,12 @@ export function proxy<
     Path extends StringKeysOf<C[M]>,
     >(method: FetchMethod<C, M>, path: Path): ApiHandler<C[M][Path]> {
     return async ctx => {
-        const param: FetchParam<C[M][Path]> = {
-            params: ctx.params as any,
-            query: ctx.query as any,
-            files: ctx.request.files as any,
+        const param: FetchParam<PathContract> = {
+            params: ctx.params,
+            query: ctx.query,
+            // files: ctx.request.files,
         };
-        const result = await method(path, param);
+        const result = await method(path, param as any);
 
         if (result.success) {
             return { success: result.value };

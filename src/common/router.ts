@@ -72,4 +72,4 @@ function buildMiddleware<R extends PathContract>(handler: ApiHandler<R>): Middle
 type Defined<T> = Exclude<T, undefined>;
 // Note: this is a bit cryptic way
 // of getting actual koa-body file type
-type File = Defined<Request['files']>[string];
+export type File = Defined<Request['files']>[string];
