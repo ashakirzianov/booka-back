@@ -1,7 +1,7 @@
 import { Model, Document, Schema, model } from 'mongoose';
 import { TypeFromSchema } from '../common/mongooseUtils';
 import { transliterate, filterUndefined } from '../utils';
-import { BookObject } from '../bookFormat';
+import { BookObject } from '../common/bookFormat';
 import { logger } from '../log';
 
 const schema = {

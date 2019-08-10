@@ -4,7 +4,7 @@ import {
 } from './block';
 import {
     ContentNode, Span, ChapterNode, VolumeNode, BookMeta,
-} from '../contracts';
+} from '../../common/bookFormat';
 import {
     flatten, filterUndefined, assertNever,
 } from '../utils';
