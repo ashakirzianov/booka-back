@@ -4,8 +4,6 @@ import { LibContract } from './libContract';
 import { createRouter } from './common/router';
 import { createFetcher } from './common/fetcher';
 import { proxy } from './common/proxy';
-import { logTimeAsync, logger } from './log';
-import { loadEpubPath } from './bookConverter';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
 import { config } from './config';
 import { buildData } from './common/dataBuilder';
@@ -101,17 +99,3 @@ router.get('/me/books', authenticate(async ctx => {
         }
         : { fail: 'Unauthorized' };
 }));
-
-// TODO: move ?
-async function parseAndInsert(fullPath: string) {
-    try {
-        const book = await logTimeAsync(
-            `Parse: ${fullPath}`,
-            () => loadEpubPath(fullPath)
-        );
-        return await books.insertParsed(book);
-    } catch (e) {
-        logger().warn(`While parsing '${fullPath}' error: ${e}`);
-        return undefined;
-    }
-}
