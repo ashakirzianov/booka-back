@@ -1,9 +1,9 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import {
-    PathContract, ApiContract, MethodNames, PathMethodContract, AllowedPaths, Contract,
+    ApiContract, MethodNames, PathMethodContract,
+    AllowedPaths, Contract,
 } from './contractTypes';
-import { ApiHandler } from './router';
 
 export type FetchReturn<C extends PathMethodContract> = {
     success: true,
@@ -62,31 +62,6 @@ export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C
     return {
         get: buildFetchMethod('get'),
         post: buildFetchMethod('post'),
-    };
-}
-
-export function proxy<
-    C extends ApiContract,
-    M extends MethodNames,
-    Path extends AllowedPaths<C, M>,
-    >(method: FetchMethod<C, M>, path: Path): ApiHandler<Contract<C, M, Path>> {
-    return async ctx => {
-        const param: FetchParam<PathMethodContract> = {
-            params: ctx.params,
-            query: ctx.query,
-            auth: ctx.request.headers.Authorization,
-        };
-        const result = await method(path, param as any);
-
-        if (result.success) {
-            return { success: result.value };
-        } else {
-            return {
-                // TODO: rethink this?
-                fail: result.response,
-                status: result.status,
-            };
-        }
     };
 }
 
