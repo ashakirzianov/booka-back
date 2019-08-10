@@ -2,45 +2,47 @@ import { users } from './db';
 import { BackContract } from './backContract';
 import { LibContract } from './libContract';
 import { createRouter } from './common/router';
-import { createFetcher } from './common/fetcher';
-import { proxy } from './common/proxy';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
 import { config } from './config';
 import { buildData } from './common/dataBuilder';
+import { getSingleBook, getAllBooks, addBook } from './library';
 
 export const router = createRouter<BackContract>();
-const lib = createFetcher<LibContract>(config().libUrl);
 
-router.get('/book/single', proxy(lib.get, '/single'));
+router.get('/book/single', async ctx => {
+    const id = ctx.query.id;
+    if (id) {
+        const book = await getSingleBook(id);
 
-router.get('/book/all', proxy(lib.get, '/all'));
+        return book
+            ? { success: book }
+            : { fail: `Couldn't get book by id: '${id}'` };
+    } else {
+        return { fail: 'Id is not specified' };
+    }
+});
+
+router.get('/book/all', async ctx => {
+    const allBooks = await getAllBooks();
+    return allBooks
+        ? { success: allBooks }
+        : { fail: 'Couldn\'t fetch books' };
+});
 
 router.post('/book/upload', authenticate(async ctx => {
+    if (!ctx.user || !ctx.user.id) {
+        return { fail: 'Can\'t get user' };
+    }
     const files = ctx.request.files;
     const book = files && files.book;
-
-    if (files && book) {
-        const data = buildData(files);
-        const result = await lib.post('/upload', {
-            extra: {
-                headers: data.headers,
-                postData: data.data,
-            },
-        });
-        if (result.success) {
-            const bookId = result.value;
-            if (bookId && ctx.user && ctx.user.id) {
-                const bookAdded = await users.addUploadedBook(ctx.user.id, bookId);
-                return bookAdded.success
-                    ? { success: bookId }
-                    : { fail: `Couldn't update user info: '${bookAdded.reason}'` };
-            }
-        } else {
-            return { fail: `Couldn't upload book` };
-        }
+    if (!book) {
+        return { fail: 'Book is not attached' };
     }
 
-    return { fail: 'File is not attached' };
+    const bookId = await addBook(book, ctx.user.id);
+    return bookId
+        ? { success: bookId }
+        : { fail: `Can't add book` };
 }));
 
 router.get('/auth/fbtoken', async ctx => {
