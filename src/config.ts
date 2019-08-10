@@ -17,7 +17,7 @@ function debugConfig(): Config {
 
 function productionConfig(): Config {
     return {
-        libUrl: 'http://localhost:3141',
+        libUrl: 'https://booka-lib.herokuapp.com',
         auth: authConfig,
     };
 }
