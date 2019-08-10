@@ -1,7 +1,6 @@
 import { Model, Document, Schema, model } from 'mongoose';
-import { TypeFromSchema } from './mongooseMapper';
-import { assertNever } from '../bookConverter/utils';
-import { addUnique } from '../utils';
+import { TypeFromSchema } from '../common/mongooseUtils';
+import { addUnique, assertNever } from '../utils';
 
 const schema = {
     facebookId: {

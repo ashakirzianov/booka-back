@@ -6,6 +6,7 @@ export function config(): Config {
 
 function debugConfig(): Config {
     return {
+        libUrl: 'http://localhost:3141',
         auth: authConfig,
         ssl: {
             keyPath: 'server.key',
@@ -16,6 +17,7 @@ function debugConfig(): Config {
 
 function productionConfig(): Config {
     return {
+        libUrl: 'https://booka-lib.herokuapp.com',
         auth: authConfig,
     };
 }
@@ -64,6 +66,7 @@ export type SslConfig = {
 };
 
 export type Config = {
+    libUrl: string,
     auth: AuthConfig,
     ssl?: SslConfig,
 };

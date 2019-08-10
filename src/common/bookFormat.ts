@@ -1,13 +1,3 @@
-export type BookInfo = {
-    id: string,
-    title: string,
-    author?: string,
-};
-
-export type BookCollection = {
-    books: BookInfo[],
-};
-
 export type AttributeName = 'italic' | 'bold' | 'poem' | 'line';
 export type SimpleSpan = string;
 export type AttributedSpan = {
@@ -60,3 +50,4 @@ export type VolumeNode = {
 
 export type BookNode = VolumeNode | ContentNode;
 export type HasSubnodes = VolumeNode | ChapterNode;
+export type BookObject = VolumeNode;
