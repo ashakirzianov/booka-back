@@ -1,4 +1,4 @@
-import { users, books } from './db';
+import { users } from './db';
 import { BackContract } from './backContract';
 import { LibContract } from './libContract';
 import { createRouter } from './common/router';
