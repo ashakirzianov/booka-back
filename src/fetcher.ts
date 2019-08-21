@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
     ApiContract, MethodNames, PathMethodContract,
     AllowedPaths, Contract,
-} from './contractTypes';
+} from 'booka-common';
 
 export type FetchReturn<C extends PathMethodContract> = {
     success: true,
