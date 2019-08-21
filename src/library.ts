@@ -1,11 +1,10 @@
 import * as fs from 'fs';
 import * as FormData from 'form-data';
-import {
-    BookObject, createFetcher, File,
-    LibContract, BookCollection,
-} from 'booka-common';
+import { BookObject, LibContract, BookCollection } from 'booka-common';
 import { config } from './config';
 import { users } from './db';
+import { createFetcher } from './fetcher';
+import { File } from './back-utils';
 
 const lib = createFetcher<LibContract>(config().libUrl);
 
