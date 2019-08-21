@@ -1,5 +1,5 @@
 import { Model, Document, Schema, model } from 'mongoose';
-import { TypeFromSchema } from '../common/mongooseUtils';
+import { TypeFromSchema } from 'booka-common';
 import { addUnique, assertNever } from '../utils';
 
 const schema = {

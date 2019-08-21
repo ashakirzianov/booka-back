@@ -1,10 +1,10 @@
-import { BookObject } from './common/bookFormat';
-import { createFetcher } from './common/fetcher';
-import { File } from './common/router';
-import { buildData } from './common/dataBuilder';
+import * as fs from 'fs';
+import * as FormData from 'form-data';
+import {
+    BookObject, createFetcher, File,
+    LibContract, BookCollection,
+} from 'booka-common';
 import { config } from './config';
-import { LibContract } from './libContract';
-import { BookCollection } from './backContract';
 import { users } from './db';
 
 const lib = createFetcher<LibContract>(config().libUrl);
@@ -47,4 +47,22 @@ export async function addBook(file: File, userId: string): Promise<string | unde
     }
 
     return undefined;
+}
+
+type Files = {
+    [k: string]: File | undefined;
+};
+function buildData(files: Files) {
+    const formData = new FormData();
+    for (const [name, fileDesc] of Object.entries(files)) {
+        if (fileDesc) {
+            const fileStream = fs.createReadStream(fileDesc.path);
+            formData.append(name, fileStream, fileDesc.path);
+        }
+    }
+
+    return {
+        data: formData,
+        headers: formData.getHeaders(),
+    };
 }

@@ -2,8 +2,7 @@ import * as passport from 'koa-passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { users, User } from '../db';
 import { config } from '../config';
-import { PathMethodContract, AuthContract } from '../common/contractTypes';
-import { ApiHandler } from '../common/router';
+import { PathMethodContract, AuthContract, ApiHandler } from 'booka-common';
 
 const jwtConfig = config().auth.jwt;
 passport.use(new Strategy({
