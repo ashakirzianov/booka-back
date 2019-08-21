@@ -1,8 +1,9 @@
 import { users } from './db';
-import { BackContract, LibContract, createRouter } from 'booka-common';
+import { BackContract } from 'booka-common';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
 
 import { getSingleBook, getAllBooks, addBook } from './library';
+import { createRouter } from './back-utils';
 
 export const router = createRouter<BackContract>();
 
