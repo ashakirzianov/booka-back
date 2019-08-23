@@ -114,7 +114,7 @@ router.post('/highlights', authenticate(async ctx => {
 
     const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
 
-    return { success: result._id };
+    return { success: result._id.toString() };
 }));
 
 router.patch('/highlights', authenticate(async ctx => {
@@ -128,9 +128,9 @@ router.patch('/highlights', authenticate(async ctx => {
         return { fail: 'Highlight id is not specified' };
     }
 
-    const highlight = ctx.query.highlight;
+    const highlight = ctx.request.body;
     if (!highlight) {
-        return { fail: 'Highlight is not specified' };
+        return { fail: 'Highlight is not specified in body' };
     }
 
     const result = await highlights.update(ctx.userId, bookId, highlightId, highlight);
