@@ -59,6 +59,11 @@ async function update(userId: string, bookId: string, highlightId: string, highl
     return result ? true : false;
 }
 
+async function doDelete(userId: string, bookId: string, highlightId: string) {
+    const result = await docs.findByIdAndDelete(highlightId).exec();
+    return result ? true : false;
+}
+
 function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlightData> {
     return {
         ...highlight.group && { group: highlight.group },
@@ -78,4 +83,5 @@ export const highlights = {
     forBook,
     addHighlight,
     update,
+    delete: doDelete,
 };
