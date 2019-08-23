@@ -45,23 +45,23 @@ async function addHighlight(userId: ObjectId, bookId: ObjectId, highlight: Highl
     const doc: DbHighlight = {
         userId,
         bookId,
-        group: highlight.group,
-        comment: highlight.comment,
-        start: highlight.range.start,
-        end: highlight.range.end,
+        ...convert(highlight),
     };
     return docs.insertMany(doc);
 }
 
 async function update(userId: ObjectId, bookId: ObjectId, highlightId: ObjectId, highlight: Highlight) {
-    const doc: DbHighlightData = {
+    const result = await docs.updateOne({ _id: highlightId }, convert(highlight)).exec();
+    return result ? true : false;
+}
+
+function convert(highlight: Highlight): DbHighlightData {
+    return {
         group: highlight.group,
         comment: highlight.comment,
         start: highlight.range.start,
         end: highlight.range.end,
     };
-    const result = await docs.updateOne({ _id: highlightId }, doc).exec();
-    return result ? true : false;
 }
 
 export const highlights = {
