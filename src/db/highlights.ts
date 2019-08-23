@@ -41,7 +41,7 @@ async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     }));
 }
 
-async function addHighlight(userId: ObjectId, bookId: ObjectId, highlight: Highlight) {
+async function addHighlight(userId: string, bookId: string, highlight: Highlight) {
     const doc: DbHighlight = {
         userId,
         bookId,
@@ -50,7 +50,7 @@ async function addHighlight(userId: ObjectId, bookId: ObjectId, highlight: Highl
     return docs.insertMany(doc);
 }
 
-async function update(userId: ObjectId, bookId: ObjectId, highlightId: ObjectId, highlight: Highlight) {
+async function update(userId: string, bookId: string, highlightId: string, highlight: Highlight) {
     const result = await docs.updateOne({ _id: highlightId }, convert(highlight)).exec();
     return result ? true : false;
 }

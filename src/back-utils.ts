@@ -143,7 +143,7 @@ type GetTypeSimple<T> =
     T extends NumberConstructor ? number :
     T extends BooleanConstructor ? boolean :
     T extends ObjectConstructor ? object :
-    T extends ObjectIdConstructor ? ObjectId :
+    T extends ObjectIdConstructor ? string :
     never;
 type GetType<T extends SchemaType> =
     T extends SchemaTypeSimple ? GetTypeSimple<T> :

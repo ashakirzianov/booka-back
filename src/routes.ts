@@ -1,4 +1,4 @@
-import { users } from './db';
+import { users, highlights } from './db';
 import { BackContract } from 'booka-common';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
 

@@ -1,6 +1,6 @@
 import { UserInfo } from 'booka-common';
 import { addUnique, assertNever } from '../utils';
-import { model, ObjectId } from '../back-utils';
+import { model } from '../back-utils';
 
 const schema = {
     facebookId: String,
@@ -22,7 +22,7 @@ export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function getInfo(id: ObjectId): Promise<UserInfo> {
+async function getInfo(id: string): Promise<UserInfo> {
     const user = await byId(id);
     return {
         name: user.name,
@@ -41,7 +41,7 @@ async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
         return assertNever(externalId.provider);
     }
 }
-async function addUploadedBook(userId: ObjectId, bookId: ObjectId) {
+async function addUploadedBook(userId: string, bookId: string) {
     const user = await byId(userId);
     const books = user.uploadedBooks;
     const updated = addUnique(books, bookId.toString());
@@ -50,12 +50,12 @@ async function addUploadedBook(userId: ObjectId, bookId: ObjectId) {
     return true;
 }
 
-async function getUploadedBooks(userId: ObjectId) {
+async function getUploadedBooks(userId: string) {
     const user = await byId(userId);
     return user.uploadedBooks;
 }
 
-async function byId(userId: ObjectId) {
+async function byId(userId: string) {
     const result = await User.findById(userId).exec();
     if (!result) {
         throw new Error(`Couldn't find user by id: '${userId}'`);
