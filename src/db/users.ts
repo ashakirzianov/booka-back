@@ -3,19 +3,13 @@ import { addUnique, assertNever } from '../utils';
 import { TypeFromSchema } from '../back-utils';
 
 const schema = {
-    facebookId: {
-        type: String,
-    },
+    facebookId: String,
     name: {
         type: String,
-        required: true,
+        required: true as const,
     },
-    pictureUrl: {
-        type: String,
-    },
-    uploadedBooks: {
-        type: Array,
-    },
+    pictureUrl: String,
+    uploadedBooks: [String],
 };
 
 export type User = TypeFromSchema<typeof schema>;

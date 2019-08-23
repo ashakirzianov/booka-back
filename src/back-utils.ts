@@ -89,54 +89,41 @@ export type File = {
 
 // Mongoose:
 
-import { Schema } from 'mongoose';
-
 export type TypeFromSchema<T extends SchemaDefinition> =
-    { id?: string } &
-    { [P in Extract<keyof T, RequiredProperties<T>>]: ActualType<T[P]> } &
-    { [P in Exclude<keyof T, RequiredProperties<T>>]?: ActualType<T[P]> };
+    & { id?: string, }
+    & { [P in Extract<keyof T, RequiredProperties<T>>]: FieldType<T[P]>; }
+    & { [P in Exclude<keyof T, RequiredProperties<T>>]?: FieldType<T[P]>; }
+    ;
 
 type RequiredProperties<T> = Exclude<{
-    [K in keyof T]: T[K] extends { required: boolean }
+    [K in keyof T]: T[K] extends { required: true }
     ? K
     : never
 }[keyof T], undefined>;
 
 type SchemaDefinition = {
-    [x: string]: SchemaField,
+    [x: string]: SchemaField<any>,
 };
-
-type SchemaField = {
-    type: any,
-    index?: boolean,
+type SchemaField<T extends SchemaType> = T | SchemaFieldComplex<T>;
+type SchemaFieldComplex<T extends SchemaType> = {
+    type: T,
     required?: boolean,
 };
 
-type ActualType<T extends SchemaField> =
+type SchemaTypeSimple =
+    | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
+type SchemaType = SchemaTypeSimple | SchemaTypeSimple[];
 
-    T['type'] extends StringConstructor ? string :
-    T['type'] extends typeof Schema.Types.String ? string :
-
-    T['type'] extends NumberConstructor ? number :
-    T['type'] extends Schema.Types.Number ? number :
-
-    T['type'] extends DateConstructor ? Date :
-    T['type'] extends typeof Schema.Types.Date ? Date :
-
-    T['type'] extends ArrayBufferConstructor ? Buffer :
-    T['type'] extends typeof Schema.Types.Buffer ? Buffer :
-
-    T['type'] extends BooleanConstructor ? boolean :
-    T['type'] extends typeof Schema.Types.Boolean ? boolean :
-
-    T['type'] extends typeof Schema.Types.ObjectId ? string :
-
-    T['type'] extends typeof Schema.Types.Decimal128 ? Schema.Types.Decimal128 :
-
-    // TODO make item type specific
-    T['type'] extends typeof Array ? any[] :
-
-    // TODO make item type specific
-    T['type'] extends typeof Map ? (T extends { of: SchemaField } ? Map<string, any> : never) :
-
+type GetTypeSimple<T> =
+    T extends StringConstructor ? string :
+    T extends NumberConstructor ? number :
+    T extends DateConstructor ? boolean :
+    never;
+type GetType<T extends SchemaType> =
+    T extends SchemaTypeSimple ? GetTypeSimple<T> :
+    T extends Array<infer U> ? Array<GetTypeSimple<U>> :
+    never;
+type FieldType<T extends SchemaField<any>> =
+    T extends SchemaFieldComplex<infer U> ? GetType<U> :
+    T extends SchemaType ? GetType<T> :
     never;

@@ -5,7 +5,16 @@ import { getFbUserInfo, generateToken, authenticate } from './auth';
 import { getSingleBook, getAllBooks, addBook } from './library';
 import { createRouter } from './back-utils';
 
-export const router = createRouter<BackContract>();
+type UpdatedContracts = Omit<BackContract, '/me/books'> & {
+    '/me/books': {
+        get: {
+            return: { books: string[] },
+            auth: string,
+        },
+    },
+};
+
+export const router = createRouter<UpdatedContracts>();
 
 router.get('/book/single', async ctx => {
     const id = ctx.query.id;
