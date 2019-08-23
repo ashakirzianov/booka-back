@@ -50,18 +50,22 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
     return docs.insertMany(doc);
 }
 
-async function update(userId: string, bookId: string, highlightId: string, highlight: Highlight) {
-    const result = await docs.updateOne({ _id: highlightId }, convert(highlight)).exec();
+async function update(userId: string, bookId: string, highlightId: string, highlight: Partial<Highlight>) {
+    const result = await docs.updateOne({ _id: highlightId }, convertPartial(highlight)).exec();
     return result ? true : false;
 }
 
-function convert(highlight: Highlight): DbHighlightData {
+function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlightData> {
     return {
         group: highlight.group,
         comment: highlight.comment,
-        start: highlight.range.start,
-        end: highlight.range.end || highlight.range.start,
+        start: highlight.range && highlight.range.start,
+        end: highlight.range && highlight.range.end || (highlight.range && highlight.range.start),
     };
+}
+
+function convert(highlight: Highlight): DbHighlightData {
+    return convertPartial(highlight) as any;
 }
 
 export const highlights = {
