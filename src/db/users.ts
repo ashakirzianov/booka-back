@@ -24,10 +24,12 @@ export type ExternalId = {
 };
 async function getInfo(id?: string): Promise<UserInfo | undefined> {
     const user = await byId(id);
-    return user && {
-        name: user.name,
-        pictureUrl: user.pictureUrl,
-    } || undefined;
+    return user
+        ? {
+            name: user.name,
+            pictureUrl: user.pictureUrl,
+        }
+        : undefined;
 }
 
 async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
@@ -44,12 +46,9 @@ async function addUploadedBook(userId: string, bookId: string) {
         const updated = addUnique(books, bookId);
         user.uploadedBooks = updated;
         await user.save();
-        return { success: true as const };
+        return true;
     } else {
-        return {
-            success: false as const,
-            reason: `Can't find user by id: '${userId}'`,
-        };
+        return false;
     }
 }
 
