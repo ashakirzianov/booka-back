@@ -86,7 +86,7 @@ router.get('/auth/fbtoken', async ctx => {
     );
 
     if (user) {
-        const accessToken = generateToken(user.id);
+        const accessToken = generateToken(user._id);
         return {
             success: {
                 token: accessToken,

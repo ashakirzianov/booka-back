@@ -4,7 +4,7 @@ import { BookObject, LibContract, BookCollection } from 'booka-common';
 import { config } from './config';
 import { users } from './db';
 import { createFetcher } from './fetcher';
-import { File } from './back-utils';
+import { File, ObjectId } from './back-utils';
 
 const lib = createFetcher<LibContract>(config().libUrl);
 
@@ -26,7 +26,7 @@ export async function getAllBooks(): Promise<BookCollection | undefined> {
         : undefined;
 }
 
-export async function addBook(file: File, userId: string): Promise<string | undefined> {
+export async function addBook(file: File, userId: ObjectId): Promise<string | undefined> {
     const files = {
         book: file,
     };

@@ -1,6 +1,6 @@
 import { UserInfo } from 'booka-common';
 import { addUnique, assertNever } from '../utils';
-import { model } from '../back-utils';
+import { model, ObjectId } from '../back-utils';
 
 const schema = {
     facebookId: String,
@@ -22,7 +22,7 @@ export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function getInfo(id?: string): Promise<UserInfo | undefined> {
+async function getInfo(id?: ObjectId): Promise<UserInfo | undefined> {
     const user = await byId(id);
     return user
         ? {
@@ -56,14 +56,14 @@ async function addUploadedBook(userId: string, bookId: string) {
     }
 }
 
-async function getUploadedBooks(userId?: string) {
+async function getUploadedBooks(userId?: ObjectId) {
     const user = await byId(userId);
     return user
         ? user.uploadedBooks
         : undefined;
 }
 
-async function byId(userId: string | undefined) {
+async function byId(userId: ObjectId | undefined) {
     if (!userId) {
         return undefined;
     }

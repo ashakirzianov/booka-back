@@ -1,13 +1,13 @@
-import { model, TypeFromSchema } from '../back-utils';
+import { model, TypeFromSchema, ObjectId } from '../back-utils';
 import { Highlight } from '../routes';
 
 const schema = {
     userId: {
-        type: String,
+        type: ObjectId,
         required: true,
     },
     bookId: {
-        type: String,
+        type: ObjectId,
         required: true,
     },
     group: {
@@ -41,7 +41,7 @@ async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     }));
 }
 
-async function addHighlight(userId: string, bookId: string, highlight: Highlight) {
+async function addHighlight(userId: ObjectId, bookId: ObjectId, highlight: Highlight) {
     const doc: DbHighlight = {
         userId,
         bookId,
@@ -53,7 +53,7 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
     return docs.insertMany(doc);
 }
 
-async function update(userId: string, bookId: string, highlightId: string, highlight: Highlight) {
+async function update(userId: ObjectId, bookId: ObjectId, highlightId: ObjectId, highlight: Highlight) {
     const doc: DbHighlightData = {
         group: highlight.group,
         comment: highlight.comment,
