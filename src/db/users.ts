@@ -43,11 +43,11 @@ async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
         return assertNever(externalId.provider);
     }
 }
-async function addUploadedBook(userId: string, bookId: string) {
+async function addUploadedBook(userId: ObjectId, bookId: ObjectId) {
     const user = await User.findById(userId).exec();
     if (user) {
         const books = user.uploadedBooks;
-        const updated = addUnique(books, bookId);
+        const updated = addUnique(books, bookId.toString());
         user.uploadedBooks = updated;
         await user.save();
         return true;

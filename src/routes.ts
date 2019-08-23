@@ -5,27 +5,7 @@ import { getFbUserInfo, generateToken, authenticate } from './auth';
 import { getSingleBook, getAllBooks, addBook } from './library';
 import { createRouter } from './back-utils';
 
-type BookPath = number[];
-type BookRange = {
-    start: BookPath,
-    end: BookPath,
-};
-type HighlightComment = string;
-export type Highlight = {
-    group: string,
-    range: BookRange,
-    comment?: HighlightComment,
-};
-type UpdatedContracts = Omit<BackContract, '/me/books'> & {
-    '/me/books': {
-        get: {
-            return: { books: string[] },
-            auth: string,
-        },
-    },
-};
-
-export const router = createRouter<UpdatedContracts>();
+export const router = createRouter<BackContract>();
 
 router.get('/book/single', async ctx => {
     const id = ctx.query.id;
@@ -59,7 +39,7 @@ router.post('/book/upload', authenticate(async ctx => {
 
     const bookId = await addBook(book, ctx.userId);
     return bookId
-        ? { success: bookId }
+        ? { success: bookId.toString() }
         : { fail: `Can't add book` };
 }));
 

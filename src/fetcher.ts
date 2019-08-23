@@ -62,6 +62,9 @@ export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C
     return {
         get: buildFetchMethod('get'),
         post: buildFetchMethod('post'),
+        patch: buildFetchMethod('patch'),
+        put: buildFetchMethod('put'),
+        delete: buildFetchMethod('delete'),
     };
 }
 

@@ -1,5 +1,5 @@
+import { Highlight } from 'booka-common';
 import { model, TypeFromSchema, ObjectId } from '../back-utils';
-import { Highlight } from '../routes';
 
 const schema = {
     userId: {
@@ -60,7 +60,7 @@ function convert(highlight: Highlight): DbHighlightData {
         group: highlight.group,
         comment: highlight.comment,
         start: highlight.range.start,
-        end: highlight.range.end,
+        end: highlight.range.end || highlight.range.start,
     };
 }
 

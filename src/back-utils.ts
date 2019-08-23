@@ -58,6 +58,9 @@ export function createRouter<C extends ApiContract>(): Router<C> {
         allowedMethods: koaRouter.allowedMethods.bind(koaRouter),
         get: buildDefinePathFn('get'),
         post: buildDefinePathFn('post'),
+        patch: buildDefinePathFn('patch'),
+        put: buildDefinePathFn('put'),
+        delete: buildDefinePathFn('delete'),
     };
 
     return router;
@@ -97,7 +100,8 @@ export function model<S extends SchemaDefinition>(name: string, schema: S) {
 }
 
 export const ObjectId = Schema.Types.ObjectId;
-export type ObjectId = typeof ObjectId;
+export type ObjectId = Schema.Types.ObjectId;
+type ObjectIdConstructor = typeof ObjectId;
 
 type DocumentType<T extends SchemaDefinition> =
     & TypeFromSchema<T>
@@ -126,7 +130,7 @@ type SchemaFieldComplex<T extends SchemaType> = {
 
 type SchemaTypeSimple =
     | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor
-    | ObjectId
+    | ObjectIdConstructor
     ;
 type SchemaType =
     | SchemaTypeSimple
@@ -139,7 +143,7 @@ type GetTypeSimple<T> =
     T extends NumberConstructor ? number :
     T extends BooleanConstructor ? boolean :
     T extends ObjectConstructor ? object :
-    T extends ObjectId ? ObjectId :
+    T extends ObjectIdConstructor ? ObjectId :
     never;
 type GetType<T extends SchemaType> =
     T extends SchemaTypeSimple ? GetTypeSimple<T> :

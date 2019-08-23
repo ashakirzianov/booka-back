@@ -26,7 +26,7 @@ export async function getAllBooks(): Promise<BookCollection | undefined> {
         : undefined;
 }
 
-export async function addBook(file: File, userId: ObjectId): Promise<string | undefined> {
+export async function addBook(file: File, userId: ObjectId): Promise<ObjectId | undefined> {
     const files = {
         book: file,
     };
@@ -38,7 +38,7 @@ export async function addBook(file: File, userId: ObjectId): Promise<string | un
         },
     });
     if (result.success) {
-        const bookId = result.value;
+        const bookId = new ObjectId(result.value);
         if (bookId) {
             const bookAdded = await users.addUploadedBook(userId, bookId);
             return bookAdded ? bookId : undefined;
