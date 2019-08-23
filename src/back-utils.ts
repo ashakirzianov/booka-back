@@ -113,7 +113,7 @@ type RequiredProperties<T> = Exclude<{
 }[keyof T], undefined>;
 
 type SchemaDefinition = {
-    [x: string]: SchemaField<any>,
+    readonly [x: string]: SchemaField<any>,
 };
 type SchemaField<T extends SchemaType> = T | SchemaFieldComplex<T>;
 type SchemaFieldComplex<T extends SchemaType> = {
@@ -123,7 +123,11 @@ type SchemaFieldComplex<T extends SchemaType> = {
 
 type SchemaTypeSimple =
     | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
-type SchemaType = SchemaTypeSimple | SchemaTypeSimple[];
+type SchemaType =
+    | SchemaTypeSimple
+    | [SchemaTypeSimple] | readonly [SchemaTypeSimple]
+    | SchemaTypeSimple[]
+    ;
 
 type GetTypeSimple<T> =
     T extends StringConstructor ? string :
@@ -133,7 +137,9 @@ type GetTypeSimple<T> =
     never;
 type GetType<T extends SchemaType> =
     T extends SchemaTypeSimple ? GetTypeSimple<T> :
-    T extends Array<infer U> ? Array<GetTypeSimple<U>> :
+    T extends [infer U] ? Array<GetTypeSimple<U>> :
+    T extends readonly [infer RU] ? Array<GetTypeSimple<RU>> :
+    T extends Array<infer AU> ? Array<GetTypeSimple<AU>> :
     never;
 type FieldType<T extends SchemaField<any>> =
     T extends SchemaFieldComplex<infer U> ? GetType<U> :

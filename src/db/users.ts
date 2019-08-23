@@ -6,15 +6,15 @@ const schema = {
     facebookId: String,
     name: {
         type: String,
-        required: true as const,
+        required: true,
     },
     pictureUrl: String,
     uploadedBooks: {
         type: [String],
-        required: true as const,
+        required: true,
         default: [],
     },
-};
+} as const;
 const User = model('User', schema);
 
 export type IdProvider = 'facebook';
