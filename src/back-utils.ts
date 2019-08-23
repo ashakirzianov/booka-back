@@ -89,8 +89,19 @@ export type File = {
 
 // Mongoose:
 
+import { Schema, model as modelMongoose, Document } from 'mongoose';
+
+export function model<S extends SchemaDefinition>(name: string, schema: S) {
+    const schemaObject = new Schema(schema);
+    return modelMongoose<DocumentType<S>>(name, schemaObject);
+}
+
+type DocumentType<T extends SchemaDefinition> =
+    & TypeFromSchema<T>
+    & Document
+    ;
 export type TypeFromSchema<T extends SchemaDefinition> =
-    & { id?: string, }
+    & { id: string, }
     & { [P in Extract<keyof T, RequiredProperties<T>>]: FieldType<T[P]>; }
     & { [P in Exclude<keyof T, RequiredProperties<T>>]?: FieldType<T[P]>; }
     ;

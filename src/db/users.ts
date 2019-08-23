@@ -1,6 +1,5 @@
-import { Model, Document, Schema, model } from 'mongoose';
 import { addUnique, assertNever } from '../utils';
-import { TypeFromSchema } from '../back-utils';
+import { model, TypeFromSchema } from '../back-utils';
 
 const schema = {
     facebookId: String,
@@ -11,24 +10,20 @@ const schema = {
     pictureUrl: String,
     uploadedBooks: [String],
 };
-
 export type User = TypeFromSchema<typeof schema>;
-type UserDocument = User & Document;
-
-const UserSchema = new Schema(schema, { timestamps: true });
-const UserCollection: Model<UserDocument> = model<UserDocument>('User', UserSchema);
+const UserCollection = model('User', schema);
 
 export type IdProvider = 'facebook';
 export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function byId(id: string): Promise<User | undefined> {
+async function byId(id: string) {
     const user = await UserCollection.findById(id).exec();
     return user || undefined;
 }
 
-async function updateOrCreate(externalId: ExternalId, user: Partial<User>) {
+async function updateOrCreate(externalId: ExternalId, user: Omit<User, 'id'>) {
     if (externalId.provider === 'facebook') {
         return updateOrCreateWithCond({ facebookId: externalId.id }, user);
     } else {
@@ -57,7 +52,7 @@ export const users = {
     addUploadedBook,
 };
 
-async function updateOrCreateWithCond(condition: Partial<User>, user: Partial<User>): Promise<User> {
+async function updateOrCreateWithCond(condition: Partial<User>, user: Omit<User, 'id'>) {
     const existing = await UserCollection.findOne(condition).exec();
     if (existing) {
         existing.name = user.name || existing.name;
