@@ -38,6 +38,7 @@ async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
             start: r.start,
             end: r.end,
         },
+        comment: r.comment,
     }));
 }
 
@@ -60,10 +61,12 @@ async function update(userId: string, bookId: string, highlightId: string, highl
 
 function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlightData> {
     return {
-        group: highlight.group,
-        comment: highlight.comment,
-        start: highlight.range && highlight.range.start,
-        end: highlight.range && highlight.range.end || (highlight.range && highlight.range.start),
+        ...highlight.group && { group: highlight.group },
+        ...highlight.comment && { comment: highlight.comment },
+        ...highlight.range && {
+            start: highlight.range.start,
+            end: highlight.range.end || highlight.range.start,
+        },
     };
 }
 
