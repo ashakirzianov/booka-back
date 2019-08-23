@@ -1,4 +1,4 @@
-import { model } from '../back-utils';
+import { model, TypeFromSchema } from '../back-utils';
 import { Highlight } from '../routes';
 
 const schema = {
@@ -25,10 +25,12 @@ const schema = {
     comment: String,
 } as const;
 
-const Highlight = model('Highlight', schema);
+type DbHighlight = TypeFromSchema<typeof schema>;
+type DbHighlightData = Omit<DbHighlight, 'userId' | 'bookId'>;
+const docs = model('Highlight', schema);
 
 async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
-    const result = await Highlight.find({ userId, bookId }).exec();
+    const result = await docs.find({ userId, bookId }).exec();
     return result.map(r => ({
         bookId: r.bookId,
         group: r.group,
@@ -39,6 +41,31 @@ async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     }));
 }
 
+async function addHighlight(userId: string, bookId: string, highlight: Highlight) {
+    const doc: DbHighlight = {
+        userId,
+        bookId,
+        group: highlight.group,
+        comment: highlight.comment,
+        start: highlight.range.start,
+        end: highlight.range.end,
+    };
+    return docs.insertMany(doc);
+}
+
+async function update(userId: string, bookId: string, highlightId: string, highlight: Highlight) {
+    const doc: DbHighlightData = {
+        group: highlight.group,
+        comment: highlight.comment,
+        start: highlight.range.start,
+        end: highlight.range.end,
+    };
+    const result = await docs.updateOne({ _id: highlightId }, doc).exec();
+    return result ? true : false;
+}
+
 export const highlights = {
     forBook,
+    addHighlight,
+    update,
 };

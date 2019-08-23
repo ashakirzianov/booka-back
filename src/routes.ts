@@ -12,7 +12,6 @@ type BookRange = {
 };
 type HighlightComment = string;
 export type Highlight = {
-    bookId: string,
     group: string,
     range: BookRange,
     comment?: HighlightComment,
