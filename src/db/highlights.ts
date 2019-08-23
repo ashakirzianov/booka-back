@@ -7,7 +7,7 @@ const schema = {
         required: true,
     },
     bookId: {
-        type: ObjectId,
+        type: String,
         required: true,
     },
     group: {
