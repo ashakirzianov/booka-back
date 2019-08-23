@@ -49,7 +49,7 @@ router.get('/book/all', async ctx => {
 });
 
 router.post('/book/upload', authenticate(async ctx => {
-    if (!ctx.user) {
+    if (!ctx.userId) {
         return { fail: 'Can\'t get user' };
     }
     const files = ctx.request.files;
@@ -58,7 +58,7 @@ router.post('/book/upload', authenticate(async ctx => {
         return { fail: 'Book is not attached' };
     }
 
-    const bookId = await addBook(book, ctx.user._id);
+    const bookId = await addBook(book, ctx.userId);
     return bookId
         ? { success: bookId }
         : { fail: `Can't add book` };
@@ -99,23 +99,20 @@ router.get('/auth/fbtoken', async ctx => {
 });
 
 router.get('/me/info', authenticate(async ctx => {
-    const user = ctx.user;
-    return user
+    const userInfo = await users.getInfo(ctx.userId);
+    return userInfo
         ? {
-            success: {
-                name: user.name,
-                pictureUrl: user.pictureUrl,
-            },
+            success: userInfo,
         }
         : { fail: 'Unauthorized' };
 }));
 
 router.get('/me/books', authenticate(async ctx => {
-    const user = ctx.user;
-    return user
+    const books = await users.getUploadedBooks(ctx.userId);
+    return books
         ? {
             success: {
-                books: user.uploadedBooks || [],
+                books: books,
             },
         }
         : { fail: 'Unauthorized' };

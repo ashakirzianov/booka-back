@@ -1,5 +1,6 @@
+import { UserInfo } from 'booka-common';
 import { addUnique, assertNever } from '../utils';
-import { model, TypeFromSchema } from '../back-utils';
+import { model, updateOrCreateWithCond } from '../back-utils';
 
 const schema = {
     facebookId: String,
@@ -8,32 +9,38 @@ const schema = {
         required: true as const,
     },
     pictureUrl: String,
-    uploadedBooks: [String],
+    uploadedBooks: {
+        type: [String],
+        required: true as const,
+        default: [],
+    },
 };
-export type User = TypeFromSchema<typeof schema>;
-const UserCollection = model('User', schema);
+const User = model('User', schema);
 
 export type IdProvider = 'facebook';
 export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function byId(id: string) {
-    const user = await UserCollection.findById(id).exec();
-    return user || undefined;
+async function getInfo(id?: string): Promise<UserInfo | undefined> {
+    const user = await byId(id);
+    return user && {
+        name: user.name,
+        pictureUrl: user.pictureUrl,
+    } || undefined;
 }
 
-async function updateOrCreate(externalId: ExternalId, user: Omit<User, '_id'>) {
+async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
     if (externalId.provider === 'facebook') {
-        return updateOrCreateWithCond({ facebookId: externalId.id }, user);
+        return updateOrCreateWithCond(User, { facebookId: externalId.id }, user);
     } else {
         return assertNever(externalId.provider);
     }
 }
 async function addUploadedBook(userId: string, bookId: string) {
-    const user = await UserCollection.findById(userId).exec();
+    const user = await User.findById(userId).exec();
     if (user) {
-        const books = user.uploadedBooks || [];
+        const books = user.uploadedBooks;
         const updated = addUnique(books, bookId);
         user.uploadedBooks = updated;
         await user.save();
@@ -46,25 +53,23 @@ async function addUploadedBook(userId: string, bookId: string) {
     }
 }
 
+async function getUploadedBooks(userId?: string) {
+    const user = await byId(userId);
+    return user
+        ? user.uploadedBooks
+        : undefined;
+}
+
+async function byId(userId: string | undefined) {
+    if (!userId) {
+        return undefined;
+    }
+    return User.findById(userId).exec();
+}
+
 export const users = {
-    byId,
+    getInfo,
     updateOrCreate,
     addUploadedBook,
+    getUploadedBooks,
 };
-
-async function updateOrCreateWithCond(condition: Partial<User>, user: Omit<User, '_id'>) {
-    const existing = await UserCollection.findOne(condition).exec();
-    if (existing) {
-        existing.name = user.name || existing.name;
-        existing.pictureUrl = user.pictureUrl;
-        await existing.save();
-        return existing;
-    } else {
-        const created = await UserCollection.insertMany({
-            ...condition,
-            name: user.name,
-            pictureUrl: user.pictureUrl,
-        });
-        return created;
-    }
-}

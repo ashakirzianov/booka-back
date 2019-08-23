@@ -89,19 +89,39 @@ export type File = {
 
 // Mongoose:
 
-import { Schema, model as modelMongoose, Document } from 'mongoose';
+import { Schema, model as modelMongoose, Document, Model } from 'mongoose';
 
 export function model<S extends SchemaDefinition>(name: string, schema: S) {
     const schemaObject = new Schema(schema);
     return modelMongoose<DocumentType<S>>(name, schemaObject);
 }
 
+export async function updateOrCreateWithCond<T extends Document>(
+    collection: Model<T>,
+    condition: Partial<T>,
+    doc: Partial<T>) {
+    const existing = await collection.findOne(condition).exec();
+    if (existing) {
+        for (const [key, value] of Object.entries(doc)) {
+            (existing as any)[key] = value;
+        }
+        await existing.save();
+        return existing;
+    } else {
+        const created = await collection.insertMany({
+            ...condition,
+            ...doc,
+        });
+        return created;
+    }
+}
+
 type DocumentType<T extends SchemaDefinition> =
     & TypeFromSchema<T>
     & Document
-    ;
-export type TypeFromSchema<T extends SchemaDefinition> =
     & { _id: string, }
+    ;
+type TypeFromSchema<T extends SchemaDefinition> =
     & { [P in Extract<keyof T, RequiredProperties<T>>]: FieldType<T[P]>; }
     & { [P in Exclude<keyof T, RequiredProperties<T>>]?: FieldType<T[P]>; }
     ;
@@ -128,7 +148,8 @@ type SchemaType = SchemaTypeSimple | SchemaTypeSimple[];
 type GetTypeSimple<T> =
     T extends StringConstructor ? string :
     T extends NumberConstructor ? number :
-    T extends DateConstructor ? boolean :
+    T extends BooleanConstructor ? boolean :
+    T extends ObjectConstructor ? object :
     never;
 type GetType<T extends SchemaType> =
     T extends SchemaTypeSimple ? GetTypeSimple<T> :

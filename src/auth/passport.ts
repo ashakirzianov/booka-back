@@ -1,6 +1,5 @@
 import * as passport from 'koa-passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { users, User } from '../db';
 import { config } from '../config';
 import { PathMethodContract, AuthContract } from 'booka-common';
 import { ApiHandler } from '../back-utils';
@@ -13,11 +12,8 @@ passport.use(new Strategy({
     audience: jwtConfig.audience,
 }, async (payload, done) => {
     try {
-        const id = payload.sub;
-        const user = await users.byId(id);
-        if (user) {
-            return done(null, user);
-        }
+        const userId = payload.sub;
+        return done(null, userId);
     } catch (e) {
         return done(null, false, { message: `Couldn\'t find user: ${e}` });
     }
@@ -25,21 +21,21 @@ passport.use(new Strategy({
 
 export { passport };
 
-export function authenticate<C extends PathMethodContract & AuthContract>(handler: ApiHandler<C, { user?: User }>): ApiHandler<C> {
+export function authenticate<C extends PathMethodContract & AuthContract>(handler: ApiHandler<C, { userId?: string }>): ApiHandler<C> {
     return async (ctx, next) => {
-        let userToSet: User | undefined;
+        let userIdToSet: string | undefined;
         await passport.authenticate(
             'jwt',
             { session: false },
             async (err, user) => {
                 if (user) {
-                    userToSet = user;
+                    userIdToSet = user;
                 }
             },
         )(ctx as any, next);
 
-        if (userToSet) {
-            (ctx as any).user = userToSet;
+        if (userIdToSet) {
+            (ctx as any).userId = userIdToSet;
         }
 
         return handler(ctx, next);
