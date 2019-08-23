@@ -22,14 +22,12 @@ export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function getInfo(id?: ObjectId): Promise<UserInfo | undefined> {
+async function getInfo(id: ObjectId): Promise<UserInfo> {
     const user = await byId(id);
-    return user
-        ? {
-            name: user.name,
-            pictureUrl: user.pictureUrl,
-        }
-        : undefined;
+    return {
+        name: user.name,
+        pictureUrl: user.pictureUrl,
+    };
 }
 
 async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
@@ -44,30 +42,26 @@ async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
     }
 }
 async function addUploadedBook(userId: ObjectId, bookId: ObjectId) {
-    const user = await User.findById(userId).exec();
-    if (user) {
-        const books = user.uploadedBooks;
-        const updated = addUnique(books, bookId.toString());
-        user.uploadedBooks = updated;
-        await user.save();
-        return true;
-    } else {
-        return false;
-    }
-}
-
-async function getUploadedBooks(userId?: ObjectId) {
     const user = await byId(userId);
-    return user
-        ? user.uploadedBooks
-        : undefined;
+    const books = user.uploadedBooks;
+    const updated = addUnique(books, bookId.toString());
+    user.uploadedBooks = updated;
+    await user.save();
+    return true;
 }
 
-async function byId(userId: ObjectId | undefined) {
-    if (!userId) {
-        return undefined;
+async function getUploadedBooks(userId: ObjectId) {
+    const user = await byId(userId);
+    return user.uploadedBooks;
+}
+
+async function byId(userId: ObjectId) {
+    const result = await User.findById(userId).exec();
+    if (!result) {
+        throw new Error(`Couldn't find user by id: '${userId}'`);
     }
-    return User.findById(userId).exec();
+
+    return result;
 }
 
 export const users = {

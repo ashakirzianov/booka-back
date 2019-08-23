@@ -79,20 +79,14 @@ router.get('/auth/fbtoken', async ctx => {
 
 router.get('/me/info', authenticate(async ctx => {
     const userInfo = await users.getInfo(ctx.userId);
-    return userInfo
-        ? {
-            success: userInfo,
-        }
-        : { fail: 'Unauthorized' };
+    return { success: userInfo };
 }));
 
 router.get('/me/books', authenticate(async ctx => {
     const books = await users.getUploadedBooks(ctx.userId);
-    return books
-        ? {
-            success: {
-                books: books,
-            },
-        }
-        : { fail: 'Unauthorized' };
+    return {
+        success: {
+            books: books,
+        },
+    };
 }));

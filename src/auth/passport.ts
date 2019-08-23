@@ -21,7 +21,7 @@ passport.use(new Strategy({
 
 export { passport };
 
-export function authenticate<C extends PathMethodContract & AuthContract>(handler: ApiHandler<C, { userId?: ObjectId }>): ApiHandler<C> {
+export function authenticate<C extends PathMethodContract & AuthContract>(handler: ApiHandler<C, { userId: ObjectId }>): ApiHandler<C> {
     return async (ctx, next) => {
         let userIdToSet: any;
         await passport.authenticate(
@@ -36,8 +36,9 @@ export function authenticate<C extends PathMethodContract & AuthContract>(handle
 
         if (userIdToSet) {
             (ctx as any).userId = userIdToSet;
+            return handler(ctx as any, next);
+        } else {
+            return { fail: 'Unauthorized' };
         }
-
-        return handler(ctx, next);
     };
 }
