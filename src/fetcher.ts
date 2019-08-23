@@ -28,7 +28,7 @@ export type Fetcher<C extends ApiContract> = {
 };
 
 export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C> {
-    function buildFetchMethod<M extends MethodNames>(m: M): FetchMethod<C, M> {
+    function buildFetchMethod<M extends MethodNames>(method: M): FetchMethod<C, M> {
         return async (path, param) => {
             const conf: AxiosRequestConfig = {
                 responseType: 'json',
@@ -41,9 +41,19 @@ export function createFetcher<C extends ApiContract>(baseUrl: string): Fetcher<C
 
             const url = baseUrl + replaceParams(path, param.params);
             try {
-                const response = m === 'post'
-                    ? await axios.post(url, param.extra && param.extra.postData, conf)
-                    : await axios.get(url, conf);
+                let response: AxiosResponse<any>;
+                // Note: TypeScript doesn't narrow 'method' for some reason
+                const m: string = method;
+                if (m === 'post' || m === 'patch' || m === 'put') {
+                    const jsonData = param.body;
+                    const formData = param.extra && param.extra.postData;
+                    const data = jsonData || formData;
+                    response = await axios[m](url, data, conf);
+                } else if (m === 'get' || m === 'delete') {
+                    response = await axios[m](url, conf);
+                } else {
+                    throw new Error(`Unsupported method '${m}'`);
+                }
                 return {
                     success: true,
                     value: response.data,
