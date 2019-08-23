@@ -5,6 +5,18 @@ import { getFbUserInfo, generateToken, authenticate } from './auth';
 import { getSingleBook, getAllBooks, addBook } from './library';
 import { createRouter } from './back-utils';
 
+type BookPath = number[];
+type BookRange = {
+    start: BookPath,
+    end: BookPath,
+};
+type HighlightComment = string;
+export type Highlight = {
+    bookId: string,
+    group: string,
+    range: BookRange,
+    comment?: HighlightComment,
+};
 type UpdatedContracts = Omit<BackContract, '/me/books'> & {
     '/me/books': {
         get: {
@@ -74,7 +86,7 @@ router.get('/auth/fbtoken', async ctx => {
         }
     );
 
-    if (user && user._id) {
+    if (user) {
         const accessToken = generateToken(user.id);
         return {
             success: {
