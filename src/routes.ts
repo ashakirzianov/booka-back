@@ -137,3 +137,19 @@ router.patch('/highlights', authenticate(async ctx => {
 
     return { success: result };
 }));
+
+router.delete('/highlights', authenticate(async ctx => {
+    const bookId = ctx.query.bookId;
+    if (!bookId) {
+        return { fail: 'Book id is not specified' };
+    }
+
+    const highlightId = ctx.query.highlightId;
+    if (!highlightId) {
+        return { fail: 'Highlight id is not specified' };
+    }
+
+    const result = await highlights.delete(ctx.userId, bookId, highlightId);
+
+    return { success: result };
+}));
