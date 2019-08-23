@@ -101,7 +101,7 @@ type DocumentType<T extends SchemaDefinition> =
     & Document
     ;
 export type TypeFromSchema<T extends SchemaDefinition> =
-    & { id: string, }
+    & { _id: string, }
     & { [P in Extract<keyof T, RequiredProperties<T>>]: FieldType<T[P]>; }
     & { [P in Exclude<keyof T, RequiredProperties<T>>]?: FieldType<T[P]>; }
     ;

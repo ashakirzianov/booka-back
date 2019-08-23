@@ -23,7 +23,7 @@ async function byId(id: string) {
     return user || undefined;
 }
 
-async function updateOrCreate(externalId: ExternalId, user: Omit<User, 'id'>) {
+async function updateOrCreate(externalId: ExternalId, user: Omit<User, '_id'>) {
     if (externalId.provider === 'facebook') {
         return updateOrCreateWithCond({ facebookId: externalId.id }, user);
     } else {
@@ -52,7 +52,7 @@ export const users = {
     addUploadedBook,
 };
 
-async function updateOrCreateWithCond(condition: Partial<User>, user: Omit<User, 'id'>) {
+async function updateOrCreateWithCond(condition: Partial<User>, user: Omit<User, '_id'>) {
     const existing = await UserCollection.findOne(condition).exec();
     if (existing) {
         existing.name = user.name || existing.name;

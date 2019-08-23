@@ -37,7 +37,7 @@ router.get('/book/all', async ctx => {
 });
 
 router.post('/book/upload', authenticate(async ctx => {
-    if (!ctx.user || !ctx.user.id) {
+    if (!ctx.user) {
         return { fail: 'Can\'t get user' };
     }
     const files = ctx.request.files;
@@ -46,7 +46,7 @@ router.post('/book/upload', authenticate(async ctx => {
         return { fail: 'Book is not attached' };
     }
 
-    const bookId = await addBook(book, ctx.user.id);
+    const bookId = await addBook(book, ctx.user._id);
     return bookId
         ? { success: bookId }
         : { fail: `Can't add book` };
@@ -74,7 +74,7 @@ router.get('/auth/fbtoken', async ctx => {
         }
     );
 
-    if (user && user.id) {
+    if (user && user._id) {
         const accessToken = generateToken(user.id);
         return {
             success: {
