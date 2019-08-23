@@ -1,6 +1,6 @@
 import { UserInfo } from 'booka-common';
 import { addUnique, assertNever } from '../utils';
-import { model, updateOrCreateWithCond } from '../back-utils';
+import { model } from '../back-utils';
 
 const schema = {
     facebookId: String,
@@ -34,7 +34,11 @@ async function getInfo(id?: string): Promise<UserInfo | undefined> {
 
 async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
     if (externalId.provider === 'facebook') {
-        return updateOrCreateWithCond(User, { facebookId: externalId.id }, user);
+        return User.updateOne(
+            { facebookId: externalId },
+            user,
+            { upsert: true, setDefaultsOnInsert: true }
+        ).exec();
     } else {
         return assertNever(externalId.provider);
     }
