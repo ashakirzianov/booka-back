@@ -4,9 +4,14 @@ export function config(): Config {
         : productionConfig();
 }
 
+const debugLibUrl = 'http://localhost:3141';
+const prodLibUrl = 'https://booka-lib.herokuapp.com';
+const useDebugLib = false;
 function debugConfig(): Config {
     return {
-        libUrl: 'http://localhost:3141',
+        libUrl: useDebugLib
+            ? debugLibUrl
+            : prodLibUrl,
         auth: authConfig,
         ssl: {
             keyPath: 'server.key',
@@ -17,7 +22,7 @@ function debugConfig(): Config {
 
 function productionConfig(): Config {
     return {
-        libUrl: 'https://booka-lib.herokuapp.com',
+        libUrl: prodLibUrl,
         auth: authConfig,
     };
 }
