@@ -107,9 +107,9 @@ router.post('/highlights', authenticate(async ctx => {
         return { fail: 'Book id is not specified' };
     }
 
-    const highlight = ctx.query.highlight;
+    const highlight = ctx.request.body;
     if (!highlight) {
-        return { fail: 'Highlight is not specified' };
+        return { fail: 'Highlight is not specified in body' };
     }
 
     const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
