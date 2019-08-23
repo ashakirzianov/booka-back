@@ -32,11 +32,12 @@ async function getInfo(id: string): Promise<UserInfo> {
 
 async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
     if (externalId.provider === 'facebook') {
-        return User.updateOne(
-            { facebookId: externalId },
+        const result = await User.findOneAndUpdate(
+            { facebookId: externalId.id },
             user,
-            { upsert: true, setDefaultsOnInsert: true }
+            { upsert: true, setDefaultsOnInsert: true, new: true }
         ).exec();
+        return result;
     } else {
         return assertNever(externalId.provider);
     }
