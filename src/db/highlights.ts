@@ -32,7 +32,7 @@ const docs = model('Highlight', schema);
 async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     const result = await docs.find({ userId, bookId }).exec();
     return result.map(r => ({
-        bookId: r.bookId,
+        id: r._id.toString(),
         group: r.group,
         range: {
             start: r.start,
@@ -47,11 +47,14 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
         bookId,
         ...convert(highlight),
     };
-    return docs.insertMany(doc);
+    const result = await docs.insertMany(doc);
+    // Note: for some reason actual result type differ from typings
+    return (result as any)[0];
 }
 
 async function update(userId: string, bookId: string, highlightId: string, highlight: Partial<Highlight>) {
-    const result = await docs.updateOne({ _id: highlightId }, convertPartial(highlight)).exec();
+    const doc = convertPartial(highlight);
+    const result = await docs.findByIdAndUpdate(highlightId, doc).exec();
     return result ? true : false;
 }
 
