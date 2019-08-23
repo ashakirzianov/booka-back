@@ -1,4 +1,4 @@
-import { users } from './db';
+import { users, highlights } from './db';
 import { BackContract } from 'booka-common';
 import { getFbUserInfo, generateToken, authenticate } from './auth';
 
@@ -28,7 +28,7 @@ router.get('/book/all', async ctx => {
 });
 
 router.post('/book/upload', authenticate(async ctx => {
-    if (!ctx.user || !ctx.user.id) {
+    if (!ctx.userId) {
         return { fail: 'Can\'t get user' };
     }
     const files = ctx.request.files;
@@ -37,9 +37,9 @@ router.post('/book/upload', authenticate(async ctx => {
         return { fail: 'Book is not attached' };
     }
 
-    const bookId = await addBook(book, ctx.user.id);
+    const bookId = await addBook(book, ctx.userId);
     return bookId
-        ? { success: bookId }
+        ? { success: bookId.toString() }
         : { fail: `Can't add book` };
 }));
 
@@ -65,8 +65,8 @@ router.get('/auth/fbtoken', async ctx => {
         }
     );
 
-    if (user && user.id) {
-        const accessToken = generateToken(user.id);
+    if (user) {
+        const accessToken = generateToken(user._id);
         return {
             success: {
                 token: accessToken,
@@ -78,24 +78,78 @@ router.get('/auth/fbtoken', async ctx => {
 });
 
 router.get('/me/info', authenticate(async ctx => {
-    const user = ctx.user;
-    return user
-        ? {
-            success: {
-                name: user.name,
-                pictureUrl: user.pictureUrl,
-            },
-        }
-        : { fail: 'Unauthorized' };
+    const userInfo = await users.getInfo(ctx.userId);
+    return { success: userInfo };
 }));
 
 router.get('/me/books', authenticate(async ctx => {
-    const user = ctx.user;
-    return user
-        ? {
-            success: {
-                books: user.uploadedBooks || [],
-            },
-        }
-        : { fail: 'Unauthorized' };
+    const books = await users.getUploadedBooks(ctx.userId);
+    return {
+        success: {
+            books: books,
+        },
+    };
+}));
+
+router.get('/highlights', authenticate(async ctx => {
+    const bookId = ctx.query.bookId;
+    if (!bookId) {
+        return { fail: 'Book id is not specified' };
+    }
+    const result = await highlights.forBook(ctx.userId, bookId);
+
+    return { success: result };
+}));
+
+router.post('/highlights', authenticate(async ctx => {
+    const bookId = ctx.query.bookId;
+    if (!bookId) {
+        return { fail: 'Book id is not specified' };
+    }
+
+    const highlight = ctx.request.body;
+    if (!highlight) {
+        return { fail: 'Highlight is not specified in body' };
+    }
+
+    const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
+
+    return { success: result._id.toString() };
+}));
+
+router.patch('/highlights', authenticate(async ctx => {
+    const bookId = ctx.query.bookId;
+    if (!bookId) {
+        return { fail: 'Book id is not specified' };
+    }
+
+    const highlightId = ctx.query.highlightId;
+    if (!highlightId) {
+        return { fail: 'Highlight id is not specified' };
+    }
+
+    const highlight = ctx.request.body;
+    if (!highlight) {
+        return { fail: 'Highlight is not specified in body' };
+    }
+
+    const result = await highlights.update(ctx.userId, bookId, highlightId, highlight);
+
+    return { success: result };
+}));
+
+router.delete('/highlights', authenticate(async ctx => {
+    const bookId = ctx.query.bookId;
+    if (!bookId) {
+        return { fail: 'Book id is not specified' };
+    }
+
+    const highlightId = ctx.query.highlightId;
+    if (!highlightId) {
+        return { fail: 'Highlight id is not specified' };
+    }
+
+    const result = await highlights.delete(ctx.userId, bookId, highlightId);
+
+    return { success: result };
 }));

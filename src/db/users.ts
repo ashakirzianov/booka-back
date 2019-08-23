@@ -1,81 +1,73 @@
-import { Model, Document, Schema, model } from 'mongoose';
+import { UserInfo } from 'booka-common';
 import { addUnique, assertNever } from '../utils';
-import { TypeFromSchema } from '../back-utils';
+import { model } from '../back-utils';
 
 const schema = {
-    facebookId: {
-        type: String,
-    },
+    facebookId: String,
     name: {
         type: String,
         required: true,
     },
-    pictureUrl: {
-        type: String,
-    },
+    pictureUrl: String,
     uploadedBooks: {
-        type: Array,
+        type: [String],
+        required: true,
+        default: [],
     },
-};
-
-export type User = TypeFromSchema<typeof schema>;
-type UserDocument = User & Document;
-
-const UserSchema = new Schema(schema, { timestamps: true });
-const UserCollection: Model<UserDocument> = model<UserDocument>('User', UserSchema);
+} as const;
+const User = model('User', schema);
 
 export type IdProvider = 'facebook';
 export type ExternalId = {
     provider: IdProvider,
     id: string,
 };
-async function byId(id: string): Promise<User | undefined> {
-    const user = await UserCollection.findById(id).exec();
-    return user || undefined;
+async function getInfo(id: string): Promise<UserInfo> {
+    const user = await byId(id);
+    return {
+        name: user.name,
+        pictureUrl: user.pictureUrl,
+    };
 }
 
-async function updateOrCreate(externalId: ExternalId, user: Partial<User>) {
+async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
     if (externalId.provider === 'facebook') {
-        return updateOrCreateWithCond({ facebookId: externalId.id }, user);
+        const result = await User.findOneAndUpdate(
+            { facebookId: externalId.id },
+            user,
+            { upsert: true, setDefaultsOnInsert: true, new: true }
+        ).exec();
+        return result;
     } else {
         return assertNever(externalId.provider);
     }
 }
 async function addUploadedBook(userId: string, bookId: string) {
-    const user = await UserCollection.findById(userId).exec();
-    if (user) {
-        const books = user.uploadedBooks || [];
-        const updated = addUnique(books, bookId);
-        user.uploadedBooks = updated;
-        await user.save();
-        return { success: true as const };
-    } else {
-        return {
-            success: false as const,
-            reason: `Can't find user by id: '${userId}'`,
-        };
+    const user = await byId(userId);
+    const books = user.uploadedBooks;
+    const updated = addUnique(books, bookId.toString());
+    user.uploadedBooks = updated;
+    await user.save();
+    return true;
+}
+
+async function getUploadedBooks(userId: string) {
+    const user = await byId(userId);
+    return user.uploadedBooks;
+}
+
+async function byId(userId: string) {
+    const result = await User.findById(userId).exec();
+    if (!result) {
+        throw new Error(`Couldn't find user by id: '${userId}'`);
     }
+
+    return result;
 }
 
 export const users = {
-    byId,
+    getInfo,
     updateOrCreate,
     addUploadedBook,
+    getUploadedBooks,
 };
-
-async function updateOrCreateWithCond(condition: Partial<User>, user: Partial<User>): Promise<User> {
-    const existing = await UserCollection.findOne(condition).exec();
-    if (existing) {
-        existing.name = user.name || existing.name;
-        existing.pictureUrl = user.pictureUrl;
-        await existing.save();
-        return existing;
-    } else {
-        const created = await UserCollection.insertMany({
-            ...condition,
-            name: user.name,
-            pictureUrl: user.pictureUrl,
-        });
-        return created;
-    }
-}
