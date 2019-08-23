@@ -25,6 +25,7 @@ export type RestrictedContext<C extends PathMethodContract, Ext = {}> = Ext & {
         headers: {
             Authorization?: string,
         },
+        body?: C['body'],
     },
 };
 
