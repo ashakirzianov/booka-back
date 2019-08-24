@@ -83,7 +83,7 @@ async function doDelete(userId: string, bookId: string, bookmarkId: string): Pro
     return result ? true : false;
 }
 
-export const highlights = {
+export const bookmarks = {
     addBookmarks,
     forBook,
     updateCurrent,
