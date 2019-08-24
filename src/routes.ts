@@ -114,7 +114,7 @@ router.post('/highlights', authenticate(async ctx => {
 
     const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
 
-    return { success: { id: result._id.toString() } };
+    return { success: { id: result } };
 }));
 
 router.patch('/highlights', authenticate(async ctx => {

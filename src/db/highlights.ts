@@ -1,5 +1,5 @@
 import { Highlight, HasId } from 'booka-common';
-import { model, TypeFromSchema, ObjectId } from '../back-utils';
+import { model, ObjectId, DataFromModel } from '../back-utils';
 
 const schema = {
     userId: {
@@ -25,9 +25,8 @@ const schema = {
     comment: String,
 } as const;
 
-type DbHighlight = TypeFromSchema<typeof schema>;
-type DbHighlightData = Omit<DbHighlight, 'userId' | 'bookId'>;
 const docs = model('Highlight', schema);
+type DbHighlight = DataFromModel<typeof docs>;
 
 async function forBook(userId: string, bookId: string): Promise<Array<Highlight & HasId>> {
     const result = await docs.find({ userId, bookId }).exec();
@@ -42,15 +41,16 @@ async function forBook(userId: string, bookId: string): Promise<Array<Highlight 
     }));
 }
 
-async function addHighlight(userId: string, bookId: string, highlight: Highlight) {
+async function addHighlight(userId: string, bookId: string, highlight: Highlight): Promise<string> {
     const doc: DbHighlight = {
         userId,
         bookId,
         ...convert(highlight),
     };
-    const result = await docs.insertMany(doc);
     // Note: for some reason actual result type differ from typings
-    return (result as any)[0];
+    const queryResult = await docs.insertMany(doc) as any as any[];
+    const id = queryResult[0]._id.toString() as string;
+    return id;
 }
 
 async function update(userId: string, bookId: string, highlightId: string, highlight: Partial<Highlight>) {
@@ -64,7 +64,7 @@ async function doDelete(userId: string, bookId: string, highlightId: string) {
     return result ? true : false;
 }
 
-function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlightData> {
+function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
     return {
         ...highlight.group && { group: highlight.group },
         ...highlight.comment && { comment: highlight.comment },
@@ -75,7 +75,7 @@ function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlightData>
     };
 }
 
-function convert(highlight: Highlight): DbHighlightData {
+function convert(highlight: Highlight): Omit<DbHighlight, 'bookId' | 'userId'> {
     return convertPartial(highlight) as any;
 }
 

@@ -93,13 +93,15 @@ export type File = {
 
 // Mongoose:
 
-import { Schema, model as modelMongoose, Document } from 'mongoose';
+import { Schema, model as modelMongoose, Document, Model } from 'mongoose';
 
 export function model<S extends SchemaDefinition>(name: string, schema: S) {
     const schemaObject = new Schema(schema);
     return modelMongoose<DocumentType<S>>(name, schemaObject);
 }
 
+export type DataFromModel<M extends Model<Document>> =
+    M extends Model<infer D> ? Omit<D, keyof Document> : never;
 export const ObjectId = Schema.Types.ObjectId;
 export type ObjectId = Schema.Types.ObjectId;
 type ObjectIdConstructor = typeof ObjectId;
