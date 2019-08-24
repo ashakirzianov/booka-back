@@ -77,8 +77,15 @@ async function updateCurrent(
         : undefined;
 }
 
+async function doDelete(userId: string, bookId: string, bookmarkId: string): Promise<boolean> {
+    const result = await docs.findByIdAndDelete(bookmarkId).exec();
+
+    return result ? true : false;
+}
+
 export const highlights = {
     addBookmarks,
     forBook,
     updateCurrent,
+    delete: doDelete,
 };
