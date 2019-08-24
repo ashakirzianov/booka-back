@@ -132,8 +132,8 @@ type SchemaFieldComplex<T extends SchemaType> = {
 };
 
 type SchemaTypeSimple =
-    | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor
-    | ObjectIdConstructor
+    | StringConstructor | NumberConstructor | BooleanConstructor | DateConstructor
+    | ObjectConstructor | ObjectIdConstructor
     ;
 type SchemaType =
     | SchemaTypeSimple
@@ -145,6 +145,7 @@ type GetTypeSimple<T> =
     T extends StringConstructor ? string :
     T extends NumberConstructor ? number :
     T extends BooleanConstructor ? boolean :
+    T extends DateConstructor ? Date :
     T extends ObjectConstructor ? object :
     T extends ObjectIdConstructor ? string :
     never;
