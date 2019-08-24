@@ -54,7 +54,7 @@ async function forBook(userId: string, bookId: string): Promise<Array<Bookmark &
 async function updateCurrent(
     userId: string, bookId: string, source: string,
     data: Pick<Bookmark, 'source' | 'location' | 'created'>
-): Promise<boolean> {
+): Promise<string | undefined> {
     const query = {
         userId,
         bookId,
@@ -66,13 +66,15 @@ async function updateCurrent(
         location: data.location,
         created: data.created,
     };
-    const result = await docs.update(
+    const result = await docs.findOneAndUpdate(
         query,
         doc,
-        { upsert: true },
+        { upsert: true, new: true },
     ).exec();
 
-    return true;
+    return result
+        ? result._id.toString() as string
+        : undefined;
 }
 
 export const highlights = {
