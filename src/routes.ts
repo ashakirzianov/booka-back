@@ -178,7 +178,7 @@ router.post('/bookmarks', authenticate(async ctx => {
 
     const result = await bookmarks.addBookmarks(ctx.userId, bookId, body);
 
-    return result.map(r => ({ id: r }));
+    return { success: result.map(r => ({ id: r })) };
 }));
 
 router.put('/bookmarks/current', authenticate(async ctx => {
