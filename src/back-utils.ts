@@ -101,17 +101,10 @@ export function model<S extends SchemaDefinition>(name: string, schema: S) {
 }
 
 export function extractDataFields<T extends Document>(doc: T): Omit<T, keyof Document> & { id: string } {
-    const result = {} as any;
-    for (const [key, value] of Object.entries(doc)) {
-        if (typeof value !== 'function') {
-            if (key === '_id') {
-                result.id = value;
-            } else {
-                result[key] = value;
-            }
-        }
-    }
-
+    const result = doc.toObject();
+    result.id = result._id.toString();
+    delete result['_id'];
+    delete result['__v'];
     return result;
 }
 
