@@ -31,8 +31,8 @@ const schema = {
 const docs = model('Bookmark', schema);
 type DbBookmark = DataFromModel<typeof docs>;
 
-async function addBookmarks(userId: string, bookId: string, bookmarks: Bookmark[]): Promise<string[]> {
-    const toAdd: DbBookmark[] = bookmarks.map(b => ({
+async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Promise<string[]> {
+    const toAdd: DbBookmark[] = bms.map(b => ({
         userId,
         bookId,
         ...b,
@@ -52,9 +52,9 @@ async function forBook(userId: string, bookId: string): Promise<Array<Bookmark &
 }
 
 async function updateCurrent(
-    userId: string, bookId: string, source: string,
+    userId: string, bookId: string,
     data: Pick<Bookmark, 'source' | 'location' | 'created'>
-): Promise<string | undefined> {
+): Promise<string> {
     const query = {
         userId,
         bookId,
@@ -72,9 +72,7 @@ async function updateCurrent(
         { upsert: true, new: true },
     ).exec();
 
-    return result
-        ? result._id.toString() as string
-        : undefined;
+    return result._id.toString() as string;
 }
 
 async function doDelete(userId: string, bookId: string, bookmarkId: string): Promise<boolean> {
