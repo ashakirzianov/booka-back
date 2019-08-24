@@ -1,4 +1,4 @@
-import { Highlight } from 'booka-common';
+import { Highlight, HasId } from 'booka-common';
 import { model, TypeFromSchema, ObjectId } from '../back-utils';
 
 const schema = {
@@ -29,7 +29,7 @@ type DbHighlight = TypeFromSchema<typeof schema>;
 type DbHighlightData = Omit<DbHighlight, 'userId' | 'bookId'>;
 const docs = model('Highlight', schema);
 
-async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
+async function forBook(userId: string, bookId: string): Promise<Array<Highlight & HasId>> {
     const result = await docs.find({ userId, bookId }).exec();
     return result.map(r => ({
         id: r._id.toString(),
