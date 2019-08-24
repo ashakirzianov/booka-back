@@ -1,3 +1,4 @@
+import { partition } from 'lodash';
 import { model, ObjectId, DataFromModel, extractDataFields } from '../back-utils';
 import { Bookmark, HasId } from 'booka-common';
 
@@ -38,9 +39,22 @@ async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Pr
         ...b,
     }));
 
-    const result = await docs.insertMany(toAdd);
-    const ids = result.map(r => r._id.toString() as string);
+    const [current, rest] = partition(toAdd, b => b.kind === 'current');
 
+    const currentIds = await Promise.all(current.map(async cb => {
+        const result = await updateCurrent(userId, bookId, {
+            source: cb.source,
+            location: cb.location,
+            created: cb.created,
+        });
+
+        return result;
+    }));
+
+    const restResult = await docs.insertMany(rest);
+    const restIds = restResult.map(r => r._id.toString() as string);
+
+    const ids = [...restIds, ...currentIds];
     return ids;
 }
 
