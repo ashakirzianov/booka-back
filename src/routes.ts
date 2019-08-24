@@ -114,7 +114,7 @@ router.post('/highlights', authenticate(async ctx => {
 
     const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
 
-    return { success: { id: result } };
+    return { success: { _id: result } };
 }));
 
 router.patch('/highlights', authenticate(async ctx => {
@@ -178,7 +178,7 @@ router.post('/bookmarks', authenticate(async ctx => {
 
     const result = await bookmarks.addBookmarks(ctx.userId, bookId, body);
 
-    return { success: result.map(r => ({ id: r })) };
+    return { success: result.map(r => ({ _id: r })) };
 }));
 
 router.put('/bookmarks/current', authenticate(async ctx => {
@@ -194,7 +194,7 @@ router.put('/bookmarks/current', authenticate(async ctx => {
 
     const result = await bookmarks.updateCurrent(ctx.userId, bookId, body);
 
-    return { success: { id: result } };
+    return { success: { _id: result } };
 }));
 
 router.delete('/bookmarks', authenticate(async ctx => {

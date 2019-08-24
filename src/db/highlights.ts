@@ -31,7 +31,7 @@ type DbHighlight = DataFromModel<typeof docs>;
 async function forBook(userId: string, bookId: string): Promise<Array<Highlight & HasId>> {
     const result = await docs.find({ userId, bookId }).exec();
     return result.map(r => ({
-        id: r._id.toString(),
+        _id: r._id.toString(),
         group: r.group,
         range: {
             start: r.start,

@@ -100,10 +100,8 @@ export function model<S extends SchemaDefinition>(name: string, schema: S) {
     return modelMongoose<DocumentType<S>>(name, schemaObject);
 }
 
-export function extractDataFields<T extends Document>(doc: T): Omit<T, keyof Document> & { id: string } {
+export function extractDataFields<T extends Document>(doc: T): Omit<T, keyof Document> & { _id: string } {
     const result = doc.toObject();
-    result.id = result._id.toString();
-    delete result['_id'];
     delete result['__v'];
     return result;
 }
