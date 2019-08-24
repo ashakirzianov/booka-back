@@ -1,5 +1,5 @@
-import { model, ObjectId, DataFromModel } from '../back-utils';
-import { Bookmark } from 'booka-common';
+import { model, ObjectId, DataFromModel, extractDataFields } from '../back-utils';
+import { Bookmark, HasId } from 'booka-common';
 
 const schema = {
     userId: {
@@ -44,6 +44,14 @@ async function addBookmarks(userId: string, bookId: string, bookmarks: Bookmark[
     return ids;
 }
 
+async function forBook(userId: string, bookId: string): Promise<Array<Bookmark & HasId>> {
+    const result = await docs.find({ userId, bookId }).exec();
+    const withIds = result.map(extractDataFields);
+
+    return withIds as Array<Bookmark & HasId>;
+}
+
 export const highlights = {
     addBookmarks,
+    forBook,
 };

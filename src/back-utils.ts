@@ -100,6 +100,21 @@ export function model<S extends SchemaDefinition>(name: string, schema: S) {
     return modelMongoose<DocumentType<S>>(name, schemaObject);
 }
 
+export function extractDataFields<T extends Document>(doc: T): Omit<T, keyof Document> & { id: string } {
+    const result = {} as any;
+    for (const [key, value] of Object.entries(doc)) {
+        if (typeof value !== 'function') {
+            if (key === '_id') {
+                result.id = value;
+            } else {
+                result[key] = value;
+            }
+        }
+    }
+
+    return result;
+}
+
 export type DataFromModel<M extends Model<Document>> =
     M extends Model<infer D> ? Omit<D, keyof Document> : never;
 export const ObjectId = Schema.Types.ObjectId;
