@@ -1,5 +1,5 @@
 import {
-    HasId, Note, NoteContentNode,
+    HasId, Note, NoteContentNode, collectBookIds,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 
@@ -38,6 +38,31 @@ async function getOne(userId: string, noteId: string): Promise<Note & HasId | un
     return undefined;
 }
 
+async function getAll(userId: string, bookId?: string): Promise<Array<Note & HasId>> {
+    const allDocs = await docs.find({ userId }).exec();
+    const allNotes: Array<Note & HasId> = allDocs.map(d => ({
+        _id: d._id.toString(),
+        lastEdited: d.lastEdited,
+        data: {
+            title: d.title,
+            content: d.content as NoteContentNode[],
+        },
+    }));
+
+    let filtered = allNotes;
+    if (bookId) {
+        filtered = allNotes.filter(n => {
+            const nodes = n.data.content;
+            const ids = collectBookIds(nodes);
+
+            return ids.some(id => id === bookId);
+        });
+    }
+
+    return filtered;
+}
+
 export const notes = {
     getOne,
+    getAll,
 };
