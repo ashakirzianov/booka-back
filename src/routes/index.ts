@@ -1,4 +1,5 @@
 import './bookmarks';
+import './books';
 import './comments';
 import './highlights';
 import './notes';
