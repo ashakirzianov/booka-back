@@ -75,6 +75,21 @@ async function add(userId: string, data: NoteData): Promise<string> {
     return result._id.toString();
 }
 
+async function update(userId: string, noteId: string, data: Partial<NoteData>): Promise<boolean> {
+    const updates: Partial<DbNote> = {
+        ...data.content && { content: data.content },
+        ...data.title && { title: data.title },
+        lastEdited: new Date(),
+    };
+
+    const result = await docs.findOneAndUpdate(
+        { userId, _id: noteId },
+        updates,
+    ).exec();
+
+    return result ? true : false;
+}
+
 async function doDelete(userId: string, noteId: string): Promise<boolean> {
     const result = await docs
         .findOneAndDelete({ userId, _id: noteId })
