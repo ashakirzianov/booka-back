@@ -75,8 +75,17 @@ async function add(userId: string, data: NoteData): Promise<string> {
     return result._id.toString();
 }
 
+async function doDelete(userId: string, noteId: string): Promise<boolean> {
+    const result = await docs
+        .findOneAndDelete({ userId, _id: noteId })
+        .exec();
+
+    return result ? true : false;
+}
+
 export const notes = {
     getOne,
     getAll,
     add,
+    delete: doDelete,
 };
