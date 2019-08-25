@@ -23,7 +23,7 @@ const schema = {
     },
 } as const;
 
-const docs = model('Comments', schema);
+const docs = model('BookPathComment', schema);
 type DbComment = DataFromModel<typeof docs>;
 
 async function forLocation(location: CommentLocation): Promise<Array<Comment & HasId>> {
