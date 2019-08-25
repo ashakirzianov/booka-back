@@ -4,7 +4,7 @@ import { Middleware } from 'koa';
 import * as KoaRouter from 'koa-router';
 import {
     PathMethodContract, ApiContract, MethodNames,
-    AllowedPaths, Contract, Defined,
+    AllowedPaths, Contract, Defined, HasId,
 } from 'booka-common';
 
 export type ApiHandlerResult<T> = {
@@ -100,14 +100,14 @@ export function model<S extends SchemaDefinition>(name: string, schema: S) {
     return modelMongoose<DocumentType<S>>(name, schemaObject);
 }
 
-export function extractDataFields<T extends Document>(doc: T): DataFromModel<Model<T>> {
+export function extractDataFields<T extends Document>(doc: T): DataFromModel<Model<T>> & HasId {
     const result = doc.toObject();
     delete result['__v'];
     return result;
 }
 
 export type DataFromModel<M extends Model<Document>> =
-    M extends Model<infer D> ? Omit<D, keyof Document> & { _id: string } : never;
+    M extends Model<infer D> ? Omit<D, keyof Document> : never;
 export const ObjectId = Schema.Types.ObjectId;
 export type ObjectId = Schema.Types.ObjectId;
 type ObjectIdConstructor = typeof ObjectId;

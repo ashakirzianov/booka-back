@@ -30,7 +30,7 @@ const schema = {
 } as const;
 
 const docs = model('Bookmark', schema);
-type DbBookmark = Omit<DataFromModel<typeof docs>, '_id'>;
+type DbBookmark = DataFromModel<typeof docs>;
 
 async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Promise<string[]> {
     const toAdd: DbBookmark[] = bms.map(b => ({
