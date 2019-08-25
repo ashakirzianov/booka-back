@@ -47,9 +47,9 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
         bookId,
         ...convert(highlight),
     };
-    // Note: for some reason actual result type differ from typings
-    const queryResult = await docs.insertMany(doc) as any as any[];
-    const id = queryResult[0]._id.toString() as string;
+
+    const queryResult = await docs.insertMany([doc]);
+    const id = queryResult[0]._id.toString();
     return id;
 }
 

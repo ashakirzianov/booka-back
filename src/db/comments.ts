@@ -45,9 +45,22 @@ async function addRoot(userId: string, location: CommentLocation, data: CommentD
         content: data.content,
         lastEdited: new Date(),
     };
-    const result = await docs.insertMany(doc);
+    const [result] = await docs.insertMany([doc]);
 
-    return result._id;
+    return result._id.toString();
+}
+
+async function addSubcomment(userId: string, parentId: string, data: CommentData): Promise<string> {
+    const doc: DbComment = {
+        userId,
+        parentId,
+        kind: data.kind,
+        content: data.content,
+        lastEdited: new Date(),
+    };
+    const [result] = await docs.insertMany([doc]);
+
+    return result._id.toString();
 }
 
 async function getChildren(commentId: string): Promise<Array<Comment & HasId>> {
