@@ -1,5 +1,5 @@
 import {
-    HasId, Note, NoteContentNode, collectBookIds, NoteData,
+    HasId, Note, NoteContentNode, collectReferencedBookIds, NoteData,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 
@@ -53,7 +53,7 @@ async function getAll(userId: string, bookId?: string): Promise<Array<Note & Has
     if (bookId) {
         filtered = allNotes.filter(n => {
             const nodes = n.data.content;
-            const ids = collectBookIds(nodes);
+            const ids = collectReferencedBookIds(nodes);
 
             return ids.some(id => id === bookId);
         });
