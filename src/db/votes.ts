@@ -49,7 +49,13 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
     return result._id.toString();
 }
 
+async function remove(voteId: string): Promise<boolean> {
+    const result = await docs.findByIdAndDelete(voteId).exec();
+    return result ? true : false;
+}
+
 export const votes = {
     calculateRating,
     vote,
+    remove,
 };
