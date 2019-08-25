@@ -3,9 +3,11 @@ import {
     CommentKind, CommentLocation, CommentData,
     extractSpanText,
     CommentDescription,
+    isSubpath,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { votes } from './votes';
+import { filterUndefined } from '../utils';
 
 const schema = {
     userId: {
@@ -33,11 +35,25 @@ const docs = model('BookPathComment', schema);
 type DbComment = DataFromModel<typeof docs>;
 
 async function forLocation(location: CommentLocation): Promise<Array<Comment & HasId>> {
-    const roots = await docs.find({
-        bookId: location.bookId, path: location.path,
+    const allDocs = await docs.find({
+        bookId: location.bookId,
     }).exec();
+    const filtered = location.path.length > 0
+        ? allDocs.filter(d => d.path && isSubpath(location.path, d.path))
+        : allDocs;
 
-    const result = Promise.all(roots.map(buildComment));
+    const result = filterUndefined(await Promise.all(
+        filtered.map(async c => {
+            if (c.bookId && c.path) {
+                return buildComment(c, {
+                    bookId: c.bookId,
+                    path: c.path,
+                });
+            } else {
+                return undefined;
+            }
+        })
+    ));
 
     return result;
 }
@@ -89,21 +105,22 @@ async function doDelete(userId: string, id: string): Promise<boolean> {
     return result ? true : false;
 }
 
-async function getChildren(commentId: string): Promise<Array<Comment & HasId>> {
+async function getChildren(commentId: string, location: CommentLocation): Promise<Array<Comment & HasId>> {
     const sub = await docs.find({ parentId: commentId }).exec();
-    const result = await Promise.all(sub.map(buildComment));
+    const result = await Promise.all(sub.map(s => buildComment(s, location)));
 
     return result;
 }
 
-async function buildComment(doc: DbComment & HasId): Promise<Comment & HasId> {
-    const children = await getChildren(doc._id);
+async function buildComment(doc: DbComment & HasId, location: CommentLocation): Promise<Comment & HasId> {
+    const children = await getChildren(doc._id, location);
     const rating = await votes.calculateRating(doc._id);
     const content = doc.content as CommentContentNode[];
     return {
         _id: doc._id,
         content,
         children,
+        location,
         kind: doc.kind as CommentKind,
         lastEdited: doc.lastEdited,
         rating: rating,
