@@ -69,18 +69,23 @@ async function addSubcomment(userId: string, parentId: string, data: CommentData
     return result._id.toString();
 }
 
-async function edit(id: string, data: Partial<CommentData>): Promise<boolean> {
+async function edit(userId: string, id: string, data: Partial<CommentData>): Promise<boolean> {
     const updates: Partial<DbComment> = {
         ...data.content && { content: data.content },
         ...data.kind && { kind: data.kind },
     };
 
-    const result = await docs.findByIdAndUpdate(id, updates).exec();
+    const result = await docs.findOneAndUpdate(
+        { _id: id, userId },
+        updates,
+    ).exec();
     return result ? true : false;
 }
 
-async function doDelete(id: string): Promise<boolean> {
-    const result = await docs.findOneAndDelete(id).exec();
+async function doDelete(userId: string, id: string): Promise<boolean> {
+    const result = await docs
+        .findOneAndDelete({ userId, _id: id })
+        .exec();
     return result ? true : false;
 }
 

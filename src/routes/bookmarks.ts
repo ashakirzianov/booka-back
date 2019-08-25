@@ -46,17 +46,12 @@ router.put('/bookmarks/current', authenticate(async ctx => {
 }));
 
 router.delete('/bookmarks', authenticate(async ctx => {
-    const bookId = ctx.query.bookId;
-    if (!bookId) {
-        return { fail: 'Book id is not specified' };
-    }
-
     const bookmarkId = ctx.query.id;
     if (!bookmarkId) {
         return { fail: 'Bookmark id is not specified' };
     }
 
-    const result = await bookmarks.delete(ctx.userId, bookId, bookmarkId);
+    const result = await bookmarks.delete(ctx.userId, bookmarkId);
 
     return { success: result };
 }));

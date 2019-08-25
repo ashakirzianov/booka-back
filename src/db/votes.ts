@@ -51,8 +51,10 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
     return result._id.toString();
 }
 
-async function remove(voteId: string): Promise<boolean> {
-    const result = await docs.findByIdAndDelete(voteId).exec();
+async function remove(userId: string, voteId: string): Promise<boolean> {
+    const result = await docs
+        .findOneAndDelete({ _id: voteId, userId })
+        .exec();
     return result ? true : false;
 }
 
@@ -85,6 +87,7 @@ async function buildVote(doc: DbVote & HasId): Promise<(Vote & HasId) | undefine
 }
 
 export const votes = {
+    all,
     calculateRating,
     vote,
     remove,

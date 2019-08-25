@@ -53,14 +53,19 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
     return id;
 }
 
-async function update(userId: string, bookId: string, highlightId: string, highlight: Partial<Highlight>) {
+async function update(userId: string, highlightId: string, highlight: Partial<Highlight>) {
     const doc = convertPartial(highlight);
-    const result = await docs.findByIdAndUpdate(highlightId, doc).exec();
+    const result = await docs.findOneAndUpdate({
+        _id: highlightId,
+        userId,
+    }, doc).exec();
     return result ? true : false;
 }
 
-async function doDelete(userId: string, bookId: string, highlightId: string) {
-    const result = await docs.findByIdAndDelete(highlightId).exec();
+async function doDelete(userId: string, highlightId: string) {
+    const result = await docs
+        .findOneAndDelete({ _id: highlightId, userId })
+        .exec();
     return result ? true : false;
 }
 
