@@ -1,5 +1,6 @@
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { BookPath, Comment, HasId, CommentContentNode, CommentKind, CommentLocation, CommentData } from 'booka-common';
+import { votes } from './votes';
 
 const schema = {
     userId: {
@@ -69,12 +70,12 @@ async function edit(id: string, data: Partial<CommentData>): Promise<boolean> {
         ...data.kind && { kind: data.kind },
     };
 
-    const result = await docs.findByIdAndUpdate(id, updates);
+    const result = await docs.findByIdAndUpdate(id, updates).exec();
     return result ? true : false;
 }
 
 async function doDelete(id: string): Promise<boolean> {
-    const result = await docs.findOneAndDelete(id);
+    const result = await docs.findOneAndDelete(id).exec();
     return result ? true : false;
 }
 
@@ -87,6 +88,7 @@ async function getChildren(commentId: string): Promise<Array<Comment & HasId>> {
 
 async function buildComment(doc: DbComment & HasId): Promise<Comment & HasId> {
     const children = await getChildren(doc._id);
+    const rating = await votes.calculateRating(doc._id);
     const content = doc.content as CommentContentNode[];
     return {
         _id: doc._id,
@@ -94,7 +96,7 @@ async function buildComment(doc: DbComment & HasId): Promise<Comment & HasId> {
         children,
         kind: doc.kind as CommentKind,
         lastEdited: doc.lastEdited,
-        rating: 0, // TODO: now: calculate rating
+        rating: rating,
     };
 }
 
