@@ -63,6 +63,16 @@ async function addSubcomment(userId: string, parentId: string, data: CommentData
     return result._id.toString();
 }
 
+async function edit(id: string, data: Partial<CommentData>): Promise<boolean> {
+    const updates: Partial<DbComment> = {
+        ...data.content && { content: data.content },
+        ...data.kind && { kind: data.kind },
+    };
+
+    const result = await docs.findByIdAndUpdate(id, updates);
+    return result ? true : false;
+}
+
 async function getChildren(commentId: string): Promise<Array<Comment & HasId>> {
     const sub = await docs.find({ parentId: commentId }).exec();
     const result = await Promise.all(sub.map(buildComment));
@@ -86,4 +96,6 @@ async function buildComment(doc: DbComment & HasId): Promise<Comment & HasId> {
 export const comments = {
     forLocation,
     addRoot,
+    addSubcomment,
+    edit,
 };
