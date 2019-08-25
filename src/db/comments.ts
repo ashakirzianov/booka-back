@@ -1,5 +1,10 @@
+import {
+    Comment, HasId, CommentContentNode,
+    CommentKind, CommentLocation, CommentData,
+    extractSpanText,
+    CommentDescription,
+} from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
-import { BookPath, Comment, HasId, CommentContentNode, CommentKind, CommentLocation, CommentData } from 'booka-common';
 import { votes } from './votes';
 
 const schema = {
@@ -100,10 +105,57 @@ async function buildComment(doc: DbComment & HasId): Promise<Comment & HasId> {
     };
 }
 
+async function description(id: string): Promise<CommentDescription | undefined> {
+    const comment = await docs.findById(id).exec();
+    if (!comment) {
+        return undefined;
+    }
+
+    const location = await getLocation(comment);
+    const content = comment.content as CommentContentNode[];
+    const desc: CommentDescription = {
+        commentId: id,
+        textPreview: textPreview(content),
+        location,
+    };
+
+    return desc;
+}
+
+async function getLocation(doc: DbComment): Promise<CommentLocation> {
+    if (doc.bookId && doc.path) {
+        return {
+            bookId: doc.bookId,
+            path: doc.path,
+        };
+    }
+
+    if (doc.parentId) {
+        const parent = await docs.findById(doc.parentId);
+        if (parent) {
+            return getLocation(parent);
+        }
+    }
+
+    throw new Error(`Bad comment: ${doc}`);
+}
+
+function textPreview(content: CommentContentNode[]): string {
+    for (const node of content) {
+        if (node.node === 'paragraph') {
+            return extractSpanText(node.span);
+        }
+    }
+
+    // TODO: implement something better
+    return '<no preview>';
+}
+
 export const comments = {
     forLocation,
     addRoot,
     addSubcomment,
     edit,
     delete: doDelete,
+    description,
 };

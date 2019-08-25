@@ -1,5 +1,7 @@
+import { VoteKind, HasId, Vote, CommentDescription } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
-import { VoteKind } from 'booka-common';
+import { comments } from './comments';
+import { filterUndefined } from '../utils';
 
 const schema = {
     userId: {
@@ -52,6 +54,34 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
 async function remove(voteId: string): Promise<boolean> {
     const result = await docs.findByIdAndDelete(voteId).exec();
     return result ? true : false;
+}
+
+async function all(userId: string, bookId?: string): Promise<Array<Vote & HasId>> {
+    const allVoteDocs = await docs.find({ userId }).exec();
+    const allVotes = filterUndefined(
+        await Promise.all(allVoteDocs.map(buildVote))
+    );
+
+    const filtered = bookId
+        ? allVotes.filter(v => v.comment.location.bookId === bookId)
+        : allVotes;
+
+    return filtered;
+}
+
+async function buildVote(doc: DbVote & HasId): Promise<(Vote & HasId) | undefined> {
+    const description = await comments.description(doc.commentId);
+    if (!description) {
+        return undefined;
+    }
+
+    const result: Vote & HasId = {
+        _id: doc._id.toString(),
+        kind: doc.kind as VoteKind,
+        comment: description,
+    };
+
+    return result;
 }
 
 export const votes = {
