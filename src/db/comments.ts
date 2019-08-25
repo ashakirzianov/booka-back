@@ -73,6 +73,11 @@ async function edit(id: string, data: Partial<CommentData>): Promise<boolean> {
     return result ? true : false;
 }
 
+async function doDelete(id: string): Promise<boolean> {
+    const result = await docs.findOneAndDelete(id);
+    return result ? true : false;
+}
+
 async function getChildren(commentId: string): Promise<Array<Comment & HasId>> {
     const sub = await docs.find({ parentId: commentId }).exec();
     const result = await Promise.all(sub.map(buildComment));
@@ -98,4 +103,5 @@ export const comments = {
     addRoot,
     addSubcomment,
     edit,
+    delete: doDelete,
 };
