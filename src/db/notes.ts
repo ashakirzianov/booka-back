@@ -1,5 +1,5 @@
 import {
-    HasId, Note, NoteContentNode, collectBookIds,
+    HasId, Note, NoteContentNode, collectBookIds, NoteData,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 
@@ -62,7 +62,21 @@ async function getAll(userId: string, bookId?: string): Promise<Array<Note & Has
     return filtered;
 }
 
+async function add(userId: string, data: NoteData): Promise<string> {
+    const doc: DbNote = {
+        userId,
+        content: data.content,
+        title: data.title,
+        lastEdited: new Date(),
+    };
+
+    const [result] = await docs.insertMany([doc]);
+
+    return result._id.toString();
+}
+
 export const notes = {
     getOne,
     getAll,
+    add,
 };
