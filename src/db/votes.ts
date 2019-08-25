@@ -1,4 +1,5 @@
 import { model, DataFromModel, ObjectId } from '../back-utils';
+import { VoteKind } from 'booka-common';
 
 const schema = {
     userId: {
@@ -35,6 +36,20 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
+async function vote(userId: string, commentId: string, kind: VoteKind): Promise<string> {
+    const doc: DbVote = {
+        userId,
+        commentId,
+        kind,
+        created: new Date(),
+    };
+
+    const [result] = await docs.insertMany([doc]);
+
+    return result._id.toString();
+}
+
 export const votes = {
     calculateRating,
+    vote,
 };
