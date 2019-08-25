@@ -102,5 +102,6 @@ export const notes = {
     getOne,
     getAll,
     add,
+    update,
     delete: doDelete,
 };
