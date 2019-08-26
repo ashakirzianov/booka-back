@@ -8,6 +8,7 @@ import {
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { votes } from './votes';
 import { filterUndefined } from '../utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -58,7 +59,7 @@ async function forLocation(location: CommentLocation): Promise<Array<Comment & H
     return result;
 }
 
-async function addRoot(userId: string, location: CommentLocation, data: CommentData): Promise<string> {
+async function addRoot(userId: string, location: CommentLocation, data: CommentData): Promise<HasId> {
     const doc: DbComment = {
         userId,
         bookId: location.bookId,
@@ -69,10 +70,10 @@ async function addRoot(userId: string, location: CommentLocation, data: CommentD
     };
     const [result] = await docs.insertMany([doc]);
 
-    return result._id.toString();
+    return pick(result, ['_id']);
 }
 
-async function addSubcomment(userId: string, parentId: string, data: CommentData): Promise<string> {
+async function addSubcomment(userId: string, parentId: string, data: CommentData): Promise<HasId> {
     const doc: DbComment = {
         userId,
         parentId,
@@ -82,7 +83,7 @@ async function addSubcomment(userId: string, parentId: string, data: CommentData
     };
     const [result] = await docs.insertMany([doc]);
 
-    return result._id.toString();
+    return pick(result, ['_id']);
 }
 
 async function edit(userId: string, id: string, data: Partial<CommentData>): Promise<boolean> {

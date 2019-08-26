@@ -1,4 +1,4 @@
-import { partition } from 'lodash';
+import { partition, pick } from 'lodash';
 import { model, ObjectId, DataFromModel, extractDataFields } from '../back-utils';
 import { Bookmark, HasId } from 'booka-common';
 
@@ -32,7 +32,7 @@ const schema = {
 const docs = model('Bookmark', schema);
 type DbBookmark = DataFromModel<typeof docs>;
 
-async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Promise<string[]> {
+async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Promise<HasId[]> {
     const toAdd: DbBookmark[] = bms.map(b => ({
         userId,
         bookId,
@@ -52,7 +52,7 @@ async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Pr
     }));
 
     const restResult = await docs.insertMany(rest);
-    const restIds = restResult.map(r => r._id.toString() as string);
+    const restIds = restResult.map(r => pick(r, ['_id']));
 
     const ids = [...restIds, ...currentIds];
     return ids;
@@ -68,7 +68,7 @@ async function forBook(userId: string, bookId: string): Promise<Array<Bookmark &
 async function updateCurrent(
     userId: string, bookId: string,
     data: Pick<Bookmark, 'source' | 'location' | 'created'>
-): Promise<string> {
+): Promise<HasId> {
     const query = {
         userId,
         bookId,
@@ -86,7 +86,7 @@ async function updateCurrent(
         { upsert: true, new: true },
     ).exec();
 
-    return result._id.toString() as string;
+    return pick(result, ['_id']);
 }
 
 async function doDelete(userId: string, bookmarkId: string): Promise<boolean> {

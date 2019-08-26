@@ -2,6 +2,7 @@ import { VoteKind, HasId, Vote, CommentDescription } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { comments } from './comments';
 import { filterUndefined } from '../utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -38,7 +39,7 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
-async function vote(userId: string, commentId: string, kind: VoteKind): Promise<string> {
+async function vote(userId: string, commentId: string, kind: VoteKind): Promise<HasId> {
     const doc: DbVote = {
         userId,
         commentId,
@@ -48,7 +49,7 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
 
     const [result] = await docs.insertMany([doc]);
 
-    return result._id.toString();
+    return pick(result, ['_id']);
 }
 
 async function remove(userId: string, voteId: string): Promise<boolean> {

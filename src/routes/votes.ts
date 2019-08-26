@@ -22,7 +22,7 @@ router.post('/votes', authenticate(async ctx => {
     }
 
     const result = await votes.vote(ctx.userId, commentId, kind);
-    return { success: { _id: result } };
+    return { success: result };
 }));
 
 router.delete('/votes', authenticate(async ctx => {

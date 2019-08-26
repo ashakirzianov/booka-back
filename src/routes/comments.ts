@@ -21,7 +21,7 @@ router.post('/comments', authenticate(async ctx => {
 
     const result = await comments.addRoot(ctx.userId, body.location, body.comment);
 
-    return { success: { _id: result } };
+    return { success: result };
 }));
 
 router.patch('/comments', authenticate(async ctx => {
@@ -64,5 +64,5 @@ router.post('/subcomments', authenticate(async ctx => {
 
     const result = await comments.addSubcomment(ctx.userId, commentId, body);
 
-    return { success: { _id: result } };
+    return { success: result };
 }));

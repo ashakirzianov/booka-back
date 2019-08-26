@@ -2,6 +2,7 @@ import {
     HasId, Note, NoteContentNode, collectReferencedBookIds, NoteData,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -62,7 +63,7 @@ async function getAll(userId: string, bookId?: string): Promise<Array<Note & Has
     return filtered;
 }
 
-async function add(userId: string, data: NoteData): Promise<string> {
+async function add(userId: string, data: NoteData): Promise<HasId> {
     const doc: DbNote = {
         userId,
         content: data.content,
@@ -72,7 +73,7 @@ async function add(userId: string, data: NoteData): Promise<string> {
 
     const [result] = await docs.insertMany([doc]);
 
-    return result._id.toString();
+    return pick(result, ['_id']);
 }
 
 async function update(userId: string, noteId: string, data: Partial<NoteData>): Promise<boolean> {
