@@ -47,20 +47,25 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
         bookId,
         ...convert(highlight),
     };
-    // Note: for some reason actual result type differ from typings
-    const queryResult = await docs.insertMany(doc) as any as any[];
-    const id = queryResult[0]._id.toString() as string;
+
+    const queryResult = await docs.insertMany([doc]);
+    const id = queryResult[0]._id.toString();
     return id;
 }
 
-async function update(userId: string, bookId: string, highlightId: string, highlight: Partial<Highlight>) {
+async function update(userId: string, highlightId: string, highlight: Partial<Highlight>) {
     const doc = convertPartial(highlight);
-    const result = await docs.findByIdAndUpdate(highlightId, doc).exec();
+    const result = await docs.findOneAndUpdate({
+        _id: highlightId,
+        userId,
+    }, doc).exec();
     return result ? true : false;
 }
 
-async function doDelete(userId: string, bookId: string, highlightId: string) {
-    const result = await docs.findByIdAndDelete(highlightId).exec();
+async function doDelete(userId: string, highlightId: string) {
+    const result = await docs
+        .findOneAndDelete({ _id: highlightId, userId })
+        .exec();
     return result ? true : false;
 }
 

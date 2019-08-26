@@ -89,10 +89,14 @@ async function updateCurrent(
     return result._id.toString() as string;
 }
 
-async function doDelete(userId: string, bookId: string, bookmarkId: string): Promise<boolean> {
-    const result = await docs.findByIdAndDelete(bookmarkId).exec();
+async function doDelete(userId: string, bookmarkId: string): Promise<boolean> {
+    const result = await docs.findById(bookmarkId).exec();
+    if (result && result.userId === userId) {
+        result.remove();
+        return true;
+    }
 
-    return result ? true : false;
+    return false;
 }
 
 export const bookmarks = {
