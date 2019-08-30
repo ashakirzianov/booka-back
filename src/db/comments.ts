@@ -35,7 +35,7 @@ const schema = {
 const docs = model('BookPathComment', schema);
 type DbComment = DataFromModel<typeof docs>;
 
-async function forLocation(location: CommentLocation): Promise<Array<Comment & HasId>> {
+async function forLocation(location: CommentLocation): Promise<Comment[]> {
     const allDocs = await docs.find({
         bookId: location.bookId,
     }).exec();
@@ -46,10 +46,12 @@ async function forLocation(location: CommentLocation): Promise<Array<Comment & H
     const result = filterUndefined(await Promise.all(
         filtered.map(async c => {
             if (c.bookId && c.path) {
-                return buildComment(c, {
+                const comment = await buildComment(c);
+                comment.location = {
                     bookId: c.bookId,
                     path: c.path,
-                });
+                };
+                return comment;
             } else {
                 return undefined;
             }
@@ -106,22 +108,21 @@ async function doDelete(userId: string, id: string): Promise<boolean> {
     return result ? true : false;
 }
 
-async function getChildren(commentId: string, location: CommentLocation): Promise<Array<Comment & HasId>> {
+async function getChildren(commentId: string): Promise<Comment[]> {
     const sub = await docs.find({ parentId: commentId }).exec();
-    const result = await Promise.all(sub.map(s => buildComment(s, location)));
+    const result = await Promise.all(sub.map(buildComment));
 
     return result;
 }
 
-async function buildComment(doc: DbComment & HasId, location: CommentLocation): Promise<Comment & HasId> {
-    const children = await getChildren(doc._id, location);
+async function buildComment(doc: DbComment & HasId): Promise<Comment> {
+    const children = await getChildren(doc._id);
     const rating = await votes.calculateRating(doc._id);
     const content = doc.content as CommentContentNode[];
     return {
         _id: doc._id,
         content,
         children,
-        location,
         kind: doc.kind as CommentKind,
         lastEdited: doc.lastEdited,
         rating: rating,

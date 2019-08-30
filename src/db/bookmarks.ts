@@ -58,11 +58,11 @@ async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Pr
     return ids;
 }
 
-async function forBook(userId: string, bookId: string): Promise<Array<Bookmark & HasId>> {
+async function forBook(userId: string, bookId: string): Promise<Bookmark[]> {
     const result = await docs.find({ userId, bookId }).exec();
     const withIds = result.map(extractDataFields);
 
-    return withIds as Array<Bookmark & HasId>;
+    return withIds as Bookmark[];
 }
 
 async function updateCurrent(

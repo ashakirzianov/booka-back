@@ -23,10 +23,10 @@ const schema = {
 const docs = model('Note', schema);
 type DbNote = DataFromModel<typeof docs>;
 
-async function getOne(userId: string, noteId: string): Promise<Note & HasId | undefined> {
+async function getOne(userId: string, noteId: string): Promise<Note | undefined> {
     const doc = await docs.findById(noteId).exec();
     if (doc && doc.userId === userId) {
-        const note: Note & HasId = {
+        const note: Note = {
             _id: doc._id,
             data: {
                 content: doc.content as NoteContentNode[],
@@ -39,9 +39,9 @@ async function getOne(userId: string, noteId: string): Promise<Note & HasId | un
     return undefined;
 }
 
-async function getAll(userId: string, bookId?: string): Promise<Array<Note & HasId>> {
+async function getAll(userId: string, bookId?: string): Promise<Note[]> {
     const allDocs = await docs.find({ userId }).exec();
-    const allNotes: Array<Note & HasId> = allDocs.map(d => ({
+    const allNotes: Note[] = allDocs.map(d => ({
         _id: d._id.toString(),
         lastEdited: d.lastEdited,
         data: {

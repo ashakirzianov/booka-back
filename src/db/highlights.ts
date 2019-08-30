@@ -29,7 +29,7 @@ const schema = {
 const docs = model('Highlight', schema);
 type DbHighlight = DataFromModel<typeof docs>;
 
-async function forBook(userId: string, bookId: string): Promise<Array<Highlight & HasId>> {
+async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     const result = await docs.find({ userId, bookId }).exec();
     return result.map(r => ({
         _id: r._id.toString(),

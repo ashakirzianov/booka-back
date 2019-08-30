@@ -59,7 +59,7 @@ async function remove(userId: string, voteId: string): Promise<boolean> {
     return result ? true : false;
 }
 
-async function all(userId: string, page: number, bookId?: string): Promise<Array<Vote & HasId>> {
+async function all(userId: string, page: number, bookId?: string): Promise<Vote[]> {
     const votesPageSize = 100;
     const allVoteDocs = await docs
         .find({ userId })
@@ -71,19 +71,22 @@ async function all(userId: string, page: number, bookId?: string): Promise<Array
     );
 
     const filtered = bookId
-        ? allVotes.filter(v => v.comment.location.bookId === bookId)
+        ? allVotes.filter(
+            v =>
+                v.comment.location && v.comment.location.bookId === bookId
+        )
         : allVotes;
 
     return filtered;
 }
 
-async function buildVote(doc: DbVote & HasId): Promise<(Vote & HasId) | undefined> {
+async function buildVote(doc: DbVote & HasId): Promise<Vote | undefined> {
     const description = await comments.description(doc.commentId);
     if (!description) {
         return undefined;
     }
 
-    const result: Vote & HasId = {
+    const result: Vote = {
         _id: doc._id.toString(),
         kind: doc.kind as VoteKind,
         comment: description,

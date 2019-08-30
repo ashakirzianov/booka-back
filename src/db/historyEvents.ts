@@ -24,7 +24,7 @@ const schema = {
 const docs = model('BookHistory', schema);
 type DbHistoryEvent = DataFromModel<typeof docs>;
 
-async function forUser(userId: string, page: number): Promise<Array<HistoryEvent & HasId>> {
+async function forUser(userId: string, page: number): Promise<HistoryEvent[]> {
     const result = await paginate(
         docs.find({ userId }),
         page,
@@ -38,7 +38,7 @@ async function forUser(userId: string, page: number): Promise<Array<HistoryEvent
     }));
 }
 
-async function open(userId: string, bookId: string): Promise<HasId | undefined> {
+async function open(userId: string, bookId: string): Promise<HasId> {
     const kind: HistoryEventKind = 'book-open';
     const doc: DbHistoryEvent = {
         kind,
