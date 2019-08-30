@@ -2,6 +2,7 @@ export * from './bookmarks';
 export * from './books';
 export * from './comments';
 export * from './highlights';
+export * from './historyEvents';
 export * from './notes';
 export * from './tags';
 export * from './users';
