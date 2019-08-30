@@ -1,4 +1,4 @@
-import { KnownTag } from 'booka-common';
+import { KnownTag, KnownTagName } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 
 const schema = {
@@ -31,7 +31,7 @@ async function forBook(userId: string, bookId: string): Promise<KnownTag[]> {
     } as KnownTag));
 }
 
-async function bookIds(userId: string, tagName: string): Promise<string[]> {
+async function bookIds(userId: string, tagName: KnownTagName): Promise<string[]> {
     const result = await docs
         .find({ userId, tag: tagName })
         .select('bookId')
@@ -53,8 +53,19 @@ async function addTag(userId: string, bookId: string, tag: KnownTag): Promise<bo
     return result ? true : false;
 }
 
+async function remove(userId: string, bookId: string, tagName: KnownTagName): Promise<boolean> {
+    const result = await docs.deleteMany({
+        userId,
+        bookId,
+        tag: tagName,
+    });
+
+    return true;
+}
+
 export const tags = {
     forBook,
     bookIds,
     addTag,
+    remove,
 };
