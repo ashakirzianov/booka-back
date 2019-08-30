@@ -31,16 +31,30 @@ async function forBook(userId: string, bookId: string): Promise<KnownTag[]> {
     } as KnownTag));
 }
 
-async function bookIds(userId: string, tag: string): Promise<string[]> {
+async function bookIds(userId: string, tagName: string): Promise<string[]> {
     const result = await docs
-        .find({ userId, tag })
+        .find({ userId, tag: tagName })
         .select('bookId')
         .exec();
 
     return result.map(r => r.bookId);
 }
 
+async function addTag(userId: string, bookId: string, tag: KnownTag): Promise<boolean> {
+    const doc: DbTag = {
+        userId,
+        bookId,
+        tag: tag.tag,
+        value: tag.value,
+    };
+
+    const [result] = await docs.insertMany([doc]);
+
+    return result ? true : false;
+}
+
 export const tags = {
     forBook,
     bookIds,
+    addTag,
 };
