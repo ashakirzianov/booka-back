@@ -31,6 +31,16 @@ async function forBook(userId: string, bookId: string): Promise<KnownTag[]> {
     } as KnownTag));
 }
 
+async function bookIds(userId: string, tag: string): Promise<string[]> {
+    const result = await docs
+        .find({ userId, tag })
+        .select('bookId')
+        .exec();
+
+    return result.map(r => r.bookId);
+}
+
 export const tags = {
     forBook,
+    bookIds,
 };

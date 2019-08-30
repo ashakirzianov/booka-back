@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as FormData from 'form-data';
-import { Book, LibContract, BookCollection } from 'booka-common';
+import { Book, LibContract, BookInfo } from 'booka-common';
 import { config } from './config';
-import { users } from './db';
+import { users, tags } from './db';
 import { createFetcher } from './fetcher';
-import { File, ObjectId } from './back-utils';
+import { File } from './back-utils';
 
 const lib = createFetcher<LibContract>(config().libUrl);
 
@@ -18,12 +18,33 @@ export async function getSingleBook(id: string): Promise<Book | undefined> {
         : undefined;
 }
 
-export async function getAllBooks(): Promise<BookCollection | undefined> {
-    const result = await lib.get('/all', {});
+export async function getAllBooks(page?: number): Promise<BookInfo[]> {
+    const result = await lib.get('/all', {
+        query: { page },
+    });
+
+    return result.success
+        ? result.value.values
+        : [];
+}
+
+export async function getInfos(bookIds: string[]): Promise<BookInfo[]> {
+    const result = await lib.get('/info', {
+        query: {
+            ids: bookIds,
+        },
+    });
 
     return result.success
         ? result.value
-        : undefined;
+        : [];
+}
+
+export async function forTag(userId: string, tag: string): Promise<BookInfo[]> {
+    const ids = await tags.bookIds(userId, tag);
+    const infos = await getInfos(ids);
+
+    return infos;
 }
 
 export async function addBook(file: File, userId: string): Promise<string | undefined> {
