@@ -2,7 +2,7 @@ import { IssueReportKind } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -23,9 +23,9 @@ const schema = {
 const docs = model('CommentReport', schema);
 type DbReport = DataFromModel<typeof docs>;
 
-async function add(userId: string, commentId: string, kind: IssueReportKind): Promise<boolean> {
+async function add(accountId: string, commentId: string, kind: IssueReportKind): Promise<boolean> {
     const doc: DbReport = {
-        userId,
+        accountId,
         commentId,
         kind,
         date: new Date(),

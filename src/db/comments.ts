@@ -11,7 +11,7 @@ import { filterUndefined } from '../utils';
 import { pick } from 'lodash';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -61,9 +61,9 @@ async function forLocation(location: CommentLocation): Promise<Comment[]> {
     return result;
 }
 
-async function addRoot(userId: string, location: CommentLocation, data: CommentData): Promise<HasId> {
+async function addRoot(accountId: string, location: CommentLocation, data: CommentData): Promise<HasId> {
     const doc: DbComment = {
-        userId,
+        accountId,
         bookId: location.bookId,
         path: location.path,
         kind: data.kind,
@@ -75,9 +75,9 @@ async function addRoot(userId: string, location: CommentLocation, data: CommentD
     return pick(result, ['_id']);
 }
 
-async function addSubcomment(userId: string, parentId: string, data: CommentData): Promise<HasId> {
+async function addSubcomment(accountId: string, parentId: string, data: CommentData): Promise<HasId> {
     const doc: DbComment = {
-        userId,
+        accountId,
         parentId,
         kind: data.kind,
         content: data.content,
@@ -88,22 +88,22 @@ async function addSubcomment(userId: string, parentId: string, data: CommentData
     return pick(result, ['_id']);
 }
 
-async function edit(userId: string, id: string, data: Partial<CommentData>): Promise<boolean> {
+async function edit(accountId: string, id: string, data: Partial<CommentData>): Promise<boolean> {
     const updates: Partial<DbComment> = {
         ...data.content && { content: data.content },
         ...data.kind && { kind: data.kind },
     };
 
     const result = await docs.findOneAndUpdate(
-        { _id: id, userId },
+        { _id: id, accountId },
         updates,
     ).exec();
     return result ? true : false;
 }
 
-async function doDelete(userId: string, id: string): Promise<boolean> {
+async function doDelete(accountId: string, id: string): Promise<boolean> {
     const result = await docs
-        .findOneAndDelete({ userId, _id: id })
+        .findOneAndDelete({ accountId, _id: id })
         .exec();
     return result ? true : false;
 }

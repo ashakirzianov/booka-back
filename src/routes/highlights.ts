@@ -7,7 +7,7 @@ router.get('/highlights', authenticate(async ctx => {
     if (!bookId) {
         return { fail: 'Book id is not specified' };
     }
-    const result = await highlights.forBook(ctx.userId, bookId);
+    const result = await highlights.forBook(ctx.accountId, bookId);
 
     return { success: result };
 }));
@@ -23,7 +23,7 @@ router.post('/highlights', authenticate(async ctx => {
         return { fail: 'Highlight is not specified in body' };
     }
 
-    const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
+    const result = await highlights.addHighlight(ctx.accountId, bookId, highlight);
 
     return { success: result };
 }));
@@ -39,7 +39,7 @@ router.patch('/highlights', authenticate(async ctx => {
         return { fail: 'Highlight is not specified in body' };
     }
 
-    const result = await highlights.update(ctx.userId, highlightId, highlight);
+    const result = await highlights.update(ctx.accountId, highlightId, highlight);
 
     return { success: result };
 }));
@@ -50,7 +50,7 @@ router.delete('/highlights', authenticate(async ctx => {
         return { fail: 'Highlight id is not specified' };
     }
 
-    const result = await highlights.delete(ctx.userId, highlightId);
+    const result = await highlights.delete(ctx.accountId, highlightId);
 
     return { success: result };
 }));

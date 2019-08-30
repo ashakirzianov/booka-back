@@ -3,7 +3,7 @@ import { model, ObjectId, DataFromModel } from '../back-utils';
 import { pick } from 'lodash';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -29,8 +29,8 @@ const schema = {
 const docs = model('Highlight', schema);
 type DbHighlight = DataFromModel<typeof docs>;
 
-async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
-    const result = await docs.find({ userId, bookId }).exec();
+async function forBook(accountId: string, bookId: string): Promise<Highlight[]> {
+    const result = await docs.find({ accountId, bookId }).exec();
     return result.map(r => ({
         _id: r._id.toString(),
         group: r.group,
@@ -42,9 +42,9 @@ async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     }));
 }
 
-async function addHighlight(userId: string, bookId: string, highlight: Highlight): Promise<HasId> {
+async function addHighlight(accountId: string, bookId: string, highlight: Highlight): Promise<HasId> {
     const doc: DbHighlight = {
-        userId,
+        accountId,
         bookId,
         ...convert(highlight),
     };
@@ -54,18 +54,18 @@ async function addHighlight(userId: string, bookId: string, highlight: Highlight
     return pick(result, ['_id']);
 }
 
-async function update(userId: string, highlightId: string, highlight: Partial<Highlight>) {
+async function update(accountId: string, highlightId: string, highlight: Partial<Highlight>) {
     const doc = convertPartial(highlight);
     const result = await docs.findOneAndUpdate({
         _id: highlightId,
-        userId,
+        accountId,
     }, doc).exec();
     return result ? true : false;
 }
 
-async function doDelete(userId: string, highlightId: string) {
+async function doDelete(accountId: string, highlightId: string) {
     const result = await docs
-        .findOneAndDelete({ _id: highlightId, userId })
+        .findOneAndDelete({ _id: highlightId, accountId })
         .exec();
     return result ? true : false;
 }
@@ -81,7 +81,7 @@ function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
     };
 }
 
-function convert(highlight: Highlight): Omit<DbHighlight, 'bookId' | 'userId'> {
+function convert(highlight: Highlight): Omit<DbHighlight, 'bookId' | 'accountId'> {
     return convertPartial(highlight) as any;
 }
 

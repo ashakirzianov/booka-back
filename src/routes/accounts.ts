@@ -24,8 +24,8 @@ router.get('/auth/fbtoken', async ctx => {
 });
 
 router.get('/me/info', authenticate(async ctx => {
-    const accountInfo = await accounts.info(ctx.userId);
+    const accountInfo = await accounts.info(ctx.accountId);
     return accountInfo
         ? { success: accountInfo }
-        : { fail: `Can't find user for id: ${ctx.userId}` };
+        : { fail: `Can't find user for id: ${ctx.accountId}` };
 }));

@@ -8,7 +8,7 @@ router.get('/bookmarks', authenticate(async ctx => {
         return { fail: 'Book id is not specified' };
     }
 
-    const result = await bookmarks.forBook(ctx.userId, bookId);
+    const result = await bookmarks.forBook(ctx.accountId, bookId);
 
     return { success: result };
 }));
@@ -24,7 +24,7 @@ router.post('/bookmarks', authenticate(async ctx => {
         return { fail: 'Body should contain array of bookmarks' };
     }
 
-    const result = await bookmarks.addBookmarks(ctx.userId, bookId, body);
+    const result = await bookmarks.addBookmarks(ctx.accountId, bookId, body);
 
     return { success: result };
 }));
@@ -40,7 +40,7 @@ router.put('/bookmarks/current', authenticate(async ctx => {
         return { fail: 'Body should contain bookmark updates' };
     }
 
-    const result = await bookmarks.updateCurrent(ctx.userId, bookId, body);
+    const result = await bookmarks.updateCurrent(ctx.accountId, bookId, body);
 
     return { success: result };
 }));
@@ -51,7 +51,7 @@ router.delete('/bookmarks', authenticate(async ctx => {
         return { fail: 'Bookmark id is not specified' };
     }
 
-    const result = await bookmarks.delete(ctx.userId, bookmarkId);
+    const result = await bookmarks.delete(ctx.accountId, bookmarkId);
 
     return { success: result };
 }));

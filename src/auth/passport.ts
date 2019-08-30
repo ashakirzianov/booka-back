@@ -12,8 +12,8 @@ passport.use(new Strategy({
     audience: jwtConfig.audience,
 }, async (payload, done) => {
     try {
-        const userId = payload.sub;
-        return done(null, userId);
+        const accountId = payload.sub;
+        return done(null, accountId);
     } catch (e) {
         return done(null, false, { message: `Couldn\'t find user: ${e}` });
     }
@@ -21,21 +21,21 @@ passport.use(new Strategy({
 
 export { passport };
 
-export function authenticate<C extends PathMethodContract & AuthContract>(handler: ApiHandler<C, { userId: string }>): ApiHandler<C> {
+export function authenticate<C extends PathMethodContract & AuthContract>(handler: ApiHandler<C, { accountId: string }>): ApiHandler<C> {
     return async (ctx, next) => {
-        let userIdToSet: any;
+        let accountIdToSet: any;
         await passport.authenticate(
             'jwt',
             { session: false },
             async (err, user) => {
                 if (user) {
-                    userIdToSet = user;
+                    accountIdToSet = user;
                 }
             },
         )(ctx as any, next);
 
-        if (userIdToSet) {
-            (ctx as any).userId = userIdToSet;
+        if (accountIdToSet) {
+            (ctx as any).accountId = accountIdToSet;
             return handler(ctx as any, next);
         } else {
             return { fail: 'Unauthorized' };

@@ -8,7 +8,7 @@ router.get('/notes/single', authenticate(async ctx => {
         return { fail: 'Should specify note id' };
     }
 
-    const result = await notes.getOne(ctx.userId, noteId);
+    const result = await notes.getOne(ctx.accountId, noteId);
 
     return result
         ? { success: result }
@@ -18,7 +18,7 @@ router.get('/notes/single', authenticate(async ctx => {
 router.get('/notes/many', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
 
-    const result = await notes.getAll(ctx.userId, bookId);
+    const result = await notes.getAll(ctx.accountId, bookId);
 
     return { success: result };
 }));
@@ -29,7 +29,7 @@ router.post('/notes', authenticate(async ctx => {
         return { fail: 'Should specify note in body' };
     }
 
-    const result = await notes.add(ctx.userId, body);
+    const result = await notes.add(ctx.accountId, body);
 
     return { success: result };
 }));
@@ -45,7 +45,7 @@ router.patch('/notes', authenticate(async ctx => {
         return { fail: 'Should specify note id' };
     }
 
-    const result = await notes.update(ctx.userId, noteId, body);
+    const result = await notes.update(ctx.accountId, noteId, body);
 
     return { success: result };
 }));
@@ -56,7 +56,7 @@ router.delete('/notes', authenticate(async ctx => {
         return { fail: 'Should specify note id' };
     }
 
-    const result = await notes.delete(ctx.userId, noteId);
+    const result = await notes.delete(ctx.accountId, noteId);
 
     return { success: result };
 }));

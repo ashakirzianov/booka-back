@@ -3,7 +3,7 @@ import { model, DataFromModel, ObjectId, paginate } from '../back-utils';
 import { pick } from 'lodash';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -24,9 +24,9 @@ const schema = {
 const docs = model('BookHistory', schema);
 type DbHistoryEvent = DataFromModel<typeof docs>;
 
-async function forUser(userId: string, page: number): Promise<HistoryEvent[]> {
+async function forUser(accountId: string, page: number): Promise<HistoryEvent[]> {
     const result = await paginate(
-        docs.find({ userId }),
+        docs.find({ accountId }),
         page,
     ).exec();
 
@@ -38,11 +38,11 @@ async function forUser(userId: string, page: number): Promise<HistoryEvent[]> {
     }));
 }
 
-async function open(userId: string, bookId: string): Promise<HasId> {
+async function open(accountId: string, bookId: string): Promise<HasId> {
     const kind: HistoryEventKind = 'book-open';
     const doc: DbHistoryEvent = {
         kind,
-        userId,
+        accountId,
         bookId,
         date: new Date(),
     };
@@ -52,10 +52,10 @@ async function open(userId: string, bookId: string): Promise<HasId> {
     return pick(result, ['_id']);
 }
 
-async function remove(userId: string, ids: string[]): Promise<boolean> {
+async function remove(accountId: string, ids: string[]): Promise<boolean> {
     const result = await docs
         .deleteMany({
-            userId,
+            accountId,
             _id: { $in: ids },
         })
         .exec();
