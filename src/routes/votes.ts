@@ -4,10 +4,16 @@ import { authenticate } from '../auth';
 
 router.get('/votes', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
+    const page = ctx.query.page || 0;
 
-    const result = await votes.all(ctx.userId, bookId);
+    const result = await votes.all(ctx.userId, page, bookId);
 
-    return { success: result };
+    return {
+        success: {
+            next: page + 1,
+            values: result,
+        },
+    };
 }));
 
 router.post('/votes', authenticate(async ctx => {
@@ -22,7 +28,7 @@ router.post('/votes', authenticate(async ctx => {
     }
 
     const result = await votes.vote(ctx.userId, commentId, kind);
-    return { success: { _id: result } };
+    return { success: result };
 }));
 
 router.delete('/votes', authenticate(async ctx => {

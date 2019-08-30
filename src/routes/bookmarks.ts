@@ -26,7 +26,7 @@ router.post('/bookmarks', authenticate(async ctx => {
 
     const result = await bookmarks.addBookmarks(ctx.userId, bookId, body);
 
-    return { success: result.map(r => ({ _id: r })) };
+    return { success: result };
 }));
 
 router.put('/bookmarks/current', authenticate(async ctx => {
@@ -42,7 +42,7 @@ router.put('/bookmarks/current', authenticate(async ctx => {
 
     const result = await bookmarks.updateCurrent(ctx.userId, bookId, body);
 
-    return { success: { _id: result } };
+    return { success: result };
 }));
 
 router.delete('/bookmarks', authenticate(async ctx => {

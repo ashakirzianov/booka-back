@@ -25,12 +25,13 @@ export type ExternalId = {
 async function getInfo(id: string): Promise<UserInfo> {
     const user = await byId(id);
     return {
+        _id: user._id,
         name: user.name,
         pictureUrl: user.pictureUrl,
     };
 }
 
-async function updateOrCreate(externalId: ExternalId, user: UserInfo) {
+async function updateOrCreate(externalId: ExternalId, user: Omit<UserInfo, '_id'>) {
     if (externalId.provider === 'facebook') {
         const result = await User.findOneAndUpdate(
             { facebookId: externalId.id },

@@ -1,5 +1,6 @@
 import { Highlight, HasId } from 'booka-common';
 import { model, ObjectId, DataFromModel } from '../back-utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -28,7 +29,7 @@ const schema = {
 const docs = model('Highlight', schema);
 type DbHighlight = DataFromModel<typeof docs>;
 
-async function forBook(userId: string, bookId: string): Promise<Array<Highlight & HasId>> {
+async function forBook(userId: string, bookId: string): Promise<Highlight[]> {
     const result = await docs.find({ userId, bookId }).exec();
     return result.map(r => ({
         _id: r._id.toString(),
@@ -41,16 +42,16 @@ async function forBook(userId: string, bookId: string): Promise<Array<Highlight 
     }));
 }
 
-async function addHighlight(userId: string, bookId: string, highlight: Highlight): Promise<string> {
+async function addHighlight(userId: string, bookId: string, highlight: Highlight): Promise<HasId> {
     const doc: DbHighlight = {
         userId,
         bookId,
         ...convert(highlight),
     };
 
-    const queryResult = await docs.insertMany([doc]);
-    const id = queryResult[0]._id.toString();
-    return id;
+    const [result] = await docs.insertMany([doc]);
+
+    return pick(result, ['_id']);
 }
 
 async function update(userId: string, highlightId: string, highlight: Partial<Highlight>) {

@@ -2,6 +2,7 @@ import {
     HasId, Note, NoteContentNode, collectReferencedBookIds, NoteData,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -22,15 +23,13 @@ const schema = {
 const docs = model('Note', schema);
 type DbNote = DataFromModel<typeof docs>;
 
-async function getOne(userId: string, noteId: string): Promise<Note & HasId | undefined> {
+async function getOne(userId: string, noteId: string): Promise<Note | undefined> {
     const doc = await docs.findById(noteId).exec();
     if (doc && doc.userId === userId) {
-        const note: Note & HasId = {
+        const note: Note = {
             _id: doc._id,
-            data: {
-                content: doc.content as NoteContentNode[],
-                title: doc.title,
-            },
+            content: doc.content as NoteContentNode[],
+            title: doc.title,
             lastEdited: doc.lastEdited,
         };
         return note;
@@ -38,21 +37,19 @@ async function getOne(userId: string, noteId: string): Promise<Note & HasId | un
     return undefined;
 }
 
-async function getAll(userId: string, bookId?: string): Promise<Array<Note & HasId>> {
+async function getAll(userId: string, bookId?: string): Promise<Note[]> {
     const allDocs = await docs.find({ userId }).exec();
-    const allNotes: Array<Note & HasId> = allDocs.map(d => ({
+    const allNotes: Note[] = allDocs.map(d => ({
         _id: d._id.toString(),
         lastEdited: d.lastEdited,
-        data: {
-            title: d.title,
-            content: d.content as NoteContentNode[],
-        },
+        title: d.title,
+        content: d.content as NoteContentNode[],
     }));
 
     let filtered = allNotes;
     if (bookId) {
         filtered = allNotes.filter(n => {
-            const nodes = n.data.content;
+            const nodes = n.content;
             const ids = collectReferencedBookIds(nodes);
 
             return ids.some(id => id === bookId);
@@ -62,7 +59,7 @@ async function getAll(userId: string, bookId?: string): Promise<Array<Note & Has
     return filtered;
 }
 
-async function add(userId: string, data: NoteData): Promise<string> {
+async function add(userId: string, data: NoteData): Promise<HasId> {
     const doc: DbNote = {
         userId,
         content: data.content,
@@ -72,7 +69,7 @@ async function add(userId: string, data: NoteData): Promise<string> {
 
     const [result] = await docs.insertMany([doc]);
 
-    return result._id.toString();
+    return pick(result, ['_id']);
 }
 
 async function update(userId: string, noteId: string, data: Partial<NoteData>): Promise<boolean> {

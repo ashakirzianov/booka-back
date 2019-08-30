@@ -31,7 +31,7 @@ router.post('/notes', authenticate(async ctx => {
 
     const result = await notes.add(ctx.userId, body);
 
-    return { success: { _id: result } };
+    return { success: result };
 }));
 
 router.patch('/notes', authenticate(async ctx => {

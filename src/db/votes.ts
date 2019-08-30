@@ -2,6 +2,7 @@ import { VoteKind, HasId, Vote, CommentDescription } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { comments } from './comments';
 import { filterUndefined } from '../utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -38,7 +39,7 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
-async function vote(userId: string, commentId: string, kind: VoteKind): Promise<string> {
+async function vote(userId: string, commentId: string, kind: VoteKind): Promise<HasId> {
     const doc: DbVote = {
         userId,
         commentId,
@@ -46,9 +47,13 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
         created: new Date(),
     };
 
-    const [result] = await docs.insertMany([doc]);
+    const result = await docs.update(
+        { userId, commentId },
+        { kind, created: new Date() },
+        { upsert: true, new: true },
+    ).exec();
 
-    return result._id.toString();
+    return pick(result, ['_id']);
 }
 
 async function remove(userId: string, voteId: string): Promise<boolean> {
@@ -58,26 +63,34 @@ async function remove(userId: string, voteId: string): Promise<boolean> {
     return result ? true : false;
 }
 
-async function all(userId: string, bookId?: string): Promise<Array<Vote & HasId>> {
-    const allVoteDocs = await docs.find({ userId }).exec();
+async function all(userId: string, page: number, bookId?: string): Promise<Vote[]> {
+    const votesPageSize = 100;
+    const allVoteDocs = await docs
+        .find({ userId })
+        .skip(page * votesPageSize)
+        .limit(votesPageSize)
+        .exec();
     const allVotes = filterUndefined(
         await Promise.all(allVoteDocs.map(buildVote))
     );
 
     const filtered = bookId
-        ? allVotes.filter(v => v.comment.location.bookId === bookId)
+        ? allVotes.filter(
+            v =>
+                v.comment.location && v.comment.location.bookId === bookId
+        )
         : allVotes;
 
     return filtered;
 }
 
-async function buildVote(doc: DbVote & HasId): Promise<(Vote & HasId) | undefined> {
+async function buildVote(doc: DbVote & HasId): Promise<Vote | undefined> {
     const description = await comments.description(doc.commentId);
     if (!description) {
         return undefined;
     }
 
-    const result: Vote & HasId = {
+    const result: Vote = {
         _id: doc._id.toString(),
         kind: doc.kind as VoteKind,
         comment: description,

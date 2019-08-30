@@ -1,11 +1,27 @@
 import { router } from './router';
 import { authenticate } from '../auth';
-import { getSingleBook, getAllBooks, addBook } from '../library';
+import { books } from '../db';
+import { KnownTagName } from 'booka-common';
+
+router.get('/books', authenticate(async ctx => {
+    const tags = ctx.query.tags;
+    if (tags && tags.length > 0) {
+        const result = await books.forTags(ctx.userId, tags as KnownTagName[]);
+
+        return {
+            success: {
+                values: result,
+            },
+        };
+    } else {
+        return { success: { values: [] } };
+    }
+}));
 
 router.get('/books/single', async ctx => {
     const id = ctx.query.id;
     if (id) {
-        const book = await getSingleBook(id);
+        const book = await books.download(id);
 
         return book
             ? { success: book }
@@ -16,9 +32,15 @@ router.get('/books/single', async ctx => {
 });
 
 router.get('/books/all', async ctx => {
-    const allBooks = await getAllBooks();
+    const page = ctx.query && ctx.query.page || 0;
+    const allBooks = await books.all(page);
     return allBooks
-        ? { success: allBooks }
+        ? {
+            success: {
+                next: page + 1,
+                values: allBooks,
+            },
+        }
         : { fail: 'Couldn\'t fetch books' };
 });
 
@@ -32,7 +54,7 @@ router.post('/books/upload', authenticate(async ctx => {
         return { fail: 'Book is not attached' };
     }
 
-    const bookId = await addBook(book, ctx.userId);
+    const bookId = await books.upload(book, ctx.userId);
     return bookId
         ? { success: bookId.toString() }
         : { fail: `Can't add book` };

@@ -25,7 +25,7 @@ router.post('/highlights', authenticate(async ctx => {
 
     const result = await highlights.addHighlight(ctx.userId, bookId, highlight);
 
-    return { success: { _id: result } };
+    return { success: result };
 }));
 
 router.patch('/highlights', authenticate(async ctx => {
