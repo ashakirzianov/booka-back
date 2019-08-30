@@ -28,10 +28,8 @@ async function getOne(userId: string, noteId: string): Promise<Note | undefined>
     if (doc && doc.userId === userId) {
         const note: Note = {
             _id: doc._id,
-            data: {
-                content: doc.content as NoteContentNode[],
-                title: doc.title,
-            },
+            content: doc.content as NoteContentNode[],
+            title: doc.title,
             lastEdited: doc.lastEdited,
         };
         return note;
@@ -44,16 +42,14 @@ async function getAll(userId: string, bookId?: string): Promise<Note[]> {
     const allNotes: Note[] = allDocs.map(d => ({
         _id: d._id.toString(),
         lastEdited: d.lastEdited,
-        data: {
-            title: d.title,
-            content: d.content as NoteContentNode[],
-        },
+        title: d.title,
+        content: d.content as NoteContentNode[],
     }));
 
     let filtered = allNotes;
     if (bookId) {
         filtered = allNotes.filter(n => {
-            const nodes = n.data.content;
+            const nodes = n.content;
             const ids = collectReferencedBookIds(nodes);
 
             return ids.some(id => id === bookId);
