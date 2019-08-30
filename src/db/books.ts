@@ -10,7 +10,7 @@ import { users } from './users';
 const lib = createFetcher<LibContract>(config().libUrl);
 
 async function download(id: string): Promise<Book | undefined> {
-    const result = await lib.get('/single', {
+    const result = await lib.get('/download', {
         query: { id },
     });
 
