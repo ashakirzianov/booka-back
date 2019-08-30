@@ -47,7 +47,7 @@ async function vote(accountId: string, commentId: string, kind: VoteKind): Promi
         created: new Date(),
     };
 
-    const result = await docs.update(
+    const result = await docs.updateOne(
         { accountId, commentId },
         { kind, created: new Date() },
         { upsert: true, new: true },

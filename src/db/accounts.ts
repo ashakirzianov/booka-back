@@ -54,7 +54,7 @@ async function forFacebook(facebookInfo: FacebookUserInfo): Promise<AccountInfo>
     }
 
     return {
-        _id: doc._id,
+        _id: doc._id.toString(),
         name: doc.name,
         pictureUrl: doc.pictureUrl,
         joined: doc.joined,

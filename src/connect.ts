@@ -7,3 +7,9 @@ export async function connectDb() {
 
     Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
 }
+
+export async function dropDb() {
+    for (const [key, collection] of Object.entries(Mongoose.connection.collections)) {
+        await collection.drop();
+    }
+}
