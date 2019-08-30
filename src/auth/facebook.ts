@@ -26,7 +26,7 @@ export async function getFbUserInfo(token: string): Promise<FacebookUserInfo | u
             return undefined;
         }
     } catch (e) {
-        logger().important(`Failed fetch user info: '${e}`);
+        logger().important(`Failed fetch facebook info: '${e}`);
         return undefined;
     }
 }

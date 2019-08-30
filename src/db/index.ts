@@ -1,3 +1,4 @@
+export * from './accounts';
 export * from './bookmarks';
 export * from './books';
 export * from './comments';
@@ -6,5 +7,4 @@ export * from './historyEvents';
 export * from './notes';
 export * from './reports';
 export * from './tags';
-export * from './users';
 export * from './votes';

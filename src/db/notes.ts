@@ -5,7 +5,7 @@ import { model, DataFromModel, ObjectId } from '../back-utils';
 import { pick } from 'lodash';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -23,9 +23,9 @@ const schema = {
 const docs = model('Note', schema);
 type DbNote = DataFromModel<typeof docs>;
 
-async function getOne(userId: string, noteId: string): Promise<Note | undefined> {
+async function getOne(accountId: string, noteId: string): Promise<Note | undefined> {
     const doc = await docs.findById(noteId).exec();
-    if (doc && doc.userId === userId) {
+    if (doc && doc.accountId === accountId) {
         const note: Note = {
             _id: doc._id,
             content: doc.content as NoteContentNode[],
@@ -37,8 +37,8 @@ async function getOne(userId: string, noteId: string): Promise<Note | undefined>
     return undefined;
 }
 
-async function getAll(userId: string, bookId?: string): Promise<Note[]> {
-    const allDocs = await docs.find({ userId }).exec();
+async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
+    const allDocs = await docs.find({ accountId }).exec();
     const allNotes: Note[] = allDocs.map(d => ({
         _id: d._id.toString(),
         lastEdited: d.lastEdited,
@@ -59,9 +59,9 @@ async function getAll(userId: string, bookId?: string): Promise<Note[]> {
     return filtered;
 }
 
-async function add(userId: string, data: NoteData): Promise<HasId> {
+async function add(accountId: string, data: NoteData): Promise<HasId> {
     const doc: DbNote = {
-        userId,
+        accountId,
         content: data.content,
         title: data.title,
         lastEdited: new Date(),
@@ -72,7 +72,7 @@ async function add(userId: string, data: NoteData): Promise<HasId> {
     return pick(result, ['_id']);
 }
 
-async function update(userId: string, noteId: string, data: Partial<NoteData>): Promise<boolean> {
+async function update(accountId: string, noteId: string, data: Partial<NoteData>): Promise<boolean> {
     const updates: Partial<DbNote> = {
         ...data.content && { content: data.content },
         ...data.title && { title: data.title },
@@ -80,16 +80,16 @@ async function update(userId: string, noteId: string, data: Partial<NoteData>): 
     };
 
     const result = await docs.findOneAndUpdate(
-        { userId, _id: noteId },
+        { accountId, _id: noteId },
         updates,
     ).exec();
 
     return result ? true : false;
 }
 
-async function doDelete(userId: string, noteId: string): Promise<boolean> {
+async function doDelete(accountId: string, noteId: string): Promise<boolean> {
     const result = await docs
-        .findOneAndDelete({ userId, _id: noteId })
+        .findOneAndDelete({ accountId, _id: noteId })
         .exec();
 
     return result ? true : false;

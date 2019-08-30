@@ -1,6 +1,5 @@
 import { AccountInfo } from 'booka-common';
-import { addUnique, assertNever } from '../utils';
-import { model, extractDataFields, DataFromModel } from '../back-utils';
+import { model, DataFromModel } from '../back-utils';
 import { FacebookUserInfo } from '../auth';
 
 const schema = {
@@ -55,7 +54,7 @@ async function forFacebook(facebookInfo: FacebookUserInfo): Promise<AccountInfo>
     }
 
     return {
-        _id: doc._id,
+        _id: doc._id.toString(),
         name: doc.name,
         pictureUrl: doc.pictureUrl,
         joined: doc.joined,

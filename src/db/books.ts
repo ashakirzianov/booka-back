@@ -5,7 +5,6 @@ import { config } from '../config';
 import { createFetcher } from '../fetcher';
 import { File } from '../back-utils';
 import { tags } from './tags';
-import { users } from './users';
 
 const lib = createFetcher<LibContract>(config().libUrl);
 
@@ -19,17 +18,17 @@ async function download(id: string): Promise<Book | undefined> {
         : undefined;
 }
 
-async function all(page?: number, userId?: string): Promise<BookInfo[]> {
+async function all(page?: number, accountId?: string): Promise<BookInfo[]> {
     const result = await lib.get('/all', {
         query: { page },
     });
 
     return result.success
-        ? enhanceBookInfos(result.value.values, userId)
+        ? enhanceBookInfos(result.value.values, accountId)
         : [];
 }
 
-export async function forIds(bookIds: string[], userId?: string): Promise<BookInfo[]> {
+export async function forIds(bookIds: string[], accountId?: string): Promise<BookInfo[]> {
     const result = await lib.get('/info', {
         query: {
             ids: bookIds,
@@ -37,16 +36,16 @@ export async function forIds(bookIds: string[], userId?: string): Promise<BookIn
     });
 
     if (result.success) {
-        return enhanceBookInfos(result.value, userId);
+        return enhanceBookInfos(result.value, accountId);
     } else {
         return [];
     }
 }
 
-async function enhanceBookInfos(bookInfos: BookInfo[], userId?: string): Promise<BookInfo[]> {
-    if (userId) {
+async function enhanceBookInfos(bookInfos: BookInfo[], accountId?: string): Promise<BookInfo[]> {
+    if (accountId) {
         const enhanced = await Promise.all(
-            bookInfos.map(bi => enhanceBookInfo(bi, userId))
+            bookInfos.map(bi => enhanceBookInfo(bi, accountId))
         );
 
         return enhanced;
@@ -55,23 +54,23 @@ async function enhanceBookInfos(bookInfos: BookInfo[], userId?: string): Promise
     }
 }
 
-async function enhanceBookInfo(bookInfo: BookInfo, userId: string): Promise<BookInfo> {
-    const userTags = await tags.forBook(userId, bookInfo.id);
+async function enhanceBookInfo(bookInfo: BookInfo, accountId: string): Promise<BookInfo> {
+    const userTags = await tags.forBook(accountId, bookInfo.id);
     return {
         ...bookInfo,
         tags: [...bookInfo.tags, ...userTags],
     };
 }
 
-async function forTags(userId: string, tagNames: KnownTagName[]): Promise<BookInfo[]> {
-    const ids = await tags.bookIds(userId, tagNames);
+async function forTags(accountId: string, tagNames: KnownTagName[]): Promise<BookInfo[]> {
+    const ids = await tags.bookIds(accountId, tagNames);
     const infos = await forIds(ids);
-    const enhanced = await enhanceBookInfos(infos, userId);
+    const enhanced = await enhanceBookInfos(infos, accountId);
 
     return enhanced;
 }
 
-async function upload(file: File, userId: string): Promise<string | undefined> {
+async function upload(file: File, accountId: string): Promise<string | undefined> {
     const files = {
         book: file,
     };
@@ -85,8 +84,8 @@ async function upload(file: File, userId: string): Promise<string | undefined> {
     if (result.success) {
         const bookId = result.value;
         if (bookId) {
-            const bookAdded = await users.addUploadedBook(userId, bookId);
-            return bookAdded ? bookId : undefined;
+            await tags.addTag(accountId, bookId, { tag: 'uploaded' });
+            return bookId;
         }
     }
 

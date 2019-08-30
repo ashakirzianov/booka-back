@@ -6,7 +6,7 @@ import { KnownTagName } from 'booka-common';
 router.get('/books', authenticate(async ctx => {
     const tags = ctx.query.tags;
     if (tags && tags.length > 0) {
-        const result = await books.forTags(ctx.userId, tags as KnownTagName[]);
+        const result = await books.forTags(ctx.accountId, tags as KnownTagName[]);
 
         return {
             success: {
@@ -45,16 +45,13 @@ router.get('/books/all', async ctx => {
 });
 
 router.post('/books/upload', authenticate(async ctx => {
-    if (!ctx.userId) {
-        return { fail: 'Can\'t get user' };
-    }
     const files = ctx.request.files;
     const book = files && files.book;
     if (!book) {
         return { fail: 'Book is not attached' };
     }
 
-    const bookId = await books.upload(book, ctx.userId);
+    const bookId = await books.upload(book, ctx.accountId);
     return bookId
         ? { success: bookId.toString() }
         : { fail: `Can't add book` };

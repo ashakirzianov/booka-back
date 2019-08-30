@@ -14,7 +14,7 @@ router.post('/report', authenticate(async ctx => {
         return { fail: 'Issue kind is not specified' };
     }
 
-    await reports.add(ctx.userId, commentId, kind as IssueReportKind);
+    await reports.add(ctx.accountId, commentId, kind as IssueReportKind);
 
     return { success: true };
 }));

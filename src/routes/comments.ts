@@ -19,7 +19,7 @@ router.post('/comments', authenticate(async ctx => {
         return { fail: 'Should specify comment location and data in body' };
     }
 
-    const result = await comments.addRoot(ctx.userId, body.location, body.comment);
+    const result = await comments.addRoot(ctx.accountId, body.location, body.comment);
 
     return { success: result };
 }));
@@ -35,7 +35,7 @@ router.patch('/comments', authenticate(async ctx => {
         return { fail: 'Should specify comment id' };
     }
 
-    const result = await comments.edit(ctx.userId, commentId, body);
+    const result = await comments.edit(ctx.accountId, commentId, body);
 
     return { success: result };
 }));
@@ -46,7 +46,7 @@ router.delete('/comments', authenticate(async ctx => {
         return { fail: 'Should specify comment id' };
     }
 
-    const result = await comments.delete(ctx.userId, commentId);
+    const result = await comments.delete(ctx.accountId, commentId);
 
     return { success: result };
 }));
@@ -62,7 +62,7 @@ router.post('/subcomments', authenticate(async ctx => {
         return { fail: 'Should specify comment id' };
     }
 
-    const result = await comments.addSubcomment(ctx.userId, commentId, body);
+    const result = await comments.addSubcomment(ctx.accountId, commentId, body);
 
     return { success: result };
 }));

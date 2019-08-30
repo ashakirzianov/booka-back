@@ -3,7 +3,7 @@ import { model, ObjectId, DataFromModel, extractDataFields } from '../back-utils
 import { Bookmark, HasId } from 'booka-common';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -32,9 +32,9 @@ const schema = {
 const docs = model('Bookmark', schema);
 type DbBookmark = DataFromModel<typeof docs>;
 
-async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Promise<HasId[]> {
+async function addBookmarks(accountId: string, bookId: string, bms: Bookmark[]): Promise<HasId[]> {
     const toAdd: DbBookmark[] = bms.map(b => ({
-        userId,
+        accountId,
         bookId,
         ...b,
     }));
@@ -42,7 +42,7 @@ async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Pr
     const [current, rest] = partition(toAdd, b => b.kind === 'current');
 
     const currentIds = await Promise.all(current.map(async cb => {
-        const result = await updateCurrent(userId, bookId, {
+        const result = await updateCurrent(accountId, bookId, {
             source: cb.source,
             location: cb.location,
             created: cb.created,
@@ -58,19 +58,19 @@ async function addBookmarks(userId: string, bookId: string, bms: Bookmark[]): Pr
     return ids;
 }
 
-async function forBook(userId: string, bookId: string): Promise<Bookmark[]> {
-    const result = await docs.find({ userId, bookId }).exec();
+async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
+    const result = await docs.find({ accountId, bookId }).exec();
     const withIds = result.map(extractDataFields);
 
     return withIds as Bookmark[];
 }
 
 async function updateCurrent(
-    userId: string, bookId: string,
+    accountId: string, bookId: string,
     data: Pick<Bookmark, 'source' | 'location' | 'created'>
 ): Promise<HasId> {
     const query = {
-        userId,
+        accountId,
         bookId,
         source: data.source,
         kind: 'current',
@@ -89,9 +89,9 @@ async function updateCurrent(
     return pick(result, ['_id']);
 }
 
-async function doDelete(userId: string, bookmarkId: string): Promise<boolean> {
+async function doDelete(accountId: string, bookmarkId: string): Promise<boolean> {
     const result = await docs.findById(bookmarkId).exec();
-    if (result && result.userId === userId) {
+    if (result && result.accountId === accountId) {
         result.remove();
         return true;
     }

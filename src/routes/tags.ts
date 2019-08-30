@@ -13,7 +13,7 @@ router.post('/tags', authenticate(async ctx => {
         return { fail: 'Should specify tag in body' };
     }
 
-    const result = await tags.addTag(ctx.userId, bookId, body);
+    const result = await tags.addTag(ctx.accountId, bookId, body);
 
     return { success: result };
 }));
@@ -29,7 +29,7 @@ router.delete('/tags', authenticate(async ctx => {
         return { fail: 'Tag is not specified' };
     }
 
-    const result = await tags.remove(ctx.userId, bookId, tagName);
+    const result = await tags.remove(ctx.accountId, bookId, tagName);
 
     return { success: result };
 }));

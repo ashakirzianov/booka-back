@@ -2,7 +2,7 @@ import { KnownTag, KnownTagName } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -20,9 +20,9 @@ const schema = {
 const docs = model('BookTag', schema);
 type DbTag = DataFromModel<typeof docs>;
 
-async function forBook(userId: string, bookId: string): Promise<KnownTag[]> {
+async function forBook(accountId: string, bookId: string): Promise<KnownTag[]> {
     const result = await docs
-        .find({ userId, bookId })
+        .find({ accountId, bookId })
         .exec();
 
     return result.map(r => ({
@@ -31,10 +31,10 @@ async function forBook(userId: string, bookId: string): Promise<KnownTag[]> {
     } as KnownTag));
 }
 
-async function bookIds(userId: string, tagNames: KnownTagName[]): Promise<string[]> {
+async function bookIds(accountId: string, tagNames: KnownTagName[]): Promise<string[]> {
     const result = await docs
         .find({
-            userId,
+            accountId,
             tag: { $in: tagNames },
         })
         .select('bookId')
@@ -43,16 +43,16 @@ async function bookIds(userId: string, tagNames: KnownTagName[]): Promise<string
     return result.map(r => r.bookId);
 }
 
-async function addTag(userId: string, bookId: string, tag: KnownTag): Promise<boolean> {
+async function addTag(accountId: string, bookId: string, tag: KnownTag): Promise<boolean> {
     const doc: DbTag = {
-        userId,
+        accountId,
         bookId,
         tag: tag.tag,
         value: tag.value,
     };
 
     const result = await docs.update(
-        { userId, bookId, tag: tag.tag },
+        { accountId, bookId, tag: tag.tag },
         { value: tag.value },
         { upsert: true },
     ).exec();
@@ -60,9 +60,9 @@ async function addTag(userId: string, bookId: string, tag: KnownTag): Promise<bo
     return result ? true : false;
 }
 
-async function remove(userId: string, bookId: string, tagName: KnownTagName): Promise<boolean> {
+async function remove(accountId: string, bookId: string, tagName: KnownTagName): Promise<boolean> {
     const result = await docs.deleteMany({
-        userId,
+        accountId,
         bookId,
         tag: tagName,
     });

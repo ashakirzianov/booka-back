@@ -1,3 +1,4 @@
+import './accounts';
 import './bookmarks';
 import './books';
 import './comments';
@@ -6,7 +7,6 @@ import './history';
 import './notes';
 import './reports';
 import './tags';
-import './users';
 import './votes';
 
 export { router } from './router';

@@ -5,7 +5,7 @@ import { history } from '../db';
 router.get('/history/books', authenticate(async ctx => {
     const page = ctx.query && ctx.query.page || 0;
 
-    const result = await history.forUser(ctx.userId, page);
+    const result = await history.forAccount(ctx.accountId, page);
 
     return {
         success: {
@@ -22,7 +22,7 @@ router.post('/history/books', authenticate(async ctx => {
     }
 
     const result = await Promise.all(
-        bookId.map(bi => history.open(ctx.userId, bi))
+        bookId.map(bi => history.open(ctx.accountId, bi))
     );
 
     return { success: true };
@@ -31,7 +31,7 @@ router.post('/history/books', authenticate(async ctx => {
 router.delete('/history/books', authenticate(async ctx => {
     const ids = ctx.query.id || [];
 
-    const result = await history.remove(ctx.userId, ids);
+    const result = await history.remove(ctx.accountId, ids);
 
     return { success: true };
 }));

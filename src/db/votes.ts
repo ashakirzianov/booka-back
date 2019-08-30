@@ -5,7 +5,7 @@ import { filterUndefined } from '../utils';
 import { pick } from 'lodash';
 
 const schema = {
-    userId: {
+    accountId: {
         type: ObjectId,
         required: true,
     },
@@ -39,16 +39,16 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
-async function vote(userId: string, commentId: string, kind: VoteKind): Promise<HasId> {
+async function vote(accountId: string, commentId: string, kind: VoteKind): Promise<HasId> {
     const doc: DbVote = {
-        userId,
+        accountId,
         commentId,
         kind,
         created: new Date(),
     };
 
-    const result = await docs.update(
-        { userId, commentId },
+    const result = await docs.updateOne(
+        { accountId, commentId },
         { kind, created: new Date() },
         { upsert: true, new: true },
     ).exec();
@@ -56,17 +56,17 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
     return pick(result, ['_id']);
 }
 
-async function remove(userId: string, voteId: string): Promise<boolean> {
+async function remove(accountId: string, voteId: string): Promise<boolean> {
     const result = await docs
-        .findOneAndDelete({ _id: voteId, userId })
+        .findOneAndDelete({ _id: voteId, accountId })
         .exec();
     return result ? true : false;
 }
 
-async function all(userId: string, page: number, bookId?: string): Promise<Vote[]> {
+async function all(accountId: string, page: number, bookId?: string): Promise<Vote[]> {
     const votesPageSize = 100;
     const allVoteDocs = await docs
-        .find({ userId })
+        .find({ accountId })
         .skip(page * votesPageSize)
         .limit(votesPageSize)
         .exec();

@@ -6,7 +6,7 @@ router.get('/votes', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
     const page = ctx.query.page || 0;
 
-    const result = await votes.all(ctx.userId, page, bookId);
+    const result = await votes.all(ctx.accountId, page, bookId);
 
     return {
         success: {
@@ -27,7 +27,7 @@ router.post('/votes', authenticate(async ctx => {
         return { fail: 'Should specify kind' };
     }
 
-    const result = await votes.vote(ctx.userId, commentId, kind);
+    const result = await votes.vote(ctx.accountId, commentId, kind);
     return { success: result };
 }));
 
@@ -37,7 +37,7 @@ router.delete('/votes', authenticate(async ctx => {
         return { fail: 'Should specify vote id' };
     }
 
-    const result = await votes.remove(ctx.userId, voteId);
+    const result = await votes.remove(ctx.accountId, voteId);
 
     return { success: result };
 }));
