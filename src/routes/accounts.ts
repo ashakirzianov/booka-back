@@ -13,9 +13,9 @@ router.get('/auth/fbtoken', async ctx => {
         return { fail: `Can't validate fb token: '${fbToken}'` };
     }
 
-    const user = await accounts.forFacebook(fbInfo);
+    const account = await accounts.forFacebook(fbInfo);
 
-    const accessToken = generateToken(user._id);
+    const accessToken = generateToken(account._id);
     return {
         success: {
             token: accessToken,
@@ -27,5 +27,5 @@ router.get('/me/info', authenticate(async ctx => {
     const accountInfo = await accounts.info(ctx.accountId);
     return accountInfo
         ? { success: accountInfo }
-        : { fail: `Can't find user for id: ${ctx.accountId}` };
+        : { fail: `Can't find account for id: ${ctx.accountId}` };
 }));

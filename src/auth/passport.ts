@@ -15,7 +15,7 @@ passport.use(new Strategy({
         const accountId = payload.sub;
         return done(null, accountId);
     } catch (e) {
-        return done(null, false, { message: `Couldn\'t find user: ${e}` });
+        return done(null, false, { message: `Couldn\'t find account: ${e}` });
     }
 }));
 
@@ -27,9 +27,9 @@ export function authenticate<C extends PathMethodContract & AuthContract>(handle
         await passport.authenticate(
             'jwt',
             { session: false },
-            async (err, user) => {
-                if (user) {
-                    accountIdToSet = user;
+            async (err, account) => {
+                if (account) {
+                    accountIdToSet = account;
                 }
             },
         )(ctx as any, next);

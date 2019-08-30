@@ -45,9 +45,6 @@ router.get('/books/all', async ctx => {
 });
 
 router.post('/books/upload', authenticate(async ctx => {
-    if (!ctx.accountId) {
-        return { fail: 'Can\'t get user' };
-    }
     const files = ctx.request.files;
     const book = files && files.book;
     if (!book) {

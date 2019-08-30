@@ -5,7 +5,7 @@ import { history } from '../db';
 router.get('/history/books', authenticate(async ctx => {
     const page = ctx.query && ctx.query.page || 0;
 
-    const result = await history.forUser(ctx.accountId, page);
+    const result = await history.forAccount(ctx.accountId, page);
 
     return {
         success: {

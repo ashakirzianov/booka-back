@@ -24,7 +24,7 @@ const schema = {
 const docs = model('BookHistory', schema);
 type DbHistoryEvent = DataFromModel<typeof docs>;
 
-async function forUser(accountId: string, page: number): Promise<HistoryEvent[]> {
+async function forAccount(accountId: string, page: number): Promise<HistoryEvent[]> {
     const result = await paginate(
         docs.find({ accountId }),
         page,
@@ -64,7 +64,7 @@ async function remove(accountId: string, ids: string[]): Promise<boolean> {
 }
 
 export const history = {
-    forUser,
+    forAccount,
     open,
     remove,
 };
