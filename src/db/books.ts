@@ -5,7 +5,6 @@ import { config } from '../config';
 import { createFetcher } from '../fetcher';
 import { File } from '../back-utils';
 import { tags } from './tags';
-import { users } from './users';
 
 const lib = createFetcher<LibContract>(config().libUrl);
 
@@ -85,8 +84,9 @@ async function upload(file: File, userId: string): Promise<string | undefined> {
     if (result.success) {
         const bookId = result.value;
         if (bookId) {
-            const bookAdded = await users.addUploadedBook(userId, bookId);
-            return bookAdded ? bookId : undefined;
+            // const bookAdded = await users.addUploadedBook(userId, bookId);
+            // return bookAdded ? bookId : undefined;
+            return bookId;
         }
     }
 
