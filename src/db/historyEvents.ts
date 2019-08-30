@@ -52,7 +52,19 @@ async function open(userId: string, bookId: string): Promise<HasId | undefined> 
     return pick(result, ['_id']);
 }
 
+async function remove(userId: string, ids: string[]): Promise<boolean> {
+    const result = await docs
+        .deleteMany({
+            userId,
+            _id: { $in: ids },
+        })
+        .exec();
+
+    return true;
+}
+
 export const history = {
     forUser,
     open,
+    remove,
 };
