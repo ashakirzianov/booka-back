@@ -84,8 +84,7 @@ async function upload(file: File, accountId: string): Promise<string | undefined
     if (result.success) {
         const bookId = result.value;
         if (bookId) {
-            // const bookAdded = await users.addUploadedBook(accountId, bookId);
-            // return bookAdded ? bookId : undefined;
+            await tags.addTag(accountId, bookId, { tag: 'uploaded' });
             return bookId;
         }
     }
