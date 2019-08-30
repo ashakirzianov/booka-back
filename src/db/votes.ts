@@ -59,8 +59,13 @@ async function remove(userId: string, voteId: string): Promise<boolean> {
     return result ? true : false;
 }
 
-async function all(userId: string, bookId?: string): Promise<Array<Vote & HasId>> {
-    const allVoteDocs = await docs.find({ userId }).exec();
+async function all(userId: string, page: number, bookId?: string): Promise<Array<Vote & HasId>> {
+    const votesPageSize = 100;
+    const allVoteDocs = await docs
+        .find({ userId })
+        .skip(page * votesPageSize)
+        .limit(votesPageSize)
+        .exec();
     const allVotes = filterUndefined(
         await Promise.all(allVoteDocs.map(buildVote))
     );
