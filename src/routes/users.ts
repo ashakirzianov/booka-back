@@ -1,4 +1,4 @@
-import { users } from '../db';
+import { accounts } from '../db';
 import { getFbUserInfo, generateToken, authenticate } from '../auth';
 import { router } from './router';
 
@@ -8,44 +8,24 @@ router.get('/auth/fbtoken', async ctx => {
         return { fail: 'Facebook token is not specified' };
     }
 
-    const userInfo = await getFbUserInfo(fbToken);
-    if (!userInfo) {
+    const fbInfo = await getFbUserInfo(fbToken);
+    if (!fbInfo) {
         return { fail: `Can't validate fb token: '${fbToken}'` };
     }
 
-    const user = await users.updateOrCreate(
-        {
-            provider: 'facebook',
-            id: userInfo.facebookId,
-        },
-        {
-            name: userInfo.name,
-            pictureUrl: userInfo.profilePicture,
-        }
-    );
+    const user = await accounts.forFacebook(fbInfo);
 
-    if (user) {
-        const accessToken = generateToken(user._id);
-        return {
-            success: {
-                token: accessToken,
-            },
-        };
-    } else {
-        return { fail: 'Can\'t create user' };
-    }
+    const accessToken = generateToken(user._id);
+    return {
+        success: {
+            token: accessToken,
+        },
+    };
 });
 
 router.get('/me/info', authenticate(async ctx => {
-    const userInfo = await users.getInfo(ctx.userId);
-    return { success: userInfo };
-}));
-
-router.get('/me/books', authenticate(async ctx => {
-    const books = await users.getUploadedBooks(ctx.userId);
-    return {
-        success: {
-            books: books,
-        },
-    };
+    const accountInfo = await accounts.info(ctx.userId);
+    return accountInfo
+        ? { success: accountInfo }
+        : { fail: `Can't find user for id: ${ctx.userId}` };
 }));
