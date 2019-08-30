@@ -1,4 +1,5 @@
 export * from './bookmarks';
+export * from './books';
 export * from './comments';
 export * from './highlights';
 export * from './notes';
