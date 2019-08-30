@@ -51,7 +51,11 @@ async function addTag(userId: string, bookId: string, tag: KnownTag): Promise<bo
         value: tag.value,
     };
 
-    const [result] = await docs.insertMany([doc]);
+    const result = await docs.update(
+        { userId, bookId, tag: tag.tag },
+        { value: tag.value },
+        { upsert: true },
+    );
 
     return result ? true : false;
 }
