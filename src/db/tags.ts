@@ -55,7 +55,7 @@ async function addTag(userId: string, bookId: string, tag: KnownTag): Promise<bo
         { userId, bookId, tag: tag.tag },
         { value: tag.value },
         { upsert: true },
-    );
+    ).exec();
 
     return result ? true : false;
 }

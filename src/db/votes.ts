@@ -47,7 +47,11 @@ async function vote(userId: string, commentId: string, kind: VoteKind): Promise<
         created: new Date(),
     };
 
-    const [result] = await docs.insertMany([doc]);
+    const result = await docs.update(
+        { userId, commentId },
+        { kind, created: new Date() },
+        { upsert: true, new: true },
+    ).exec();
 
     return pick(result, ['_id']);
 }
