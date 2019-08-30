@@ -1,5 +1,6 @@
 import { HistoryEventKind, HistoryEvent, HasId } from 'booka-common';
 import { model, DataFromModel, ObjectId, paginate } from '../back-utils';
+import { pick } from 'lodash';
 
 const schema = {
     userId: {
@@ -37,6 +38,21 @@ async function forUser(userId: string, page: number): Promise<Array<HistoryEvent
     }));
 }
 
+async function open(userId: string, bookId: string): Promise<HasId | undefined> {
+    const kind: HistoryEventKind = 'book-open';
+    const doc: DbHistoryEvent = {
+        kind,
+        userId,
+        bookId,
+        date: new Date(),
+    };
+
+    const [result] = await docs.insertMany([doc]);
+
+    return pick(result, ['_id']);
+}
+
 export const history = {
     forUser,
+    open,
 };
