@@ -36,6 +36,6 @@ async function add(userId: string, commentId: string, kind: IssueReportKind): Pr
     return result ? true : false;
 }
 
-export const report = {
+export const reports = {
     add,
 };

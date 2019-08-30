@@ -4,6 +4,7 @@ export * from './comments';
 export * from './highlights';
 export * from './historyEvents';
 export * from './notes';
+export * from './reports';
 export * from './tags';
 export * from './users';
 export * from './votes';
