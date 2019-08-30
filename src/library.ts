@@ -28,16 +28,34 @@ export async function getAllBooks(page?: number): Promise<BookInfo[]> {
         : [];
 }
 
-export async function getInfos(bookIds: string[]): Promise<BookInfo[]> {
+export async function getInfos(bookIds: string[], userId?: string): Promise<BookInfo[]> {
     const result = await lib.get('/info', {
         query: {
             ids: bookIds,
         },
     });
 
-    return result.success
-        ? result.value
-        : [];
+    if (result.success) {
+        if (userId) {
+            const enhanced = await Promise.all(
+                result.value.map(bi => enhanceBookInfo('', bi))
+            );
+
+            return enhanced;
+        } else {
+            return result.value;
+        }
+    } else {
+        return [];
+    }
+}
+
+async function enhanceBookInfo(userId: string, bookInfo: BookInfo): Promise<BookInfo> {
+    const userTags = await tags.forBook(userId, bookInfo.id);
+    return {
+        ...bookInfo,
+        tags: [...bookInfo.tags, ...userTags],
+    };
 }
 
 export async function forTag(userId: string, tag: string): Promise<BookInfo[]> {
