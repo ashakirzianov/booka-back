@@ -31,9 +31,12 @@ async function forBook(userId: string, bookId: string): Promise<KnownTag[]> {
     } as KnownTag));
 }
 
-async function bookIds(userId: string, tagName: KnownTagName): Promise<string[]> {
+async function bookIds(userId: string, tagNames: KnownTagName[]): Promise<string[]> {
     const result = await docs
-        .find({ userId, tag: tagName })
+        .find({
+            userId,
+            tag: { $in: tagNames },
+        })
         .select('bookId')
         .exec();
 

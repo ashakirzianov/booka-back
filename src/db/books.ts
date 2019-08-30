@@ -63,11 +63,12 @@ async function enhanceBookInfo(bookInfo: BookInfo, userId: string): Promise<Book
     };
 }
 
-async function forTag(userId: string, tag: KnownTagName): Promise<BookInfo[]> {
-    const ids = await tags.bookIds(userId, tag);
+async function forTags(userId: string, tagNames: KnownTagName[]): Promise<BookInfo[]> {
+    const ids = await tags.bookIds(userId, tagNames);
     const infos = await forIds(ids);
+    const enhanced = await enhanceBookInfos(infos, userId);
 
-    return infos;
+    return enhanced;
 }
 
 async function upload(file: File, userId: string): Promise<string | undefined> {
@@ -115,5 +116,5 @@ export const books = {
     upload,
     all,
     forIds,
-    forTag,
+    forTags,
 };

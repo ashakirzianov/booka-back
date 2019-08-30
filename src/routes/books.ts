@@ -1,6 +1,22 @@
 import { router } from './router';
 import { authenticate } from '../auth';
 import { books } from '../db';
+import { KnownTagName } from 'booka-common';
+
+router.get('/books', authenticate(async ctx => {
+    const tags = ctx.query.tags;
+    if (tags && tags.length > 0) {
+        const result = await books.forTags(ctx.userId, tags as KnownTagName[]);
+
+        return {
+            success: {
+                values: result,
+            },
+        };
+    } else {
+        return { success: { values: [] } };
+    }
+}));
 
 router.get('/books/single', async ctx => {
     const id = ctx.query.id;
