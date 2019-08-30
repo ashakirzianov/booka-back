@@ -2,7 +2,7 @@ import axios from 'axios';
 import { logger } from '../log';
 
 export type FacebookUserInfo = {
-    facebookId: string,
+    id: string,
     name: string,
     profilePicture?: string,
 };
@@ -18,7 +18,7 @@ export async function getFbUserInfo(token: string): Promise<FacebookUserInfo | u
                 && data.picture.data
                 && data.picture.data.url;
             return {
-                facebookId: data.id,
+                id: data.id,
                 name: data.name,
                 profilePicture: pictureUrl,
             };
