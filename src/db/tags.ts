@@ -48,7 +48,7 @@ async function addTag(accountId: string, bookId: string, tag: KnownTag): Promise
         accountId,
         bookId,
         tag: tag.tag,
-        value: tag.value,
+        value: tag.value as any,
     };
 
     const result = await docs.update(
