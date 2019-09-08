@@ -5,7 +5,7 @@ export async function connectDb() {
     Mongoose.set('useFindAndModify', false);
     Mongoose.set('useCreateIndex', true);
 
-    Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/booka');
+    Mongoose.connect(process.env.BACK_MONGODB_URI || 'mongodb://localhost:27017/booka');
 }
 
 export async function dropDb() {
