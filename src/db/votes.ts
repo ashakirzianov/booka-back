@@ -1,7 +1,6 @@
-import { VoteKind, HasId, Vote, CommentDescription } from 'booka-common';
+import { VoteKind, HasId, Vote, filterUndefined } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { comments } from './comments';
-import { filterUndefined } from '../utils';
 import { pick } from 'lodash';
 
 const schema = {
