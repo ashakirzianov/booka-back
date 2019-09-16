@@ -1,13 +1,9 @@
 import {
-    Comment, HasId, CommentContentNode,
-    CommentKind, CommentLocation, CommentData,
-    extractSpanText,
-    CommentDescription,
-    isSubpath,
+    Comment, HasId, CommentContentNode, CommentKind, CommentLocation, CommentData, extractSpanText,
+    CommentDescription, isSubpath, filterUndefined,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { votes } from './votes';
-import { filterUndefined } from '../utils';
 import { pick } from 'lodash';
 
 const schema = {
