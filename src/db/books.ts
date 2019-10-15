@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as FormData from 'form-data';
-import { Book, LibContract, BookInfo, KnownTagName } from 'booka-common';
+import { Book, LibContract, BookDesc, KnownTagName } from 'booka-common';
 import { config } from '../config';
 import { createFetcher } from '../fetcher';
 import { File } from '../back-utils';
@@ -18,7 +18,7 @@ async function download(id: string): Promise<Book | undefined> {
         : undefined;
 }
 
-async function all(page?: number, accountId?: string): Promise<BookInfo[]> {
+async function all(page?: number, accountId?: string): Promise<BookDesc[]> {
     const result = await lib.get('/all', {
         query: { page },
     });
@@ -28,7 +28,7 @@ async function all(page?: number, accountId?: string): Promise<BookInfo[]> {
         : [];
 }
 
-export async function forIds(bookIds: string[], accountId?: string): Promise<BookInfo[]> {
+export async function forIds(bookIds: string[], accountId?: string): Promise<BookDesc[]> {
     const result = await lib.get('/info', {
         query: {
             ids: bookIds,
@@ -42,7 +42,7 @@ export async function forIds(bookIds: string[], accountId?: string): Promise<Boo
     }
 }
 
-async function enhanceBookInfos(bookInfos: BookInfo[], accountId?: string): Promise<BookInfo[]> {
+async function enhanceBookInfos(bookInfos: BookDesc[], accountId?: string): Promise<BookDesc[]> {
     if (accountId) {
         const enhanced = await Promise.all(
             bookInfos.map(bi => enhanceBookInfo(bi, accountId))
@@ -54,7 +54,7 @@ async function enhanceBookInfos(bookInfos: BookInfo[], accountId?: string): Prom
     }
 }
 
-async function enhanceBookInfo(bookInfo: BookInfo, accountId: string): Promise<BookInfo> {
+async function enhanceBookInfo(bookInfo: BookDesc, accountId: string): Promise<BookDesc> {
     const userTags = await tags.forBook(accountId, bookInfo.id);
     return {
         ...bookInfo,
@@ -62,7 +62,7 @@ async function enhanceBookInfo(bookInfo: BookInfo, accountId: string): Promise<B
     };
 }
 
-async function forTags(accountId: string, tagNames: KnownTagName[]): Promise<BookInfo[]> {
+async function forTags(accountId: string, tagNames: KnownTagName[]): Promise<BookDesc[]> {
     const ids = await tags.bookIds(accountId, tagNames);
     const infos = await forIds(ids);
     const enhanced = await enhanceBookInfos(infos, accountId);
