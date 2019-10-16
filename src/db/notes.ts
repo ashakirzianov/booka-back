@@ -1,5 +1,5 @@
 import {
-    HasId, Note, NoteContentNode, collectReferencedBookIds, NoteData,
+    HasId, Note, NoteContentNode, iterateReferencedBookIds, NoteData,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from '../back-utils';
 import { pick } from 'lodash';
@@ -50,7 +50,7 @@ async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
     if (bookId) {
         filtered = allNotes.filter(n => {
             const nodes = n.content;
-            const ids = collectReferencedBookIds(nodes);
+            const ids = Array.from(iterateReferencedBookIds(nodes));
 
             return ids.some(id => id === bookId);
         });

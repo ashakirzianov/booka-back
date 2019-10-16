@@ -162,7 +162,7 @@ async function getLocation(doc: DbComment): Promise<CommentLocation> {
 
 function textPreview(content: CommentContentNode[]): string {
     for (const node of content) {
-        if (node.node === 'paragraph') {
+        if (node.node === 'pph') {
             return extractSpanText(node.span);
         }
     }

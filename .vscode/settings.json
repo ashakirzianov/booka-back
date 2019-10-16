@@ -30,6 +30,7 @@
         "deserialize",
         "diags",
         "epub",
+        "esnext",
         "fbtoken",
         "multiline",
         "paren",
