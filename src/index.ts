@@ -6,8 +6,8 @@ import * as fs from 'fs';
 import * as koaBody from 'koa-body';
 import * as logger from 'koa-logger';
 import { config as configEnv } from 'dotenv';
+import { connectDb } from 'booka-utils';
 import { router } from './routes';
-import { connectDb } from './connect';
 import { passport } from './auth';
 import { config, SslConfig } from './config';
 import { logDebug } from './log';
@@ -16,7 +16,7 @@ configEnv();
 startup(new Koa());
 
 async function startup(app: Koa) {
-    await connectDb();
+    await connectDb(process.env.BACK_MONGODB_URI || 'mongodb://localhost:27017/booka');
 
     app.use(logger());
     app.use(koaBody({
