@@ -17,17 +17,12 @@ router.get('/votes', authenticate(async ctx => {
 }));
 
 router.post('/votes', authenticate(async ctx => {
-    const commentId = ctx.query.commentId;
-    if (!commentId) {
-        return { fail: 'Should specify comment id' };
+    const voteData = ctx.request.body;
+    if (!voteData) {
+        return { fail: 'Should specify vote data' };
     }
 
-    const kind = ctx.query.kind;
-    if (!kind) {
-        return { fail: 'Should specify kind' };
-    }
-
-    const result = await votes.vote(ctx.accountId, commentId, kind);
+    const result = await votes.vote(ctx.accountId, voteData);
     return { success: result };
 }));
 

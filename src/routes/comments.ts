@@ -3,12 +3,12 @@ import { comments } from '../db';
 import { authenticate } from '../auth';
 
 router.get('/comments', async ctx => {
-    const body = ctx.request.body;
-    if (!body) {
+    const bookLocation = ctx.request.body;
+    if (!bookLocation) {
         return { fail: 'Should specify comment location in body' };
     }
 
-    const result = await comments.forLocation(body);
+    const result = await comments.forLocation(bookLocation);
 
     return { success: result };
 });
@@ -19,7 +19,7 @@ router.post('/comments', authenticate(async ctx => {
         return { fail: 'Should specify comment location and data in body' };
     }
 
-    const result = await comments.addRoot(ctx.accountId, body.location, body.comment);
+    const result = await comments.addComment(ctx.accountId, body);
 
     return { success: result };
 }));
@@ -27,15 +27,10 @@ router.post('/comments', authenticate(async ctx => {
 router.patch('/comments', authenticate(async ctx => {
     const body = ctx.request.body;
     if (!body) {
-        return { fail: 'Should specify comment data in body' };
+        return { fail: 'Should specify comment update in body' };
     }
 
-    const commentId = ctx.query.commentId;
-    if (!commentId) {
-        return { fail: 'Should specify comment id' };
-    }
-
-    const result = await comments.edit(ctx.accountId, commentId, body);
+    const result = await comments.edit(ctx.accountId, body);
 
     return { success: result };
 }));
@@ -47,22 +42,6 @@ router.delete('/comments', authenticate(async ctx => {
     }
 
     const result = await comments.delete(ctx.accountId, commentId);
-
-    return { success: result };
-}));
-
-router.post('/subcomments', authenticate(async ctx => {
-    const body = ctx.request.body;
-    if (!body) {
-        return { fail: 'Should specify comment data in body' };
-    }
-
-    const commentId = ctx.query.commentId;
-    if (!commentId) {
-        return { fail: 'Should specify comment id' };
-    }
-
-    const result = await comments.addSubcomment(ctx.accountId, commentId, body);
 
     return { success: result };
 }));

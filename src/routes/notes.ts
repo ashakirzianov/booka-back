@@ -2,7 +2,7 @@ import { router } from './router';
 import { notes } from '../db';
 import { authenticate } from '../auth';
 
-router.get('/notes/single', authenticate(async ctx => {
+router.get('/notes/id', authenticate(async ctx => {
     const noteId = ctx.query.noteId;
     if (!noteId) {
         return { fail: 'Should specify note id' };
@@ -15,7 +15,7 @@ router.get('/notes/single', authenticate(async ctx => {
         : { fail: `Couldn't find note for id: ${noteId}` };
 }));
 
-router.get('/notes/many', authenticate(async ctx => {
+router.get('/notes/book', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
 
     const result = await notes.getAll(ctx.accountId, bookId);
@@ -40,12 +40,7 @@ router.patch('/notes', authenticate(async ctx => {
         return { fail: 'Should specify note updates in body' };
     }
 
-    const noteId = ctx.query.noteId;
-    if (!noteId) {
-        return { fail: 'Should specify note id' };
-    }
-
-    const result = await notes.update(ctx.accountId, noteId, body);
+    const result = await notes.update(ctx.accountId, body);
 
     return { success: result };
 }));

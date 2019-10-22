@@ -14,33 +14,23 @@ router.get('/bookmarks', authenticate(async ctx => {
 }));
 
 router.post('/bookmarks', authenticate(async ctx => {
-    const bookId = ctx.query.bookId;
-    if (!bookId) {
-        return { fail: 'Book id is not specified' };
-    }
-
     const body = ctx.request.body;
     if (!body) {
         return { fail: 'Body should contain array of bookmarks' };
     }
 
-    const result = await bookmarks.addBookmarks(ctx.accountId, bookId, body);
+    const result = await bookmarks.addBookmark(ctx.accountId, body);
 
     return { success: result };
 }));
 
 router.put('/bookmarks/current', authenticate(async ctx => {
-    const bookId = ctx.query.bookId;
-    if (!bookId) {
-        return { fail: 'Book id is not specified' };
-    }
-
     const body = ctx.request.body;
     if (!body) {
         return { fail: 'Body should contain bookmark updates' };
     }
 
-    const result = await bookmarks.updateCurrent(ctx.accountId, bookId, body);
+    const result = await bookmarks.updateCurrent(ctx.accountId, body);
 
     return { success: result };
 }));
