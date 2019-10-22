@@ -1,5 +1,5 @@
 import { VoteKind, HasId, Vote, filterUndefined, VotePost } from 'booka-common';
-import { model, DataFromModel, ObjectId } from '../back-utils';
+import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { comments } from './comments';
 import { pick } from 'lodash';
 

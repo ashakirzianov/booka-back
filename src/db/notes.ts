@@ -1,7 +1,7 @@
 import {
     HasId, Note, iterateReferencedBookIds, NoteContent, NotePost, NoteUpdate,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId } from '../back-utils';
+import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {

@@ -1,4 +1,4 @@
 import { BackContract } from 'booka-common';
-import { createRouter } from '../back-utils';
+import { createRouter } from 'booka-utils';
 
 export const router = createRouter<BackContract>();

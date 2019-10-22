@@ -1,5 +1,5 @@
 import { Highlight, HasId, HighlightContent, HighlightPost } from 'booka-common';
-import { model, ObjectId, DataFromModel } from '../back-utils';
+import { model, ObjectId, DataFromModel } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {

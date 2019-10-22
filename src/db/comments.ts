@@ -2,7 +2,7 @@ import {
     Comment, HasId, CommentContentNode, CommentKind,
     extractSpanText, isSubpath, filterUndefined, BookPositionLocator, CommentPost, CommentUpdate, CommentTargetLocator,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId } from '../back-utils';
+import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { votes } from './votes';
 import { pick } from 'lodash';
 

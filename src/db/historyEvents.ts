@@ -1,5 +1,5 @@
 import { HistoryEventKind, HistoryEvent, HasId } from 'booka-common';
-import { model, DataFromModel, ObjectId, paginate } from '../back-utils';
+import { model, DataFromModel, ObjectId, paginate } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {
