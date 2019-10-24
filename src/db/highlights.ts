@@ -1,5 +1,5 @@
-import { Highlight, HasId } from 'booka-common';
-import { model, ObjectId, DataFromModel } from '../back-utils';
+import { Highlight, HasId, HighlightContent, HighlightPost } from 'booka-common';
+import { model, ObjectId, DataFromModel } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {
@@ -23,7 +23,7 @@ const schema = {
         type: [Number],
         required: true,
     },
-    comment: String,
+    comment: [Object],
 } as const;
 
 const docs = model('Highlight', schema);
@@ -34,19 +34,23 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
     return result.map(r => ({
         _id: r._id.toString(),
         group: r.group,
-        range: {
+        location: {
+            loc: 'book-range',
+            id: bookId,
             start: r.start,
             end: r.end,
         },
-        comment: r.comment,
+        comment: r.comment as HighlightContent[],
     }));
 }
 
-async function addHighlight(accountId: string, bookId: string, highlight: Highlight): Promise<HasId> {
+async function addHighlight(accountId: string, highlight: HighlightPost): Promise<HasId> {
     const doc: DbHighlight = {
         accountId,
-        bookId,
-        ...convert(highlight),
+        group: highlight.group,
+        bookId: highlight.location.id,
+        start: highlight.location.start,
+        end: highlight.location.end || highlight.location.start,
     };
 
     const [result] = await docs.insertMany([doc]);
@@ -54,10 +58,10 @@ async function addHighlight(accountId: string, bookId: string, highlight: Highli
     return pick(result, ['_id']);
 }
 
-async function update(accountId: string, highlightId: string, highlight: Partial<Highlight>) {
+async function update(accountId: string, highlight: Partial<Highlight>) {
     const doc = convertPartial(highlight);
     const result = await docs.findOneAndUpdate({
-        _id: highlightId,
+        _id: highlight._id,
         accountId,
     }, doc).exec();
     return result ? true : false;
@@ -74,15 +78,11 @@ function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
     return {
         ...highlight.group && { group: highlight.group },
         ...highlight.comment && { comment: highlight.comment },
-        ...highlight.range && {
-            start: highlight.range.start,
-            end: highlight.range.end || highlight.range.start,
+        ...highlight.location && {
+            start: highlight.location.start,
+            end: highlight.location.end || highlight.location.start,
         },
     };
-}
-
-function convert(highlight: Highlight): Omit<DbHighlight, 'bookId' | 'accountId'> {
-    return convertPartial(highlight) as any;
 }
 
 export const highlights = {

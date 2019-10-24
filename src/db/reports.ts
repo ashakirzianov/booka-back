@@ -1,5 +1,5 @@
 import { IssueReportKind } from 'booka-common';
-import { model, DataFromModel, ObjectId } from '../back-utils';
+import { model, DataFromModel, ObjectId } from 'booka-utils';
 
 const schema = {
     accountId: {

@@ -1,7 +1,7 @@
 import {
-    HasId, Note, NoteContentNode, iterateReferencedBookIds, NoteData,
+    HasId, Note, iterateReferencedBookIds, NoteContent, NotePost, NoteUpdate,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId } from '../back-utils';
+import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {
@@ -28,7 +28,7 @@ async function getOne(accountId: string, noteId: string): Promise<Note | undefin
     if (doc && doc.accountId === accountId) {
         const note: Note = {
             _id: doc._id,
-            content: doc.content as NoteContentNode[],
+            content: doc.content as NoteContent[],
             title: doc.title,
             lastEdited: doc.lastEdited,
         };
@@ -43,7 +43,7 @@ async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
         _id: d._id.toString(),
         lastEdited: d.lastEdited,
         title: d.title,
-        content: d.content as NoteContentNode[],
+        content: d.content as NoteContent[],
     }));
 
     let filtered = allNotes;
@@ -59,7 +59,7 @@ async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
     return filtered;
 }
 
-async function add(accountId: string, data: NoteData): Promise<HasId> {
+async function add(accountId: string, data: NotePost): Promise<HasId> {
     const doc: DbNote = {
         accountId,
         content: data.content,
@@ -72,7 +72,7 @@ async function add(accountId: string, data: NoteData): Promise<HasId> {
     return pick(result, ['_id']);
 }
 
-async function update(accountId: string, noteId: string, data: Partial<NoteData>): Promise<boolean> {
+async function update(accountId: string, data: NoteUpdate): Promise<boolean> {
     const updates: Partial<DbNote> = {
         ...data.content && { content: data.content },
         ...data.title && { title: data.title },
@@ -80,7 +80,7 @@ async function update(accountId: string, noteId: string, data: Partial<NoteData>
     };
 
     const result = await docs.findOneAndUpdate(
-        { accountId, _id: noteId },
+        { accountId, _id: data._id },
         updates,
     ).exec();
 

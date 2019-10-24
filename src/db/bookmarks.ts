@@ -1,6 +1,6 @@
-import { partition, pick } from 'lodash';
-import { model, ObjectId, DataFromModel, extractDataFields } from '../back-utils';
-import { Bookmark, HasId } from 'booka-common';
+import { pick } from 'lodash';
+import { model, ObjectId, DataFromModel, extractDataFields } from 'booka-utils';
+import { Bookmark, HasId, CurrentBookmarkUpdate, BookmarkKind, BookmarkSource, BookmarkPost } from 'booka-common';
 
 const schema = {
     accountId: {
@@ -19,7 +19,7 @@ const schema = {
         type: String,
         required: true,
     },
-    location: {
+    path: {
         type: [Number],
         required: true,
     },
@@ -32,52 +32,63 @@ const schema = {
 const docs = model('Bookmark', schema);
 type DbBookmark = DataFromModel<typeof docs>;
 
-async function addBookmarks(accountId: string, bookId: string, bms: Bookmark[]): Promise<HasId[]> {
-    const toAdd: DbBookmark[] = bms.map(b => ({
-        accountId,
-        bookId,
-        ...b,
-    }));
-
-    const [current, rest] = partition(toAdd, b => b.kind === 'current');
-
-    const currentIds = await Promise.all(current.map(async cb => {
-        const result = await updateCurrent(accountId, bookId, {
-            source: cb.source,
-            location: cb.location,
-            created: cb.created,
+async function addBookmark(accountId: string, bm: BookmarkPost): Promise<HasId> {
+    if (bm.kind === 'current') {
+        const result = await updateCurrent(accountId, {
+            source: bm.source,
+            location: bm.location,
+            created: bm.created,
         });
 
-        return result;
-    }));
+        return pick(result, ['_id']);
+    } else {
+        const toAdd: DbBookmark = {
+            accountId,
+            bookId: bm.location.id,
+            path: bm.location.path,
+            kind: bm.kind,
+            source: bm.source,
+            created: bm.created,
+        };
+        const [result] = await docs.insertMany([toAdd]);
 
-    const restResult = await docs.insertMany(rest);
-    const restIds = restResult.map(r => pick(r, ['_id']));
-
-    const ids = [...restIds, ...currentIds];
-    return ids;
+        return pick(result, ['_id']);
+    }
 }
 
 async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
     const result = await docs.find({ accountId, bookId }).exec();
-    const withIds = result.map(extractDataFields);
+    const withIds = result
+        .map(extractDataFields)
+        .map<Bookmark>(db => ({
+            _id: db._id,
+            source: db.source as BookmarkSource,
+            kind: db.kind as BookmarkKind,
+            location: {
+                loc: 'book-pos',
+                id: db.bookId,
+                path: db.path,
+            },
+            created: db.created,
+            preview: '', // TODO: implement
+        }));
 
     return withIds as Bookmark[];
 }
 
 async function updateCurrent(
-    accountId: string, bookId: string,
-    data: Pick<Bookmark, 'source' | 'location' | 'created'>
+    accountId: string,
+    data: CurrentBookmarkUpdate,
 ): Promise<HasId> {
     const query = {
         accountId,
-        bookId,
+        bookId: data.location.id,
         source: data.source,
         kind: 'current',
     } as const;
     const doc: DbBookmark = {
         ...query,
-        location: data.location,
+        path: data.location.path,
         created: data.created,
     };
     const result = await docs.findOneAndUpdate(
@@ -100,7 +111,7 @@ async function doDelete(accountId: string, bookmarkId: string): Promise<boolean>
 }
 
 export const bookmarks = {
-    addBookmarks,
+    addBookmark,
     forBook,
     updateCurrent,
     delete: doDelete,

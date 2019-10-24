@@ -1,5 +1,5 @@
 import { AccountInfo } from 'booka-common';
-import { model, DataFromModel } from '../back-utils';
+import { model, DataFromModel } from 'booka-utils';
 import { FacebookUserInfo } from '../auth';
 
 const schema = {

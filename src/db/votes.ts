@@ -1,5 +1,5 @@
-import { VoteKind, HasId, Vote, filterUndefined } from 'booka-common';
-import { model, DataFromModel, ObjectId } from '../back-utils';
+import { VoteKind, HasId, Vote, filterUndefined, VotePost } from 'booka-common';
+import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { comments } from './comments';
 import { pick } from 'lodash';
 
@@ -38,17 +38,17 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
-async function vote(accountId: string, commentId: string, kind: VoteKind): Promise<HasId> {
+async function vote(accountId: string, data: VotePost): Promise<HasId> {
     const doc: DbVote = {
         accountId,
-        commentId,
-        kind,
+        commentId: data.commentId,
+        kind: data.kind,
         created: new Date(),
     };
 
     const result = await docs.updateOne(
-        { accountId, commentId },
-        { kind, created: new Date() },
+        { accountId, commentId: data.commentId },
+        { kind: data.kind, created: new Date() },
         { upsert: true, new: true },
     ).exec();
 
@@ -73,26 +73,21 @@ async function all(accountId: string, page: number, bookId?: string): Promise<Vo
         await Promise.all(allVoteDocs.map(buildVote))
     );
 
-    const filtered = bookId
-        ? allVotes.filter(
-            v =>
-                v.comment.location && v.comment.location.bookId === bookId
-        )
-        : allVotes;
-
-    return filtered;
+    // TODO: implement filtering by book id
+    return allVotes;
 }
 
 async function buildVote(doc: DbVote & HasId): Promise<Vote | undefined> {
-    const description = await comments.description(doc.commentId);
-    if (!description) {
+    const preview = await comments.preview(doc.commentId);
+    if (!preview) {
         return undefined;
     }
 
     const result: Vote = {
         _id: doc._id.toString(),
         kind: doc.kind as VoteKind,
-        comment: description,
+        commentId: doc.commentId,
+        commentPreview: preview,
     };
 
     return result;
