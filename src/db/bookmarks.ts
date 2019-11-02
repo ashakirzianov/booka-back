@@ -44,7 +44,7 @@ async function addBookmark(accountId: string, bm: BookmarkPost): Promise<HasId> 
     } else {
         const toAdd: DbBookmark = {
             accountId,
-            bookId: bm.location.id,
+            bookId: bm.location.bookId,
             path: bm.location.path,
             kind: bm.kind,
             source: bm.source,
@@ -65,8 +65,7 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
             source: db.source as BookmarkSource,
             kind: db.kind as BookmarkKind,
             location: {
-                loc: 'book-pos',
-                id: db.bookId,
+                bookId: db.bookId,
                 path: db.path,
             },
             created: db.created,
@@ -82,7 +81,7 @@ async function updateCurrent(
 ): Promise<HasId> {
     const query = {
         accountId,
-        bookId: data.location.id,
+        bookId: data.location.bookId,
         source: data.source,
         kind: 'current',
     } as const;

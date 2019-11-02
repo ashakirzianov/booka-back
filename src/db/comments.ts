@@ -1,6 +1,7 @@
 import {
     Comment, HasId, CommentContentNode, CommentKind,
-    extractSpanText, isSubpath, filterUndefined, BookPositionLocator, CommentPost, CommentUpdate, CommentTargetLocator,
+    extractSpanText, isSubpath, filterUndefined,
+    CommentPost, CommentUpdate, CommentTargetLocator, BookPath,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { votes } from './votes';
@@ -11,9 +12,10 @@ const schema = {
         type: ObjectId,
         required: true,
     },
-    bookId: String,
-    path: [Number],
-    parentId: ObjectId,
+    location: {
+        type: Object,
+        required: true,
+    },
     kind: {
         type: String,
         required: true,
@@ -31,31 +33,25 @@ const schema = {
 const docs = model('BookPathComment', schema);
 type DbComment = DataFromModel<typeof docs>;
 
-async function forLocation(location: BookPositionLocator): Promise<Comment[]> {
+async function forLocation(location: CommentTargetLocator): Promise<Comment[]> {
     const allDocs = await docs.find({
-        bookId: location.id,
+        location,
     }).exec();
-    const filtered = location.path.length > 0
-        ? allDocs.filter(d => d.path && isSubpath(location.path, d.path))
-        : allDocs;
 
     const result = filterUndefined(await Promise.all(
-        filtered.map(buildComment)
+        allDocs.map(buildComment)
     ));
 
     return result;
 }
 
 async function addComment(accountId: string, data: CommentPost): Promise<HasId> {
-    const locationFields = data.target.loc === 'book-pos'
-        ? { bookId: data.target.id, path: data.target.path }
-        : { parentId: data.target.id };
     const doc: DbComment = {
         accountId,
         kind: data.kind,
         content: data.content,
         lastEdited: new Date(),
-        ...locationFields,
+        location: data.target,
     };
     const [result] = await docs.insertMany([doc]);
 
@@ -116,22 +112,7 @@ async function preview(id: string): Promise<string | undefined> {
 }
 
 function getLocation(doc: DbComment): CommentTargetLocator {
-    if (doc.bookId && doc.path) {
-        return {
-            loc: 'book-pos',
-            id: doc.bookId,
-            path: doc.path,
-        };
-    }
-
-    if (doc.parentId) {
-        return {
-            loc: 'comment',
-            id: doc.parentId,
-        };
-    }
-
-    throw new Error(`Bad comment: ${doc}`);
+    return doc.location as CommentTargetLocator;
 }
 
 function textPreview(content: CommentContentNode[]): string {
