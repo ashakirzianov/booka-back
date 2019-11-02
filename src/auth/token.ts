@@ -4,8 +4,6 @@ import { config } from '../config';
 const jwtConfig = config().auth.jwt;
 export function generateToken(accountId: string) {
     const token = jwt.sign({}, jwtConfig.secret, {
-        // TODO: extract as const ?
-        expiresIn: '100w',
         audience: jwtConfig.audience,
         issuer: jwtConfig.issuer,
         subject: accountId,
