@@ -35,10 +35,8 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
         _id: r._id.toString(),
         group: r.group,
         location: {
-            loc: 'book-range',
-            id: bookId,
-            start: r.start,
-            end: r.end,
+            bookId,
+            range: r,
         },
         comment: r.comment as HighlightContent[],
     }));
@@ -48,9 +46,9 @@ async function addHighlight(accountId: string, highlight: HighlightPost): Promis
     const doc: DbHighlight = {
         accountId,
         group: highlight.group,
-        bookId: highlight.location.id,
-        start: highlight.location.start,
-        end: highlight.location.end || highlight.location.start,
+        bookId: highlight.location.bookId,
+        start: highlight.location.range.start,
+        end: highlight.location.range.end || highlight.location.range.start,
     };
 
     const [result] = await docs.insertMany([doc]);
@@ -79,8 +77,8 @@ function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
         ...highlight.group && { group: highlight.group },
         ...highlight.comment && { comment: highlight.comment },
         ...highlight.location && {
-            start: highlight.location.start,
-            end: highlight.location.end || highlight.location.start,
+            start: highlight.location.range.start,
+            end: highlight.location.range.end || highlight.location.range.start,
         },
     };
 }

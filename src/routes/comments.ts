@@ -1,14 +1,23 @@
 import { router } from './router';
 import { comments } from '../db';
 import { authenticate } from '../auth';
+import { pathFromString } from 'booka-common';
 
 router.get('/comments', async ctx => {
-    const bookLocation = ctx.request.body;
-    if (!bookLocation) {
-        return { fail: 'Should specify comment location in body' };
+    const id = ctx.query.id;
+    if (!id) {
+        return { fail: 'Should specify book id' };
+    }
+    const path = ctx.query.path && pathFromString(ctx.query.path);
+    if (!path) {
+        return { fail: 'Should specify book path' };
     }
 
-    const result = await comments.forLocation(bookLocation);
+    const result = await comments.forLocation({
+        target: 'pph',
+        bookId: id,
+        path,
+    });
 
     return { success: result };
 });
