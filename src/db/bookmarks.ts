@@ -1,6 +1,9 @@
 import { pick } from 'lodash';
-import { model, ObjectId, DataFromModel, extractDataFields } from 'booka-utils';
-import { Bookmark, HasId, CurrentBookmarkUpdate, BookmarkKind, BookmarkSource, BookmarkPost } from 'booka-common';
+import { model, ObjectId, DataFromModel, extractDataFields, taggedObject } from 'booka-utils';
+import {
+    Bookmark, HasId, CurrentBookmarkUpdate, BookmarkKind,
+    BookmarkSource, BookmarkPost, BookPath,
+} from 'booka-common';
 
 const schema = {
     accountId: {
@@ -20,7 +23,7 @@ const schema = {
         required: true,
     },
     path: {
-        type: [Number],
+        type: taggedObject<BookPath>(),
         required: true,
     },
     created: {

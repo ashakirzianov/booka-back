@@ -1,7 +1,7 @@
 import {
     HasId, Note, iterateReferencedBookIds, NoteContent, NotePost, NoteUpdate,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId } from 'booka-utils';
+import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {
@@ -10,7 +10,7 @@ const schema = {
         required: true,
     },
     content: {
-        type: [Object],
+        type: [taggedObject<NoteContent>()],
         required: true,
     },
     title: String,
