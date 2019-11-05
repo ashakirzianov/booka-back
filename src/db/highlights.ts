@@ -1,7 +1,7 @@
 import {
     Highlight, HasId, HighlightContent, HighlightPost, BookPath,
 } from 'booka-common';
-import { model, ObjectId, DataFromModel } from 'booka-utils';
+import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {
@@ -18,11 +18,11 @@ const schema = {
         required: true,
     },
     start: {
-        type: Object, // BookPath
+        type: taggedObject<BookPath>(),
         required: true,
     },
     end: {
-        type: Object, // BookPath
+        type: taggedObject<BookPath>(),
         required: true,
     },
     comment: [Object],
@@ -39,8 +39,8 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
         location: {
             bookId,
             range: {
-                start: r.start as BookPath,
-                end: r.end as BookPath,
+                start: r.start,
+                end: r.end,
             },
         },
         comment: r.comment as HighlightContent[],

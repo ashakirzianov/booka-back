@@ -1,5 +1,5 @@
 import { pick } from 'lodash';
-import { model, ObjectId, DataFromModel, extractDataFields } from 'booka-utils';
+import { model, ObjectId, DataFromModel, extractDataFields, taggedObject } from 'booka-utils';
 import {
     Bookmark, HasId, CurrentBookmarkUpdate, BookmarkKind,
     BookmarkSource, BookmarkPost, BookPath,
@@ -23,7 +23,7 @@ const schema = {
         required: true,
     },
     path: {
-        type: Object, // BookPath
+        type: taggedObject<BookPath>(),
         required: true,
     },
     created: {
@@ -69,7 +69,7 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
             kind: db.kind as BookmarkKind,
             location: {
                 bookId: db.bookId,
-                path: db.path as BookPath,
+                path: db.path,
             },
             created: db.created,
             preview: '', // TODO: implement

@@ -3,7 +3,7 @@ import {
     extractSpanText, filterUndefined,
     CommentPost, CommentUpdate, CommentTargetLocator,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId } from 'booka-utils';
+import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
 import { votes } from './votes';
 import { pick } from 'lodash';
 
@@ -13,7 +13,7 @@ const schema = {
         required: true,
     },
     location: {
-        type: Object,
+        type: taggedObject<CommentTargetLocator>(),
         required: true,
     },
     kind: {
@@ -21,7 +21,7 @@ const schema = {
         required: true,
     },
     content: {
-        type: [Object],
+        type: [taggedObject<CommentContentNode>()],
         required: true,
     },
     lastEdited: {
