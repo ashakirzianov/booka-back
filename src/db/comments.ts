@@ -1,7 +1,7 @@
 import {
     Comment, HasId, CommentContentNode, CommentKind,
-    extractSpanText, isSubpath, filterUndefined,
-    CommentPost, CommentUpdate, CommentTargetLocator, BookPath,
+    extractSpanText, filterUndefined,
+    CommentPost, CommentUpdate, CommentTargetLocator,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { votes } from './votes';
