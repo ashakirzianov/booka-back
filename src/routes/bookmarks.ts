@@ -24,6 +24,12 @@ router.post('/bookmarks', authenticate(async ctx => {
     return { success: result };
 }));
 
+router.get('/bookmarks/current', authenticate(async ctx => {
+    const result = await bookmarks.current();
+
+    return { success: result };
+}));
+
 router.put('/bookmarks/current', authenticate(async ctx => {
     const body = ctx.request.body;
     if (!body) {

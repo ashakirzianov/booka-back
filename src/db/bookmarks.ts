@@ -78,6 +78,21 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
     return withIds as Bookmark[];
 }
 
+async function current(): Promise<Bookmark[]> {
+    const result = await docs.find({ kind: 'current' }).exec();
+
+    return result.map(r => ({
+        _id: r.id,
+        source: r.source,
+        created: r.created,
+        kind: 'current',
+        location: {
+            bookId: r.bookId,
+            path: r.path,
+        },
+    }));
+}
+
 async function updateCurrent(
     accountId: string,
     data: CurrentBookmarkUpdate,
@@ -115,6 +130,7 @@ async function doDelete(accountId: string, bookmarkId: string): Promise<boolean>
 export const bookmarks = {
     addBookmark,
     forBook,
+    current,
     updateCurrent,
     delete: doDelete,
 };
