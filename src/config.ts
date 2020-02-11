@@ -1,3 +1,6 @@
+import { config as configEnv } from 'dotenv';
+configEnv();
+
 export function config(): Config {
     return isDebug()
         ? debugConfig()
@@ -9,6 +12,7 @@ const prodLibUrl = 'https://booka-lib.herokuapp.com';
 const useDebugLib = false;
 function debugConfig(): Config {
     return {
+        port: process.env.PORT || '3042',
         libUrl: useDebugLib
             ? debugLibUrl
             : prodLibUrl,
@@ -22,6 +26,7 @@ function debugConfig(): Config {
 
 function productionConfig(): Config {
     return {
+        port: process.env.PORT || '3042',
         libUrl: prodLibUrl,
         auth: authConfig,
     };
@@ -43,6 +48,7 @@ const authConfig: AuthConfig = {
         audience: 'booka',
         issuer: 'booka',
     },
+    mongoDbUri: process.env.BACK_MONGODB_URI || 'mongodb://localhost:27017/booka',
 };
 
 export type FacebookProfileField =
@@ -63,6 +69,7 @@ export type JwtConfig = {
 export type AuthConfig = {
     facebook: FacebookConfig,
     jwt: JwtConfig,
+    mongoDbUri: string,
 };
 
 export type SslConfig = {
@@ -71,6 +78,7 @@ export type SslConfig = {
 };
 
 export type Config = {
+    port: string,
     libUrl: string,
     auth: AuthConfig,
     ssl?: SslConfig,
