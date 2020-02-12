@@ -1,6 +1,12 @@
 import { bookmarks } from '../db';
 import { authenticate } from '../auth';
 import { router } from './router';
+import { createFetcher } from '../fetcher';
+import { LibContract, ResolvedCurrentBookmark, filterUndefined } from 'booka-common';
+import { config } from '../config';
+import { groupBy } from 'lodash';
+
+const lib = createFetcher<LibContract>(config().libUrl);
 
 router.get('/bookmarks', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
@@ -25,9 +31,33 @@ router.post('/bookmarks', authenticate(async ctx => {
 }));
 
 router.get('/bookmarks/current', authenticate(async ctx => {
-    const result = await bookmarks.current();
+    const currentBookmarks = await bookmarks.current();
+    const grouped = groupBy(currentBookmarks, b => b.location.bookId);
+    const cards = await lib.post('/card/batch', {
+        body: Object.entries(grouped).map(([bookId, bs]) => ({
+            id: bookId,
+            previews: bs.map(b => b.location.path),
+        })),
+    });
 
-    return { success: result };
+    if (cards.success) {
+        const result: ResolvedCurrentBookmark[] = filterUndefined(cards.value)
+            .map(({ card, previews }) => {
+                const bs = grouped[card.id];
+                return {
+                    card,
+                    locations: bs.map((b, idx) => ({
+                        source: b.source,
+                        created: b.created,
+                        path: b.location.path,
+                        preview: previews[idx],
+                    })),
+                };
+            });
+        return { success: result };
+    } else {
+        return { fail: `Couldn't fetch book infos` };
+    }
 }));
 
 router.put('/bookmarks/current', authenticate(async ctx => {
