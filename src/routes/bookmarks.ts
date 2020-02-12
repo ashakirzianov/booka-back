@@ -62,7 +62,7 @@ router.get('/bookmarks/current', authenticate(async ctx => {
 
 router.put('/bookmarks/current', authenticate(async ctx => {
     const body = ctx.request.body;
-    if (!body) {
+    if (!body || !body.location || !body.location.bookId) {
         return { fail: 'Body should contain bookmark updates' };
     }
 
