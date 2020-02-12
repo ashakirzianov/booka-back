@@ -9,11 +9,11 @@ export function config(): Config {
 
 const debugLibUrl = 'http://localhost:3141';
 const prodLibUrl = 'https://booka-lib.herokuapp.com';
-const useDebugLib = false;
+const useLocalServices = process.env.LOCAL === 'all';
 function debugConfig(): Config {
     return {
         port: process.env.PORT || '3042',
-        libUrl: useDebugLib
+        libUrl: useLocalServices
             ? debugLibUrl
             : prodLibUrl,
         auth: authConfig,
