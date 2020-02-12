@@ -5,18 +5,16 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as koaBody from 'koa-body';
 import * as logger from 'koa-logger';
-import { config as configEnv } from 'dotenv';
 import { connectDb } from 'booka-utils';
 import { router } from './routes';
 import { passport } from './auth';
 import { config, SslConfig } from './config';
 import { logDebug } from './log';
 
-configEnv();
 startup(new Koa());
 
 async function startup(app: Koa) {
-    await connectDb(process.env.BACK_MONGODB_URI || 'mongodb://localhost:27017/booka');
+    await connectDb(config().auth.mongoDbUri);
 
     app.use(logger());
     app.use(koaBody({
@@ -38,7 +36,7 @@ async function startup(app: Koa) {
 }
 
 function listen(app: Koa) {
-    const port = process.env.PORT || 3042;
+    const port = config().port;
     createServer(app.callback())
         .listen(port);
 }
