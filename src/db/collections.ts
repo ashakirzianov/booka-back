@@ -1,5 +1,6 @@
 import { CardCollectionName } from 'booka-common';
 import { model, DataFromModel, ObjectId } from 'booka-utils';
+import { groupBy } from 'lodash';
 
 const schema = {
     accountId: {
@@ -18,6 +19,22 @@ const schema = {
 
 const docs = model('CardCollection', schema);
 type DbCollection = DataFromModel<typeof docs>;
+
+async function all(accountId: string) {
+    const forAccount = await docs
+        .find({
+            accountId,
+        })
+        .exec();
+
+    const grouped = groupBy(forAccount, r => r.collectionName);
+
+    const results = Object.entries(grouped).map(([name, ds]) => ({
+        collectionName: name as CardCollectionName,
+        bookIds: ds.map(d => d.bookId),
+    }));
+    return results;
+}
 
 async function bookIds(accountId: string, collectionName: CardCollectionName): Promise<string[]> {
     const result = await docs
@@ -56,7 +73,8 @@ async function remove(accountId: string, bookId: string, collectionName: CardCol
     return true;
 }
 
-export const tags = {
+export const collections = {
+    all,
     bookIds,
     add,
     remove,

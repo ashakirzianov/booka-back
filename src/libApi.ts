@@ -6,7 +6,7 @@ const lib = createFetcher<LibContract>(config().libUrl);
 
 export async function fetchCards(request: Array<{
     id: string,
-    previews: BookPath[],
+    previews?: BookPath[],
 }>) {
     const response = await lib.post('/card/batch', {
         body: request,
