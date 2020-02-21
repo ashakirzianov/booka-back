@@ -1,12 +1,9 @@
 import { bookmarks } from '../db';
 import { authenticate } from '../auth';
 import { router } from './router';
-import { createFetcher } from '../fetcher';
-import { LibContract, ResolvedCurrentBookmark, filterUndefined } from 'booka-common';
-import { config } from '../config';
+import { ResolvedCurrentBookmark } from 'booka-common';
 import { groupBy } from 'lodash';
-
-const lib = createFetcher<LibContract>(config().libUrl);
+import { fetchCards } from '../libApi';
 
 router.get('/bookmarks', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
@@ -33,31 +30,27 @@ router.post('/bookmarks', authenticate(async ctx => {
 router.get('/bookmarks/current', authenticate(async ctx => {
     const currentBookmarks = await bookmarks.current();
     const grouped = groupBy(currentBookmarks, b => b.location.bookId);
-    const cards = await lib.post('/card/batch', {
-        body: Object.entries(grouped).map(([bookId, bs]) => ({
+    const cards = await fetchCards(
+        Object.entries(grouped).map(([bookId, bs]) => ({
             id: bookId,
             previews: bs.map(b => b.location.path),
         })),
-    });
+    );
 
-    if (cards.success) {
-        const result: ResolvedCurrentBookmark[] = filterUndefined(cards.value)
-            .map(({ card, previews }) => {
-                const bs = grouped[card.id];
-                return {
-                    card,
-                    locations: bs.map((b, idx) => ({
-                        source: b.source,
-                        created: b.created,
-                        path: b.location.path,
-                        preview: previews[idx],
-                    })),
-                };
-            });
-        return { success: result };
-    } else {
-        return { fail: `Couldn't fetch book infos` };
-    }
+    const result: ResolvedCurrentBookmark[] = cards
+        .map(({ card, previews }) => {
+            const bs = grouped[card.id];
+            return {
+                card,
+                locations: bs.map((b, idx) => ({
+                    source: b.source,
+                    created: b.created,
+                    path: b.location.path,
+                    preview: previews[idx],
+                })),
+            };
+        });
+    return { success: result };
 }));
 
 router.put('/bookmarks/current', authenticate(async ctx => {
