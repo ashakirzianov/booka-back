@@ -1,5 +1,6 @@
 import './accounts';
 import './bookmarks';
+import './collections';
 import './comments';
 import './highlights';
 import './history';
