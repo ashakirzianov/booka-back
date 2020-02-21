@@ -57,6 +57,7 @@ async function add(accountId: string, bookId: string, collectionName: CardCollec
 
     const result = await docs.update(
         { accountId, bookId, collectionName },
+        { accountId, bookId, collectionName },
         { upsert: true },
     ).exec();
 
