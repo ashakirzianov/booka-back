@@ -1,5 +1,5 @@
 import {
-    Highlight, HasId, HighlightContent, HighlightPost, BookPath,
+    Highlight, HasId, BookPath, EditableNode,
 } from 'booka-common';
 import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import { pick } from 'lodash';
@@ -34,6 +34,7 @@ type DbHighlight = DataFromModel<typeof docs>;
 async function forBook(accountId: string, bookId: string): Promise<Highlight[]> {
     const result = await docs.find({ accountId, bookId }).exec();
     return result.map(r => ({
+        entity: 'highlight',
         _id: r._id.toString(),
         group: r.group,
         location: {
@@ -43,11 +44,11 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
                 end: r.end,
             },
         },
-        comment: r.comment as HighlightContent[],
+        comment: r.comment as EditableNode[],
     }));
 }
 
-async function addHighlight(accountId: string, highlight: HighlightPost): Promise<HasId> {
+async function addHighlight(accountId: string, highlight: Highlight): Promise<HasId> {
     const doc: DbHighlight = {
         accountId,
         group: highlight.group,

@@ -1,8 +1,7 @@
 import { pick } from 'lodash';
 import { model, ObjectId, DataFromModel, extractDataFields, taggedObject } from 'booka-utils';
 import {
-    Bookmark, HasId, CurrentBookmarkUpdate, BookmarkKind,
-    BookmarkSource, BookmarkPost, BookPath,
+    Bookmark, HasId, BookmarkKind, BookmarkSource, BookPath,
 } from 'booka-common';
 
 const schema = {
@@ -35,7 +34,7 @@ const schema = {
 const docs = model('Bookmark', schema);
 type DbBookmark = DataFromModel<typeof docs>;
 
-async function addBookmark(accountId: string, bm: BookmarkPost): Promise<HasId> {
+async function addBookmark(accountId: string, bm: Bookmark): Promise<HasId> {
     if (bm.kind === 'current') {
         const result = await updateCurrent(accountId, {
             source: bm.source,
@@ -64,6 +63,7 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
     const withIds = result
         .map(extractDataFields)
         .map<Bookmark>(db => ({
+            entity: 'bookmark',
             _id: db._id,
             source: db.source as BookmarkSource,
             kind: db.kind as BookmarkKind,
@@ -72,7 +72,6 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
                 path: db.path,
             },
             created: db.created,
-            preview: '', // TODO: implement
         }));
 
     return withIds as Bookmark[];
@@ -82,6 +81,7 @@ async function current(): Promise<Bookmark[]> {
     const result = await docs.find({ kind: 'current' }).exec();
 
     return result.map(r => ({
+        entity: 'bookmark',
         _id: r.id,
         source: r.source,
         created: r.created,
@@ -95,18 +95,18 @@ async function current(): Promise<Bookmark[]> {
 
 async function updateCurrent(
     accountId: string,
-    data: CurrentBookmarkUpdate,
+    data: Pick<Bookmark, 'location' | 'source' | 'created'>,
 ): Promise<HasId> {
     const query = {
         accountId,
-        bookId: data.location.bookId,
+        bookId: data?.location?.bookId,
         source: data.source,
         kind: 'current',
     } as const;
     const doc: DbBookmark = {
         ...query,
-        path: data.location.path,
-        created: data.created,
+        path: data?.location?.path,
+        created: data?.created,
     };
     const result = await docs.findOneAndUpdate(
         query,

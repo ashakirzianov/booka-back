@@ -1,7 +1,6 @@
 import {
-    Comment, HasId, CommentContentNode, CommentKind,
+    Comment, HasId, CommentKind, CommentTargetLocator, EditableNode,
     extractSpanText, filterUndefined,
-    CommentPost, CommentUpdate, CommentTargetLocator,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
 import { votes } from './votes';
@@ -21,7 +20,7 @@ const schema = {
         required: true,
     },
     content: {
-        type: [taggedObject<CommentContentNode>()],
+        type: [taggedObject<EditableNode>()],
         required: true,
     },
     lastEdited: {
@@ -45,7 +44,7 @@ async function forLocation(location: CommentTargetLocator): Promise<Comment[]> {
     return result;
 }
 
-async function addComment(accountId: string, data: CommentPost): Promise<HasId> {
+async function addComment(accountId: string, data: Comment): Promise<HasId> {
     const doc: DbComment = {
         accountId,
         kind: data.kind,
@@ -58,7 +57,7 @@ async function addComment(accountId: string, data: CommentPost): Promise<HasId> 
     return pick(result, ['_id']);
 }
 
-async function edit(accountId: string, data: CommentUpdate): Promise<boolean> {
+async function edit(accountId: string, data: Comment): Promise<boolean> {
     const updates: Partial<DbComment> = {
         ...data.content && { content: data.content },
         ...data.kind && { kind: data.kind },
@@ -88,8 +87,9 @@ async function getChildren(commentId: string): Promise<Comment[]> {
 async function buildComment(doc: DbComment & HasId): Promise<Comment> {
     const children = await getChildren(doc._id);
     const rating = await votes.calculateRating(doc._id);
-    const content = doc.content as CommentContentNode[];
+    const content = doc.content as EditableNode[];
     return {
+        entity: 'comment',
         _id: doc._id,
         content,
         children,
@@ -106,7 +106,7 @@ async function preview(id: string): Promise<string | undefined> {
         return undefined;
     }
 
-    const content = comment.content as CommentContentNode[];
+    const content = comment.content as EditableNode[];
     const result = textPreview(content);
     return result;
 }
@@ -115,7 +115,7 @@ function getLocation(doc: DbComment): CommentTargetLocator {
     return doc.location as CommentTargetLocator;
 }
 
-function textPreview(content: CommentContentNode[]): string {
+function textPreview(content: EditableNode[]): string {
     for (const node of content) {
         if (node.node === 'pph') {
             return extractSpanText(node.span);
