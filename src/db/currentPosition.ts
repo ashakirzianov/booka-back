@@ -1,6 +1,6 @@
 import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import {
-    CurrentBookPosition, BookPath, EntityData,
+    CurrentPosition, BookPath, CurrentPositionPost,
 } from 'booka-common';
 
 const schema = {
@@ -29,7 +29,7 @@ const schema = {
 const docs = model('CurrentPosition', schema);
 type DbCurrentPosition = DataFromModel<typeof docs>;
 
-async function addCurrent(accountId: string, cp: EntityData<CurrentBookPosition>): Promise<CurrentBookPosition> {
+async function addCurrent(accountId: string, cp: CurrentPositionPost): Promise<CurrentPosition> {
     const query = {
         accountId,
         bookId: cp.bookId,
@@ -56,10 +56,10 @@ async function addCurrent(accountId: string, cp: EntityData<CurrentBookPosition>
     };
 }
 
-async function forAccount(accountId: string): Promise<CurrentBookPosition[]> {
+async function forAccount(accountId: string): Promise<CurrentPosition[]> {
     const result = await docs.find({ accountId }).exec();
     const entities = result
-        .map<CurrentBookPosition>(db => ({
+        .map<CurrentPosition>(db => ({
             entity: 'current-position',
             _id: db._id,
             source: db.source,
@@ -81,7 +81,7 @@ async function deleteById(accountId: string, entityId: string): Promise<boolean>
     return false;
 }
 
-export const currentPositions = {
+export const currentPosition = {
     addCurrent,
     forAccount,
     deleteById,
