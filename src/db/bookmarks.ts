@@ -1,6 +1,6 @@
 import { model, ObjectId, DataFromModel, extractDataFields, taggedObject } from 'booka-utils';
 import {
-    Bookmark, BookPath, EntityData,
+    Bookmark, BookmarkPost, BookPath,
 } from 'booka-common';
 
 const schema = {
@@ -21,7 +21,7 @@ const schema = {
 const docs = model('Bookmark', schema);
 type DbBookmark = DataFromModel<typeof docs>;
 
-async function addBookmark(accountId: string, bm: EntityData<Bookmark>): Promise<Bookmark> {
+async function addBookmark(accountId: string, bm: BookmarkPost): Promise<Bookmark> {
     const toAdd: DbBookmark = {
         accountId,
         bookId: bm.bookId,

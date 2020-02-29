@@ -1,5 +1,5 @@
 import {
-    Highlight, HasId, BookPath, EditableNode,
+    Highlight, HasId, BookPath, EditableNode, HighlightPost,
 } from 'booka-common';
 import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import { pick } from 'lodash';
@@ -46,7 +46,7 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
     }));
 }
 
-async function addHighlight(accountId: string, highlight: Highlight): Promise<HasId> {
+async function addHighlight(accountId: string, highlight: HighlightPost): Promise<HasId> {
     const doc: DbHighlight = {
         accountId,
         group: highlight.group,
