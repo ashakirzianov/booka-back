@@ -1,5 +1,5 @@
 import {
-    Highlight, HasId, HighlightContent, HighlightPost, BookPath,
+    Highlight, HasId, BookPath, EditableNode, HighlightPost,
 } from 'booka-common';
 import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import { pick } from 'lodash';
@@ -34,16 +34,15 @@ type DbHighlight = DataFromModel<typeof docs>;
 async function forBook(accountId: string, bookId: string): Promise<Highlight[]> {
     const result = await docs.find({ accountId, bookId }).exec();
     return result.map(r => ({
+        entity: 'highlight',
         _id: r._id.toString(),
         group: r.group,
-        location: {
-            bookId,
-            range: {
-                start: r.start,
-                end: r.end,
-            },
+        bookId,
+        range: {
+            start: r.start,
+            end: r.end,
         },
-        comment: r.comment as HighlightContent[],
+        comment: r.comment as EditableNode[],
     }));
 }
 
@@ -51,9 +50,9 @@ async function addHighlight(accountId: string, highlight: HighlightPost): Promis
     const doc: DbHighlight = {
         accountId,
         group: highlight.group,
-        bookId: highlight.location.bookId,
-        start: highlight.location.range.start,
-        end: highlight.location.range.end || highlight.location.range.start,
+        bookId: highlight.bookId,
+        start: highlight.range.start,
+        end: highlight.range.end || highlight.range.start,
     };
 
     const [result] = await docs.insertMany([doc]);
@@ -81,9 +80,9 @@ function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
     return {
         ...highlight.group && { group: highlight.group },
         ...highlight.comment && { comment: highlight.comment },
-        ...highlight.location && {
-            start: highlight.location.range.start,
-            end: highlight.location.range.end || highlight.location.range.start,
+        ...highlight.range && {
+            start: highlight.range.start,
+            end: highlight.range.end || highlight.range.start,
         },
     };
 }

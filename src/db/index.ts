@@ -2,6 +2,7 @@ export * from './accounts';
 export * from './bookmarks';
 export * from './collections';
 export * from './comments';
+export * from './currentPosition';
 export * from './highlights';
 export * from './historyEvents';
 export * from './notes';

@@ -1,4 +1,4 @@
-import { VoteKind, HasId, Vote, filterUndefined, VotePost } from 'booka-common';
+import { VoteKind, HasId, Vote, filterUndefined } from 'booka-common';
 import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { comments } from './comments';
 import { pick } from 'lodash';
@@ -38,7 +38,7 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
-async function vote(accountId: string, data: VotePost): Promise<HasId> {
+async function vote(accountId: string, data: Vote): Promise<HasId> {
     const doc: DbVote = {
         accountId,
         commentId: data.commentId,
@@ -84,10 +84,10 @@ async function buildVote(doc: DbVote & HasId): Promise<Vote | undefined> {
     }
 
     const result: Vote = {
+        entity: 'vote',
         _id: doc._id.toString(),
         kind: doc.kind as VoteKind,
         commentId: doc.commentId,
-        commentPreview: preview,
     };
 
     return result;
