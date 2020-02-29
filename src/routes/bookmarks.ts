@@ -1,9 +1,6 @@
 import { bookmarks } from '../db';
 import { authenticate } from '../auth';
 import { router } from './router';
-import { ResolvedCurrentBookmark } from 'booka-common';
-import { groupBy } from 'lodash';
-import { fetchCards } from '../libApi';
 
 router.get('/bookmarks', authenticate(async ctx => {
     const bookId = ctx.query.bookId;
