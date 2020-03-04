@@ -25,7 +25,7 @@ const schema = {
         type: taggedObject<BookPath>(),
         required: true,
     },
-    comment: [Object],
+    comment: [taggedObject<EditableNode>()],
 } as const;
 
 const docs = model('Highlight', schema);
@@ -46,7 +46,7 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
     }));
 }
 
-async function addHighlight(accountId: string, highlight: HighlightPost): Promise<HasId> {
+async function addHighlight(accountId: string, highlight: HighlightPost): Promise<Highlight> {
     const doc: DbHighlight = {
         accountId,
         group: highlight.group,
@@ -57,7 +57,14 @@ async function addHighlight(accountId: string, highlight: HighlightPost): Promis
 
     const [result] = await docs.insertMany([doc]);
 
-    return pick(result, ['_id']);
+    return {
+        entity: 'highlight',
+        _id: result._id,
+        group: result.group,
+        bookId: result.bookId,
+        range: { start: result.start, end: result.end },
+        comment: result.comment,
+    };
 }
 
 async function update(accountId: string, highlight: Partial<Highlight>) {

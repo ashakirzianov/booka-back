@@ -38,7 +38,7 @@ async function calculateRating(commentId: string): Promise<number> {
     return rating;
 }
 
-async function vote(accountId: string, data: Vote): Promise<HasId> {
+async function vote(accountId: string, data: Vote): Promise<Vote> {
     const doc: DbVote = {
         accountId,
         commentId: data.commentId,
@@ -52,7 +52,12 @@ async function vote(accountId: string, data: Vote): Promise<HasId> {
         { upsert: true, new: true },
     ).exec();
 
-    return pick(result, ['_id']);
+    return {
+        entity: 'vote',
+        _id: result._id,
+        kind: result.kind as VoteKind,
+        commentId: result.commentId,
+    };
 }
 
 async function remove(accountId: string, voteId: string): Promise<boolean> {

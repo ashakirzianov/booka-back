@@ -44,7 +44,7 @@ async function forLocation(location: CommentTargetLocator): Promise<Comment[]> {
     return result;
 }
 
-async function addComment(accountId: string, data: Comment): Promise<HasId> {
+async function addComment(accountId: string, data: Comment): Promise<Comment> {
     const doc: DbComment = {
         accountId,
         kind: data.kind,
@@ -54,7 +54,17 @@ async function addComment(accountId: string, data: Comment): Promise<HasId> {
     };
     const [result] = await docs.insertMany([doc]);
 
-    return pick(result, ['_id']);
+    return {
+        entity: 'comment',
+        _id: result._id,
+        kind: result.kind as CommentKind,
+        content: result.content,
+        target: result.location,
+        lastEdited: result.lastEdited,
+        // TODO: be careful with this assumptions
+        children: [],
+        rating: 0,
+    };
 }
 
 async function edit(accountId: string, data: Comment): Promise<boolean> {
