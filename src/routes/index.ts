@@ -4,7 +4,6 @@ import './collections';
 import './comments';
 import './currentPosition';
 import './highlights';
-import './history';
 import './notes';
 import './reports';
 import './tags';
