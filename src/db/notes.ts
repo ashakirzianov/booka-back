@@ -59,7 +59,7 @@ async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
     return filtered;
 }
 
-async function add(accountId: string, data: NotePost): Promise<HasId> {
+async function add(accountId: string, data: NotePost): Promise<Note> {
     const doc: DbNote = {
         accountId,
         content: data.content,
@@ -69,7 +69,12 @@ async function add(accountId: string, data: NotePost): Promise<HasId> {
 
     const [result] = await docs.insertMany([doc]);
 
-    return pick(result, ['_id']);
+    return {
+        _id: result._id,
+        title: result.title,
+        lastEdited: result.lastEdited,
+        content: result.content,
+    };
 }
 
 async function update(accountId: string, data: NoteUpdate): Promise<boolean> {
