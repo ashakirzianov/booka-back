@@ -36,18 +36,6 @@ async function all(accountId: string) {
     return results;
 }
 
-async function bookIds(accountId: string, collectionName: CardCollectionName): Promise<string[]> {
-    const result = await docs
-        .find({
-            accountId,
-            collectionName,
-        })
-        .select('bookId')
-        .exec();
-
-    return result.map(r => r.bookId);
-}
-
 async function add(accountId: string, bookId: string, collectionName: CardCollectionName): Promise<boolean> {
     const doc: DbCollection = {
         accountId,
@@ -76,7 +64,6 @@ async function remove(accountId: string, bookId: string, collectionName: CardCol
 
 export const collections = {
     all,
-    bookIds,
     add,
     remove,
 };

@@ -2,6 +2,7 @@ import { router } from './router';
 import { collections } from '../db';
 import { authenticate } from '../auth';
 import { fetchCards } from '../libApi';
+import { CardCollections } from 'booka-common';
 
 router.get('/collections', authenticate(async ctx => {
     const all = await collections.all(ctx.accountId);
@@ -15,8 +16,12 @@ router.get('/collections', authenticate(async ctx => {
             };
         })
     );
+    const result: CardCollections = resolved.reduce(
+        (res, c) => ({ ...res, [c.name]: c.cards }),
+        {}
+    );
 
-    return { success: resolved };
+    return { success: result };
 }));
 
 router.post('/collections', authenticate(async ctx => {
