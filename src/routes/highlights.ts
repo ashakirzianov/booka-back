@@ -31,7 +31,7 @@ router.patch('/highlights', authenticate(async ctx => {
 
     const result = await highlights.update(ctx.accountId, highlight);
 
-    return { success: result };
+    return { success: result ?? false };
 }));
 
 router.delete('/highlights', authenticate(async ctx => {

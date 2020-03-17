@@ -41,7 +41,7 @@ router.patch('/comments', authenticate(async ctx => {
 
     const result = await comments.edit(ctx.accountId, body);
 
-    return { success: result };
+    return { success: result ?? false };
 }));
 
 router.delete('/comments', authenticate(async ctx => {
