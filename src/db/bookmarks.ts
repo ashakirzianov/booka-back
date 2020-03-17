@@ -4,6 +4,10 @@ import {
 } from 'booka-common';
 
 const schema = {
+    uuid: {
+        type: String,
+        required: true,
+    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -23,6 +27,7 @@ type DbBookmark = DataFromModel<typeof docs>;
 
 async function addBookmark(accountId: string, bm: BookmarkPost): Promise<Bookmark> {
     const toAdd: DbBookmark = {
+        uuid: bm.uuid,
         accountId,
         bookId: bm.bookId,
         path: bm.path,
@@ -30,8 +35,7 @@ async function addBookmark(accountId: string, bm: BookmarkPost): Promise<Bookmar
     const [result] = await docs.insertMany([toAdd]);
 
     return {
-        _id: result._id,
-        entity: 'bookmark',
+        uuid: result.uuid,
         bookId: result.bookId,
         path: result.path,
     };
@@ -42,8 +46,7 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
     const withIds = result
         .map(extractDataFields)
         .map<Bookmark>(db => ({
-            entity: 'bookmark',
-            _id: db._id,
+            uuid: db.uuid,
             bookId: db.bookId,
             path: db.path,
         }));
@@ -52,13 +55,10 @@ async function forBook(accountId: string, bookId: string): Promise<Bookmark[]> {
 }
 
 async function doDelete(accountId: string, bookmarkId: string): Promise<boolean> {
-    const result = await docs.findById(bookmarkId).exec();
-    if (result && result.accountId === accountId) {
-        result.remove();
-        return true;
-    }
-
-    return false;
+    const result = await docs
+        .findOneAndDelete({ uuid: bookmarkId, accountId })
+        .exec();
+    return result ? true : false;
 }
 
 export const bookmarks = {

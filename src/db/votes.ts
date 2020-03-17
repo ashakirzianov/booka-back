@@ -1,9 +1,12 @@
 import { VoteKind, HasId, Vote, filterUndefined } from 'booka-common';
 import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { comments } from './comments';
-import { pick } from 'lodash';
 
 const schema = {
+    uuid: {
+        type: String,
+        required: true,
+    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -41,6 +44,7 @@ async function calculateRating(commentId: string): Promise<number> {
 async function vote(accountId: string, data: Vote): Promise<Vote> {
     const doc: DbVote = {
         accountId,
+        uuid: data.uuid,
         commentId: data.commentId,
         kind: data.kind,
         created: new Date(),
@@ -53,8 +57,7 @@ async function vote(accountId: string, data: Vote): Promise<Vote> {
     ).exec();
 
     return {
-        entity: 'vote',
-        _id: result._id,
+        uuid: result.uuid,
         kind: result.kind as VoteKind,
         commentId: result.commentId,
     };
@@ -89,8 +92,7 @@ async function buildVote(doc: DbVote & HasId): Promise<Vote | undefined> {
     }
 
     const result: Vote = {
-        entity: 'vote',
-        _id: doc._id.toString(),
+        uuid: doc.uuid,
         kind: doc.kind as VoteKind,
         commentId: doc.commentId,
     };

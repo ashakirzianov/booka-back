@@ -4,9 +4,12 @@ import {
 } from 'booka-common';
 import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
 import { votes } from './votes';
-import { pick } from 'lodash';
 
 const schema = {
+    uuid: {
+        type: String,
+        required: true,
+    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -47,6 +50,7 @@ async function forLocation(location: CommentTargetLocator): Promise<Comment[]> {
 async function addComment(accountId: string, data: Comment): Promise<Comment> {
     const doc: DbComment = {
         accountId,
+        uuid: data.uuid,
         kind: data.kind,
         content: data.content,
         lastEdited: new Date(),
@@ -55,8 +59,7 @@ async function addComment(accountId: string, data: Comment): Promise<Comment> {
     const [result] = await docs.insertMany([doc]);
 
     return {
-        entity: 'comment',
-        _id: result._id,
+        uuid: result.uuid,
         kind: result.kind as CommentKind,
         content: result.content,
         target: result.location,
@@ -74,15 +77,15 @@ async function edit(accountId: string, data: Comment): Promise<boolean> {
     };
 
     const result = await docs.findOneAndUpdate(
-        { _id: data._id, accountId },
+        { uuid: data.uuid, accountId },
         updates,
     ).exec();
     return result ? true : false;
 }
 
-async function doDelete(accountId: string, id: string): Promise<boolean> {
+async function doDelete(accountId: string, commentId: string): Promise<boolean> {
     const result = await docs
-        .findOneAndDelete({ accountId, _id: id })
+        .findOneAndDelete({ accountId, uuid: commentId })
         .exec();
     return result ? true : false;
 }
@@ -99,8 +102,7 @@ async function buildComment(doc: DbComment & HasId): Promise<Comment> {
     const rating = await votes.calculateRating(doc._id);
     const content = doc.content as EditableNode[];
     return {
-        entity: 'comment',
-        _id: doc._id,
+        uuid: doc.uuid,
         content,
         children,
         kind: doc.kind as CommentKind,

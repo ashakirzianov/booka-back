@@ -5,6 +5,10 @@ import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import { pick } from 'lodash';
 
 const schema = {
+    uuid: {
+        type: String,
+        required: true,
+    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -34,8 +38,7 @@ type DbHighlight = DataFromModel<typeof docs>;
 async function forBook(accountId: string, bookId: string): Promise<Highlight[]> {
     const result = await docs.find({ accountId, bookId }).exec();
     return result.map(r => ({
-        entity: 'highlight',
-        _id: r._id.toString(),
+        uuid: r.uuid,
         group: r.group,
         bookId,
         range: {
@@ -49,6 +52,7 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
 async function addHighlight(accountId: string, highlight: HighlightPost): Promise<Highlight> {
     const doc: DbHighlight = {
         accountId,
+        uuid: highlight.uuid,
         group: highlight.group,
         bookId: highlight.bookId,
         start: highlight.range.start,
@@ -58,8 +62,7 @@ async function addHighlight(accountId: string, highlight: HighlightPost): Promis
     const [result] = await docs.insertMany([doc]);
 
     return {
-        entity: 'highlight',
-        _id: result._id,
+        uuid: result.uuid,
         group: result.group,
         bookId: result.bookId,
         range: { start: result.start, end: result.end },
@@ -68,23 +71,7 @@ async function addHighlight(accountId: string, highlight: HighlightPost): Promis
 }
 
 async function update(accountId: string, highlight: Partial<Highlight>) {
-    const doc = convertPartial(highlight);
-    const result = await docs.findOneAndUpdate({
-        _id: highlight._id,
-        accountId,
-    }, doc).exec();
-    return result ? true : false;
-}
-
-async function doDelete(accountId: string, highlightId: string) {
-    const result = await docs
-        .findOneAndDelete({ _id: highlightId, accountId })
-        .exec();
-    return result ? true : false;
-}
-
-function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
-    return {
+    const doc: Partial<DbHighlight> = {
         ...highlight.group && { group: highlight.group },
         ...highlight.comment && { comment: highlight.comment },
         ...highlight.range && {
@@ -92,6 +79,18 @@ function convertPartial(highlight: Partial<Highlight>): Partial<DbHighlight> {
             end: highlight.range.end || highlight.range.start,
         },
     };
+    const result = await docs.findOneAndUpdate({
+        uuid: highlight.uuid,
+        accountId,
+    }, doc).exec();
+    return result ? true : false;
+}
+
+async function doDelete(accountId: string, highlightId: string) {
+    const result = await docs
+        .findOneAndDelete({ uuid: highlightId, accountId })
+        .exec();
+    return result ? true : false;
 }
 
 export const highlights = {
