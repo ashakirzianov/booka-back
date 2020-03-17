@@ -1,6 +1,6 @@
 import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
 import {
-    CurrentPosition, BookPath, CurrentPositionPost,
+    CurrentPosition, BookPath, CurrentPositionPost, uuid,
 } from 'booka-common';
 
 const schema = {
@@ -41,7 +41,7 @@ async function addCurrent(accountId: string, cp: CurrentPositionPost): Promise<C
     } as const;
     const doc: DbCurrentPosition = {
         ...query,
-        uuid: cp.uuid,
+        uuid: uuid(),
         path: cp.path,
         created: cp.created,
     };

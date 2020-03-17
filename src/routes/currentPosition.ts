@@ -1,4 +1,3 @@
-import { ResolvedCurrentPosition } from 'booka-common';
 import { groupBy } from 'lodash';
 import { currentPosition } from '../db';
 import { authenticate } from '../auth';
@@ -6,28 +5,7 @@ import { fetchCards } from '../libApi';
 import { router } from './router';
 
 router.get('/current-position', authenticate(async ctx => {
-    const currentBookmarks = await currentPosition.forAccount(ctx.accountId);
-    const grouped = groupBy(currentBookmarks, b => b.bookId);
-    const cards = await fetchCards(
-        Object.entries(grouped).map(([bookId, bs]) => ({
-            id: bookId,
-            previews: bs.map(b => b.path),
-        })),
-    );
-
-    const result: ResolvedCurrentPosition[] = cards
-        .map(({ card, previews }) => {
-            const bs = grouped[card.id];
-            return {
-                card,
-                locations: bs.map((b, idx) => ({
-                    source: b.source,
-                    created: b.created,
-                    path: b.path,
-                    preview: previews[idx],
-                })),
-            };
-        });
+    const result = await currentPosition.forAccount(ctx.accountId);
     return { success: result };
 }));
 
