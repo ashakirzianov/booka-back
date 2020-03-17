@@ -70,7 +70,7 @@ async function addComment(accountId: string, data: Comment): Promise<Comment> {
     };
 }
 
-async function edit(accountId: string, data: Comment): Promise<boolean> {
+async function edit(accountId: string, data: Comment): Promise<Comment | null> {
     const updates: Partial<DbComment> = {
         ...data.content && { content: data.content },
         ...data.kind && { kind: data.kind },
@@ -80,7 +80,16 @@ async function edit(accountId: string, data: Comment): Promise<boolean> {
         { uuid: data.uuid, accountId },
         updates,
     ).exec();
-    return result ? true : false;
+    return result && {
+        uuid: result.uuid,
+        kind: result.kind as CommentKind,
+        content: result.content,
+        target: result.location,
+        lastEdited: result.lastEdited,
+        // TODO: be careful with this assumptions
+        children: [],
+        rating: 0,
+    };
 }
 
 async function doDelete(accountId: string, commentId: string): Promise<boolean> {

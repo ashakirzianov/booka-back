@@ -1,8 +1,7 @@
 import {
-    HasId, Note, iterateReferencedBookIds, NoteContent, NotePost, NoteUpdate,
+    Note, iterateReferencedBookIds, NoteContent, NotePost, NoteUpdate,
 } from 'booka-common';
 import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
-import { pick } from 'lodash';
 
 const schema = {
     accountId: {
@@ -77,7 +76,7 @@ async function add(accountId: string, data: NotePost): Promise<Note> {
     };
 }
 
-async function update(accountId: string, data: NoteUpdate): Promise<boolean> {
+async function update(accountId: string, data: NoteUpdate): Promise<Note | null> {
     const updates: Partial<DbNote> = {
         ...data.content && { content: data.content },
         ...data.title && { title: data.title },
@@ -89,7 +88,12 @@ async function update(accountId: string, data: NoteUpdate): Promise<boolean> {
         updates,
     ).exec();
 
-    return result ? true : false;
+    return result && {
+        _id: result._id,
+        content: result.content,
+        title: result.title,
+        lastEdited: result.lastEdited,
+    };
 }
 
 async function doDelete(accountId: string, noteId: string): Promise<boolean> {

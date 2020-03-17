@@ -83,7 +83,13 @@ async function update(accountId: string, highlight: Partial<Highlight>) {
         uuid: highlight.uuid,
         accountId,
     }, doc).exec();
-    return result ? true : false;
+    return result && {
+        uuid: result.uuid,
+        group: result.group,
+        bookId: result.bookId,
+        range: { start: result.start, end: result.end },
+        comment: result.comment,
+    };
 }
 
 async function doDelete(accountId: string, highlightId: string) {

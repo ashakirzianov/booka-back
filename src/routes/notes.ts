@@ -42,7 +42,7 @@ router.patch('/notes', authenticate(async ctx => {
 
     const result = await notes.update(ctx.accountId, body);
 
-    return { success: result };
+    return { success: result ?? false };
 }));
 
 router.delete('/notes', authenticate(async ctx => {
