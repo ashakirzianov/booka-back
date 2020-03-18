@@ -2,7 +2,7 @@
     "compilerOptions": {
         "incremental": true,
         "module": "commonjs",
-        "target": "esnext",
+        "target": "es2019",
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
