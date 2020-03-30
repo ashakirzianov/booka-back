@@ -1,18 +1,18 @@
-import { CardCollection } from 'booka-common';
+import { CardCollection, CardCollectionName } from 'booka-common';
 import { collections } from '../db';
 import { authenticate } from '../auth';
 import { fetchCards } from '../libApi';
 import { router } from './router';
 
 router.get('/collections', authenticate(async ctx => {
-    const name = ctx.query.name;
+    const name = ctx.query.name as CardCollectionName;
     if (!name) {
         return { fail: 'Collection name is not specified' };
     }
     const bookIds = await collections.forName(ctx.accountId, name);
     const fetchResult = await fetchCards(bookIds.map(id => ({ id })));
     const cards = fetchResult.map(r => r.card);
-    const collection: CardCollection = { cards };
+    const collection: CardCollection = { cards, name };
 
     return { success: collection };
 }));
