@@ -1,4 +1,4 @@
-import { CardCollectionName } from 'booka-common';
+import { CardCollectionName, CardCollection } from 'booka-common';
 import { model, DataFromModel, ObjectId } from 'booka-utils';
 import { groupBy } from 'lodash';
 
@@ -36,6 +36,17 @@ async function all(accountId: string) {
     return results;
 }
 
+async function forName(accountId: string, name: CardCollectionName) {
+    const forAccount = await docs
+        .find({ accountId })
+        .exec();
+
+    const filtered = forAccount.filter(r => r.collectionName === name);
+
+    const bookIds = filtered.map(doc => doc.bookId);
+    return bookIds;
+}
+
 async function add(accountId: string, bookId: string, collectionName: CardCollectionName): Promise<boolean> {
     const doc: DbCollection = {
         accountId,
@@ -64,6 +75,7 @@ async function remove(accountId: string, bookId: string, collectionName: CardCol
 
 export const collections = {
     all,
+    forName,
     add,
     remove,
 };
