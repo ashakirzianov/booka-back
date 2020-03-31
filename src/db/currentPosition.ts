@@ -1,6 +1,6 @@
 import { model, ObjectId, DataFromModel, taggedObject } from '../utils';
 import {
-    CurrentPosition, BookPath, CurrentPositionPost, uuid,
+    CurrentPosition, BookPath, CurrentPositionPost, uuid, EntitySource,
 } from 'booka-common';
 
 const schema = {
@@ -21,7 +21,7 @@ const schema = {
         required: true,
     },
     source: {
-        type: String,
+        type: taggedObject<EntitySource>(),
         required: true,
     },
     created: {
