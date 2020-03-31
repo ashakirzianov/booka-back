@@ -2,7 +2,7 @@ import {
     Comment, HasId, CommentKind, CommentTargetLocator, EditableNode,
     extractSpanText, filterUndefined,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
+import { model, DataFromModel, ObjectId, taggedObject } from '../utils';
 import { votes } from './votes';
 
 const schema = {

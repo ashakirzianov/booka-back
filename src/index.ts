@@ -5,7 +5,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as koaBody from 'koa-body';
 import * as logger from 'koa-logger';
-import { connectDb } from 'booka-utils';
+import { connectDb } from './utils';
 import { router } from './routes';
 import { passport } from './auth';
 import { config, SslConfig } from './config';

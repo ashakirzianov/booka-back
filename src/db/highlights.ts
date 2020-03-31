@@ -1,7 +1,7 @@
 import {
     Highlight, HasId, BookPath, EditableNode, HighlightPost,
 } from 'booka-common';
-import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
+import { model, ObjectId, DataFromModel, taggedObject } from '../utils';
 import { pick } from 'lodash';
 
 const schema = {

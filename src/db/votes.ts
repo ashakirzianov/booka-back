@@ -1,5 +1,5 @@
 import { VoteKind, HasId, Vote, filterUndefined } from 'booka-common';
-import { model, DataFromModel, ObjectId } from 'booka-utils';
+import { model, DataFromModel, ObjectId } from '../utils';
 import { comments } from './comments';
 
 const schema = {

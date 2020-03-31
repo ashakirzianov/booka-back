@@ -1,5 +1,5 @@
 import { CardCollectionName, CardCollection } from 'booka-common';
-import { model, DataFromModel, ObjectId } from 'booka-utils';
+import { model, DataFromModel, ObjectId } from '../utils';
 import { groupBy } from 'lodash';
 
 const schema = {

@@ -1,7 +1,7 @@
 import {
     Note, iterateReferencedBookIds, NoteContent, NotePost, NoteUpdate,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId, taggedObject } from 'booka-utils';
+import { model, DataFromModel, ObjectId, taggedObject } from '../utils';
 
 const schema = {
     accountId: {
