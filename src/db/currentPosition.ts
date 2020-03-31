@@ -1,4 +1,4 @@
-import { model, ObjectId, DataFromModel, taggedObject } from 'booka-utils';
+import { model, ObjectId, DataFromModel, taggedObject } from '../utils';
 import {
     CurrentPosition, BookPath, CurrentPositionPost, uuid,
 } from 'booka-common';

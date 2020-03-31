@@ -1,5 +1,5 @@
 import { KnownTag, KnownTagName } from 'booka-common';
-import { model, DataFromModel, ObjectId } from 'booka-utils';
+import { model, DataFromModel, ObjectId } from '../utils';
 
 const schema = {
     accountId: {

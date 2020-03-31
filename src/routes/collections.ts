@@ -1,27 +1,20 @@
-import { router } from './router';
+import { CardCollection, CardCollectionName } from 'booka-common';
 import { collections } from '../db';
 import { authenticate } from '../auth';
 import { fetchCards } from '../libApi';
-import { CardCollections } from 'booka-common';
+import { router } from './router';
 
 router.get('/collections', authenticate(async ctx => {
-    const all = await collections.all(ctx.accountId);
-    const resolved = await Promise.all(
-        all.map(async ({ collectionName, bookIds }) => {
-            const cards = await fetchCards(bookIds.map(id => ({ id })));
+    const name = ctx.query.name as CardCollectionName;
+    if (!name) {
+        return { fail: 'Collection name is not specified' };
+    }
+    const bookIds = await collections.forName(ctx.accountId, name);
+    const fetchResult = await fetchCards(bookIds.map(id => ({ id })));
+    const cards = fetchResult.map(r => r.card);
+    const collection: CardCollection = { cards, name };
 
-            return {
-                name: collectionName,
-                cards: cards.map(c => c.card),
-            };
-        })
-    );
-    const result: CardCollections = resolved.reduce(
-        (res, c) => ({ ...res, [c.name]: c.cards }),
-        {}
-    );
-
-    return { success: result };
+    return { success: collection };
 }));
 
 router.post('/collections', authenticate(async ctx => {

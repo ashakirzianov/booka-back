@@ -1,4 +1,4 @@
-import { model, ObjectId, DataFromModel, extractDataFields, taggedObject } from 'booka-utils';
+import { model, ObjectId, DataFromModel, extractDataFields, taggedObject } from '../utils';
 import {
     Bookmark, BookmarkPost, BookPath,
 } from 'booka-common';
