@@ -1,6 +1,6 @@
 import { model, ObjectId, DataFromModel, taggedObject } from '../utils';
 import {
-    CurrentPosition, BookPath, CurrentPositionPost, uuid,
+    CurrentPosition, BookPath, CurrentPositionPost, uuid, EntitySource,
 } from 'booka-common';
 
 const schema = {
@@ -21,7 +21,7 @@ const schema = {
         required: true,
     },
     source: {
-        type: String,
+        type: taggedObject<EntitySource>(),
         required: true,
     },
     created: {
@@ -37,10 +37,14 @@ async function addCurrent(accountId: string, cp: CurrentPositionPost): Promise<C
     const query = {
         accountId,
         bookId: cp.bookId,
-        source: cp.source,
+        source: {
+            id: cp.source.id,
+        },
     } as const;
     const doc: DbCurrentPosition = {
-        ...query,
+        accountId,
+        bookId: cp.bookId,
+        source: cp.source,
         uuid: uuid(),
         path: cp.path,
         created: cp.created,
