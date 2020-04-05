@@ -3,10 +3,6 @@ import { model, DataFromModel, ObjectId } from '../utils';
 import { comments } from './comments';
 
 const schema = {
-    uuid: {
-        type: String,
-        required: true,
-    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -44,7 +40,6 @@ async function calculateRating(commentId: string): Promise<number> {
 async function vote(accountId: string, data: Vote): Promise<Vote> {
     const doc: DbVote = {
         accountId,
-        uuid: data.uuid,
         commentId: data.commentId,
         kind: data.kind,
         created: new Date(),
@@ -57,7 +52,6 @@ async function vote(accountId: string, data: Vote): Promise<Vote> {
     ).exec();
 
     return {
-        uuid: result.uuid,
         kind: result.kind as VoteKind,
         commentId: result.commentId,
     };
@@ -92,7 +86,6 @@ async function buildVote(doc: DbVote & HasId): Promise<Vote | undefined> {
     }
 
     const result: Vote = {
-        uuid: doc.uuid,
         kind: doc.kind as VoteKind,
         commentId: doc.commentId,
     };

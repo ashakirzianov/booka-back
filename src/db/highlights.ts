@@ -1,8 +1,7 @@
 import {
-    Highlight, HasId, BookPath, EditableNode, HighlightPost,
+    Highlight, BookPath, EditableNode, HighlightPost, HighlightGroup,
 } from 'booka-common';
 import { model, ObjectId, DataFromModel, taggedObject } from '../utils';
-import { pick } from 'lodash';
 
 const schema = {
     uuid: {
@@ -39,7 +38,7 @@ async function forBook(accountId: string, bookId: string): Promise<Highlight[]> 
     const result = await docs.find({ accountId, bookId }).exec();
     return result.map(r => ({
         uuid: r.uuid,
-        group: r.group,
+        group: r.group as HighlightGroup,
         bookId,
         range: {
             start: r.start,
@@ -63,14 +62,14 @@ async function addHighlight(accountId: string, highlight: HighlightPost): Promis
 
     return {
         uuid: result.uuid,
-        group: result.group,
+        group: result.group as HighlightGroup,
         bookId: result.bookId,
         range: { start: result.start, end: result.end },
         comment: result.comment,
     };
 }
 
-async function update(accountId: string, highlight: Partial<Highlight>) {
+async function update(accountId: string, highlight: Partial<Highlight>): Promise<Highlight | null> {
     const doc: Partial<DbHighlight> = {
         ...highlight.group && { group: highlight.group },
         ...highlight.comment && { comment: highlight.comment },
@@ -85,7 +84,7 @@ async function update(accountId: string, highlight: Partial<Highlight>) {
     }, doc).exec();
     return result && {
         uuid: result.uuid,
-        group: result.group,
+        group: result.group as HighlightGroup,
         bookId: result.bookId,
         range: { start: result.start, end: result.end },
         comment: result.comment,

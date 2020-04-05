@@ -4,6 +4,10 @@ import {
 import { model, DataFromModel, ObjectId, taggedObject } from '../utils';
 
 const schema = {
+    uuid: {
+        type: String,
+        required: true,
+    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -26,7 +30,7 @@ async function getOne(accountId: string, noteId: string): Promise<Note | undefin
     const doc = await docs.findById(noteId).exec();
     if (doc && doc.accountId === accountId) {
         const note: Note = {
-            _id: doc._id,
+            uuid: doc.uuid,
             content: doc.content as NoteContent[],
             title: doc.title,
             lastEdited: doc.lastEdited,
@@ -39,7 +43,7 @@ async function getOne(accountId: string, noteId: string): Promise<Note | undefin
 async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
     const allDocs = await docs.find({ accountId }).exec();
     const allNotes: Note[] = allDocs.map(d => ({
-        _id: d._id.toString(),
+        uuid: d.uuid,
         lastEdited: d.lastEdited,
         title: d.title,
         content: d.content as NoteContent[],
@@ -61,6 +65,7 @@ async function getAll(accountId: string, bookId?: string): Promise<Note[]> {
 async function add(accountId: string, data: NotePost): Promise<Note> {
     const doc: DbNote = {
         accountId,
+        uuid: data.uuid,
         content: data.content,
         title: data.title,
         lastEdited: new Date(),
@@ -69,7 +74,7 @@ async function add(accountId: string, data: NotePost): Promise<Note> {
     const [result] = await docs.insertMany([doc]);
 
     return {
-        _id: result._id,
+        uuid: result.uuid,
         title: result.title,
         lastEdited: result.lastEdited,
         content: result.content,
@@ -84,12 +89,12 @@ async function update(accountId: string, data: NoteUpdate): Promise<Note | null>
     };
 
     const result = await docs.findOneAndUpdate(
-        { accountId, _id: data._id },
+        { accountId, uuid: data.uuid },
         updates,
     ).exec();
 
     return result && {
-        _id: result._id,
+        uuid: result.uuid,
         content: result.content,
         title: result.title,
         lastEdited: result.lastEdited,

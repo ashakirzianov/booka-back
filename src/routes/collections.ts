@@ -10,8 +10,7 @@ router.get('/collections', authenticate(async ctx => {
         return { fail: 'Collection name is not specified' };
     }
     const bookIds = await collections.forName(ctx.accountId, name);
-    const fetchResult = await fetchCards(bookIds.map(id => ({ id })));
-    const cards = fetchResult.map(r => r.card);
+    const cards = await fetchCards(bookIds);
     const collection: CardCollection = { cards, name };
 
     return { success: collection };
