@@ -33,10 +33,8 @@ async function addCurrent(accountId: string, cp: CurrentPosition): Promise<Curre
     const query = {
         accountId,
         bookId: cp.bookId,
-        source: {
-            id: cp.source.id,
-        },
-    } as const;
+        'source.id': cp.source.id,
+    };
     const doc: DbCurrentPosition = {
         accountId,
         bookId: cp.bookId,
@@ -44,6 +42,7 @@ async function addCurrent(accountId: string, cp: CurrentPosition): Promise<Curre
         path: cp.path,
         created: cp.created,
     };
+
     const result = await docs.findOneAndUpdate(
         query,
         doc,
