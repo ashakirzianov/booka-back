@@ -17,13 +17,10 @@ async function startup(app: Koa) {
     await connectDb(config().auth.mongoDbUri);
 
     app.use(logger());
+    app.use(cors());
     app.use(koaBody({
-        parsedMethods: ['POST', 'PUT', 'PATCH', 'GET', 'DELETE'],
         multipart: true,
         formLimit: 50 * 1024 * 1024,
-    }));
-    app.use(cors({
-        origin: '*',
     }));
 
     app.use(passport.initialize());

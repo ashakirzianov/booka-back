@@ -1,8 +1,8 @@
 import {
-    Comment, HasId, CommentKind, CommentTargetLocator, EditableNode,
+    Comment, CommentKind, CommentTargetLocator, EditableNode,
     extractSpanText, filterUndefined,
 } from 'booka-common';
-import { model, DataFromModel, ObjectId, taggedObject } from '../utils';
+import { model, DataFromModel, ObjectId, taggedObject, HasId } from '../utils';
 import { votes } from './votes';
 
 const schema = {

@@ -1,13 +1,9 @@
 import { model, ObjectId, DataFromModel, taggedObject } from '../utils';
 import {
-    CurrentPosition, BookPath, CurrentPositionPost, uuid, EntitySource,
+    CurrentPosition, BookPath, uuid, EntitySource,
 } from 'booka-common';
 
 const schema = {
-    uuid: {
-        type: String,
-        required: true,
-    },
     accountId: {
         type: ObjectId,
         required: true,
@@ -33,22 +29,20 @@ const schema = {
 const docs = model('CurrentPosition', schema);
 type DbCurrentPosition = DataFromModel<typeof docs>;
 
-async function addCurrent(accountId: string, cp: CurrentPositionPost): Promise<CurrentPosition> {
+async function addCurrent(accountId: string, cp: CurrentPosition): Promise<CurrentPosition> {
     const query = {
         accountId,
         bookId: cp.bookId,
-        source: {
-            id: cp.source.id,
-        },
-    } as const;
+        'source.id': cp.source.id,
+    };
     const doc: DbCurrentPosition = {
         accountId,
         bookId: cp.bookId,
         source: cp.source,
-        uuid: uuid(),
         path: cp.path,
         created: cp.created,
     };
+
     const result = await docs.findOneAndUpdate(
         query,
         doc,
@@ -56,7 +50,6 @@ async function addCurrent(accountId: string, cp: CurrentPositionPost): Promise<C
     ).exec();
 
     return {
-        uuid: result.uuid,
         source: result.source,
         bookId: result.bookId,
         path: result.path,
@@ -68,7 +61,6 @@ async function forAccount(accountId: string): Promise<CurrentPosition[]> {
     const result = await docs.find({ accountId }).exec();
     const entities = result
         .map<CurrentPosition>(db => ({
-            uuid: db.uuid,
             source: db.source,
             bookId: db.bookId,
             path: db.path,
