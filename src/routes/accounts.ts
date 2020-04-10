@@ -23,7 +23,7 @@ router.get('/auth/fbtoken', async ctx => {
     };
 });
 
-router.get('/me/info', authenticate(async ctx => {
+router.get('/account', authenticate(async ctx => {
     const accountInfo = await accounts.info(ctx.accountId);
     return accountInfo
         ? { success: accountInfo }
